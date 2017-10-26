@@ -4,9 +4,7 @@ module.exports = function(ms) {
   let minutes = seconds / 60;
   let hours = minutes / 60;
 
-  console.log(hours, minutes, seconds);
-
-  if (minutes >= 60) {
+  if (minutes >= 1) {
     seconds -= 60 * ~~minutes;
   }
 

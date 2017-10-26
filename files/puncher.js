@@ -42,13 +42,26 @@ module.exports = function(config) {
   }
 
   function getLastPunchFile() {
-    let file = getPunchFile(Date.now(), false);
+    const files = fs.readdirSync(punchPath).sort();
+    let file;
+    let filePath;
 
-    // while (!file.exists) {
+    for (let i = files.length - 1; i >= 0; i--) {
+      try {
+        filePath = path.join(punchPath, files[i]);
+        file = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      } catch (err) {
+        console.error('Failed to read punchfile: ' + files[i]);
+      }
 
-    // }
+      if (file) break;
+    }
 
-    return file;
+    return {
+      path: filePath,
+      exists: true,
+      contents: file,
+    };
   }
 
   function savePunchFile(file) {
@@ -65,10 +78,11 @@ module.exports = function(config) {
       in: now,
       out: null,
       comment: null,
+      rewind: 0,
     });
 
     savePunchFile(file);
-    console.log(JSON.stringify(file.contents, null, 2));
+    // console.log(JSON.stringify(file.contents, null, 2));
   }
 
   function punchOut(comment) {
@@ -76,7 +90,7 @@ module.exports = function(config) {
     const now = Date.now();
 
     if (!file) {
-      throw new Error('Nothing to punch out from!');
+      return console.warn('Nothing to punch out from!');
     }
 
     const { punches } = file.contents;
@@ -87,21 +101,29 @@ module.exports = function(config) {
     lastPunch.comment = comment || null;
 
     savePunchFile(file);
-    console.log(JSON.stringify(file.contents.punches, null, 2));
+    // console.log(JSON.stringify(file.contents.punches, null, 2));
   }
 
-  function rewind(milliseconds) {
+  function rewind(fuzzyStr) {
 
-  }
-
-  function isPunchedIn() {
-    return false;
   }
 
   function currentSession() {
     const file = getLastPunchFile();
-  
-    console.log(file);
+    if (file) {
+      const { punches } = file.contents;
+      if (punches[punches.length - 1].out == null) {
+        return punches[punches.length - 1];
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
+
+  function lastSession() {
+
   }
 
   function sessionsByProject() {
@@ -112,8 +134,8 @@ module.exports = function(config) {
     punchIn,
     punchOut,
     rewind,
-    isPunchedIn,
     currentSession,
+    lastSession,
     sessionsByProject,
   };
 }

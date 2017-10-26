@@ -1,6 +1,10 @@
+#!/usr/bin/env node
+
 const config = require('./files/config')();
-const punchfile = require('./files/puncher')(config);
+const puncher = require('./files/puncher')(config);
+const reporter = require('./analysis/reporter')(config);
 const datefmt = require('./formatting/time');
+const durationfmt = require('./formatting/duration');
 
 const command = process.argv[2];
 const params = process.argv.slice(3);
@@ -21,6 +25,15 @@ const getLabelFor = param => {
     return param;
   }
 };
+
+const getRateFor = proj => {
+  const project = config.projects.find(p => p.alias === proj);
+  if (project) {
+    return project.hourlyRate;
+  } else {
+    return 0;
+  }
+}
 
 /*=========================*\
 ||      Parse/Dispatch     ||
@@ -57,41 +70,52 @@ async function cmdIn() {
     return console.log(`Can't punch in without a project name. Try: 'punch in [project]'`);
   }
 
-  if (punchfile.isPunchedIn()) {
-    const label = getLabelFor(punchfile.currentSession().alias);
+  const current = puncher.currentSession();
+
+  if (current) {
+    const label = getLabelFor(current.project);
     return console.log(`You're already punched in on ${label}! Punch out first.`);
   } else {
     const time = datefmt.time(Date.now());
     const label = getLabelFor(project);
-    punchfile.punchIn(project);
+    puncher.punchIn(project);
     console.log(`Punched in on ${label} at ${time}.`);
   }
 }
 
 async function cmdOut() {
-  const [comment] = params;
-
-  console.log('Running out. comment:', comment);
-
-  punchfile.punchOut(comment);
-
   // End a session.
-  // if (punchfile.isPunchedIn()) {
-  //   const [desc] = params;
-  //   const label = getLabelFor(punchfile.currentSession().alias);
-  //   const time = datefmt.time(Date.now());
+  const current = puncher.currentSession();
 
-  //   punchfile.punchOut(desc);
-  //   console.log(`Punched out on ${label} at ${time}`);
-  // }
+  if (current) {
+    const [comment] = params;
+    const label = getLabelFor(current.project);
+    const time = datefmt.time(Date.now());
+    const duration = Date.now() - current.in;
+    const pay = duration / 1000 / 60 / 60 * getRateFor(current.project);
+
+    puncher.punchOut(comment);
+    console.log(`Punched out on ${label} at ${time}. Worked for ${durationfmt(duration)} and earned \$${pay.toFixed(2)}.`);
+  } else {
+    console.log(`You're not punched in!`);
+  }
 }
 
 function cmdRewind() {
-  console.log('[NOT IMPLEMENTED] Remove a given amount of time from the current session.');
+  const current = puncher.currentSession();
+  const [amount] = params;
+
+  if (current) {
+    puncher.rewind(amount);
+    console.log(`Rewound by ${amount} on current ${getLabelFor(current.project)} session.`);
+  } else {
+    console.log('You\'re not currently punched in. Do you want to apply this rewind to the previous session?');
+    console.log('[NOT IMPLEMENTED] Get user input (y/n)');
+  }
 }
 
 function cmdNow() {
-  const session = punchfile.currentSession();
+  const session = puncher.currentSession();
   if (session) {
     console.log('Session', session);
   } else {
@@ -101,7 +125,7 @@ function cmdNow() {
 }
 
 function cmdSessions() {
-  punchfile.sessionsByProject();
+  puncher.sessionsByProject();
 }
 
 function cmdProjects() {
