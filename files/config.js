@@ -6,7 +6,7 @@ module.exports = function() {
   let file;
 
   try {
-    file = fs.readFileSync(path.join(home, '.punch.json'), 'utf8');
+    file = fs.readFileSync(path.join(home, '.punch', 'punchconfig.json'), 'utf8');
   } catch (err) {
     console.error(err);
     throw new Error('Missing config: No .punch.json file found in your home directory. Please create it and restart punch.');

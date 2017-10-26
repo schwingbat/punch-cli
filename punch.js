@@ -1,5 +1,5 @@
 const config = require('./files/config')();
-const punchfile = require('./files/punchfile')(config);
+const punchfile = require('./files/puncher')(config);
 const datefmt = require('./formatting/time');
 
 const command = process.argv[2];
@@ -33,9 +33,9 @@ case 'out':
   return cmdOut();
 case 'rewind':
   return cmdRewind();
-case 'current': 
 case 'time':
-  return cmdTime();
+case 'now':
+  return cmdNow();
 case 'sessions':
   return cmdSessions();
 case 'projects':
@@ -69,25 +69,35 @@ async function cmdIn() {
 }
 
 async function cmdOut() {
-  console.log('Running out');
+  const [comment] = params;
+
+  console.log('Running out. comment:', comment);
+
+  punchfile.punchOut(comment);
 
   // End a session.
-  if (punchfile.isPunchedIn()) {
-    const [desc] = params;
-    const label = getLabelFor(punchfile.currentSession().alias);
-    const time = datefmt.time(Date.now());
+  // if (punchfile.isPunchedIn()) {
+  //   const [desc] = params;
+  //   const label = getLabelFor(punchfile.currentSession().alias);
+  //   const time = datefmt.time(Date.now());
 
-    punchfile.punchOut(desc);
-    console.log(`Punched out on ${label} at ${time}`);
-  }
+  //   punchfile.punchOut(desc);
+  //   console.log(`Punched out on ${label} at ${time}`);
+  // }
 }
 
 function cmdRewind() {
-  console.log('[NOT IMPLEMENTED] Remove a given amount of time from the current session, due to a break or something.');
+  console.log('[NOT IMPLEMENTED] Remove a given amount of time from the current session.');
 }
 
-function cmdTime() {
-  console.log('[NOT IMPLEMENTED] Show time elapsed since punch in');
+function cmdNow() {
+  const session = punchfile.currentSession();
+  if (session) {
+    console.log('Session', session);
+  } else {
+    console.log('No current session.');
+  }
+  // console.log('[NOT IMPLEMENTED] Show current project and time elapsed since punch in');
 }
 
 function cmdSessions() {

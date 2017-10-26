@@ -35,3 +35,50 @@ session start end project [description]
 ```
 
 Tabs separate each value and newlines separate each punch.
+
+
+
+
+
+## Dir structure
+
+Have a .punch folder in the user's home directory.
+The punchconfig.json file resides in that folder.
+
+Structure:
+```
+~
+|-> punchconfig.json
+|-> punches/
+    |-> punches_10_25_2017.json
+    |-> punches_10_26_2017.json
+    |-> punches_10_27_2017.json
+    |-> ...
+```
+
+Using `punch in [project]` will create a new punch file for that day if none exists, or add a new punch in that file if it does exist.
+
+Punch file:
+```json
+[
+  {
+    "project": "itzadoozie",
+    "in": 902898102, // punch in time
+    "out": 908210292, // punch out time
+    "rewind": 600120, // amount of time to subtract (break, etc.)
+    "comment": "Fixed sticky tiles"
+  },
+  {
+    "project": "morganizer",
+    "in": 902898102,
+    "out": null, // null means not punched out yet.
+    "rewind": 0
+  },
+]
+```
+
+Theoretically you should be able to run `punch sync` with a project left punched in and then `punch out` on another computer and resync.
+
+# Fixing
+
+`punch fix last 10:12pm` would correct the last punch to the given time.
