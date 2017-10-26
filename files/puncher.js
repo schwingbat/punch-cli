@@ -7,7 +7,7 @@ module.exports = function(config) {
   function getPunchFile(timestamp = Date.now(), create = false) {
     const date = new Date(timestamp);
     const month = date.getMonth() + 1;
-    const day = date.getDay();
+    const day = date.getDate();
     const year = date.getFullYear();
 
     const filePath = path.join(punchPath, `punch_${year}_${month}_${day}.json`);
@@ -54,14 +54,12 @@ module.exports = function(config) {
         console.error('Failed to read punchfile: ' + files[i]);
       }
 
-      if (file) break;
+      return {
+        path: filePath,
+        exists: true,
+        contents: file,
+      };
     }
-
-    return {
-      path: filePath,
-      exists: true,
-      contents: file,
-    };
   }
 
   function savePunchFile(file) {
@@ -96,7 +94,7 @@ module.exports = function(config) {
     const { punches } = file.contents;
     const lastPunch = punches[punches.length - 1];
 
-    file.updated = now;
+    file.contents.updated = now;
     lastPunch.out = now;
     lastPunch.comment = comment || null;
 
