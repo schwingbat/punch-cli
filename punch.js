@@ -53,6 +53,8 @@ case 'sessions':
   return cmdSessions();
 case 'projects':
   return cmdProjects();
+case 'report':
+  return cmdReport();
 default:
   console.error(`Unrecognized command: ${command}`);
   return cmdHelp();
@@ -133,6 +135,32 @@ function cmdSessions() {
 
 function cmdProjects() {
   console.log('[NOT IMPLEMENTED] List all projects from config file');
+}
+
+function cmdReport() {
+  let when = (params.length === 0)
+    ? 'today'
+    : params.join(' ').toLowerCase();
+  let date = new Date();
+
+  switch (when) {
+  case 'today':
+    puncher.reportForDay(date);
+    break;
+  case 'yesterday':
+    date.setDate(date.getDate() - 1);
+    puncher.reportForDay(date);
+    break;
+  case 'week':
+  case 'this week':
+    break;
+  case 'month':
+  case 'this month':
+    break;
+  default:
+    console.log(`Unknown time: ${when}`);
+    break;
+  }
 }
 
 function cmdHelp() {

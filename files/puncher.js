@@ -1,5 +1,7 @@
 const fs = require('fs');
 const path = require('path');
+const datefmt = require('../formatting/time');
+const durationfmt = require('../formatting/duration');
 
 module.exports = function(config) {
   const punchPath = path.join(require('os').homedir(), '.punch', 'punches');
@@ -128,6 +130,73 @@ module.exports = function(config) {
 
   }
 
+  /*=======================*\
+  ||       Reporting       ||
+  \*=======================*/
+
+  function reportForSession(session) {
+
+  }
+
+  function reportForDay(date = new Date(), project) {
+    const file = getPunchFile(date);
+
+    if (!file.exists) {
+      return console.log(`No sessions for ${datefmt.date(date)}.`);
+    }
+
+    let projects = {};
+    file.contents.punches.forEach(punch => {
+      if (!punch.out) return;
+      if (project && punch.project !== project) return;
+
+      if (!projects[punch.project]) projects[punch.project] = {
+        name: punch.project,
+        time: 0,
+        rewind: 0,
+        sessions: [],
+      }
+
+      projects[punch.project].time += punch.out - punch.in;
+      projects[punch.project].sessions.push({
+        start: datefmt.dateTime(punch.in),
+        end: datefmt.dateTime(punch.out),
+        time: punch.out - punch.in,
+        comment: punch.comment,
+        duration: durationfmt(punch.out - punch.in),
+      });
+    });
+
+    for (const name in projects) {
+      const proj = config.projects.find(p => p.alias === name);
+
+      const time = durationfmt(projects[name].time - projects[name].rewind);
+      let pay;
+      if (proj && proj.hourlyRate) {
+        pay = '$' + (projects[name].time / 1000 / 60 / 60 * proj.hourlyRate).toFixed(2);
+      }
+
+      console.log();
+      console.log(`${proj ? proj.name : name} (${time}${pay ? ' / ' + pay : ''})`);
+      projects[name].sessions.forEach(session => {
+        const span = session.start.split(' ').pop() + ' - ' + session.end.split(' ').pop();
+        let sessionPay;
+        if (proj && proj.hourlyRate) {
+          sessionPay = '$' + (session.time / 1000 / 60 / 60 * proj.hourlyRate).toFixed(2);
+        }
+        console.log(`  ${span} (${session.duration}${sessionPay ? ' / ' + sessionPay : ''}) ${session.comment ? ' => "' + session.comment + '"' : ''}`);
+      });
+    }
+  }
+
+  function reportForMonth(date, project) {
+
+  }
+
+  function reportForYear(date, project) {
+
+  }
+
   return {
     punchIn,
     punchOut,
@@ -135,5 +204,9 @@ module.exports = function(config) {
     currentSession,
     lastSession,
     sessionsByProject,
+    reportForSession,
+    reportForDay,
+    reportForMonth,
+    reportForYear,
   };
 }

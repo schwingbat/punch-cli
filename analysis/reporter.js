@@ -1,26 +1,16 @@
 // Generate reports.
 
 module.exports = function(config) {
-  function forSession(session) {
-
+  function forOne(session) {
+    
   }
 
-  function forDay(year, month, day) {
-
-  }
-
-  function forMonth(year, month) {
-
-  }
-
-  function forYear(year) {
+  function forAll(sessions) {
 
   }
 
   return {
-    forSession,
-    forYear,
-    forMonth,
-    forYear,
+    forOne,
+    forAll,
   };
 };
