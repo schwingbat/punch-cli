@@ -88,7 +88,7 @@ async function cmdOut() {
   const current = puncher.currentSession();
 
   if (current) {
-    const [comment] = params;
+    const comment = params.join(' '); // Join the rest of the params into a sentence.
     const label = getLabelFor(current.project);
     const time = datefmt.time(Date.now());
     const duration = Date.now() - current.in;
@@ -115,9 +115,12 @@ function cmdRewind() {
 }
 
 function cmdNow() {
-  const session = puncher.currentSession();
-  if (session) {
-    console.log('Session', session);
+  const current = puncher.currentSession();
+  if (current) {
+    const duration = Date.now() - current.in;
+    const pay = duration / 1000 / 60 / 60 * getRateFor(current.project);
+    const punchedIn = datefmt.time(current.in);
+    console.log(`You punched in on ${getLabelFor(current.project)} at ${punchedIn} and have been working for ${durationfmt(duration)} (\$${pay.toFixed(2)}).`);
   } else {
     console.log('No current session.');
   }
