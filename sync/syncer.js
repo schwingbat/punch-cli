@@ -37,7 +37,7 @@ module.exports = function(config) {
             downloads.push(file);
           }
         } catch (err) {
-          downloads.push(f);
+          downloads.push(file);
         }
 
         done += 1;
