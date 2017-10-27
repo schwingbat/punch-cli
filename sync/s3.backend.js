@@ -71,10 +71,10 @@ module.exports = function(config) {
 
           s3.putObject(params, (err, data) => {
             if (err) throw err;
-            console.log(data);
 
             done += 1;
             if (done === length) {
+              console.log(`Uploaded ${length} punchfile${length === 1 ? '' : 's'}.`);
               return resolve(results);
             }
           });
@@ -107,6 +107,7 @@ module.exports = function(config) {
             done += 1;
             if (done === length) {
               results.downloaded = downloaded;
+              console.log(`Downloaded ${length} punchfile${length === 1 ? '' : 's'}.`);
               return resolve(results);
             }
           });
