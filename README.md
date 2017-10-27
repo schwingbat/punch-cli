@@ -1,5 +1,44 @@
 # Punch
 
+Punch is a cross-platform time tracker for your terminal. You just `punch in` when you start working and `punch out` when you stop. You can also `punch sync` to synchronize your data, so your work can follow you between computers and operating systems throughout the day. There is some assembly required, however:
+
+## Configuration
+
+The basic configuration is thus: you have a folder in your home directory called `.punch`, which contains this structure:
+
+```
+~/.punch/
+|-> punchconfig.json
+|-> punches/
+    |-> punches_10_25_2017.json
+    |-> punches_10_26_2017.json
+    |-> punches_10_27_2017.json
+    |-> ...
+```
+
+I plan to create an automatic setup eventually, but if you're on Mac or Linux you can run this command: `mkdir -p ~/.punch/punches; touch ~/.punch/punchconfig.json`
+
+Your `punchconfig.json` should contain at least this minimal configuration:
+
+```json
+{
+  "user": {
+    "firstName": "Your",
+    "lastName": "Name"
+  },
+  "sync": {
+    "backends": [{}]
+  },
+  "projects": [
+    {
+      "name": "My First Project",
+      "alias": "my-project", // What you punch in with e.g. `punch in my-project`
+      "hourlyRate": 55.55
+    }
+  ]
+}
+```
+
 ## API
 
 ### Key
@@ -42,24 +81,6 @@ Show a summarized list of total time and pay for a given period of time.
 > ONLY AMAZON S3 IS IMPLEMENTED
 
 Synchronize punch files with the provided backend (or all of them if none are specified).
-
-## Dir structure
-
-Have a .punch folder in the user's home directory.
-The punchconfig.json file resides in that folder.
-
-Structure:
-```
-~
-|-> punchconfig.json
-|-> punches/
-    |-> punches_10_25_2017.json
-    |-> punches_10_26_2017.json
-    |-> punches_10_27_2017.json
-    |-> ...
-```
-
-Using `punch in [project]` will create a new punch file for that day if none exists, or add a new punch in that file if it does exist.
 
 Punch file:
 ```json

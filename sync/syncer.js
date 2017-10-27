@@ -27,11 +27,12 @@ module.exports = function(config) {
         total += 1;
       }
 
+      // Check for files in sync manifest.
       for (const file in manifest) {
         try {
           const f = JSON.parse(fs.readFileSync(path.join(punchPath, file), 'utf8'));
 
-          if (f.updated > manifest[file]) {
+          if (!manifest[file] || f.updated > manifest[file]) {
             uploads.push(file)
           } else if (f.updated < manifest[file]) {
             downloads.push(file);
@@ -42,6 +43,12 @@ module.exports = function(config) {
 
         done += 1;
         if (done === total) {
+          // Check for files locally (not in manifest)
+          fs.readdirSync(punchPath).forEach(file => {
+            if (!manifest[file]) {
+              uploads.push(file);
+            }
+          });
           return resolve({ uploads, downloads, manifest });
         }
       }
