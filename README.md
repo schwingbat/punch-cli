@@ -1,44 +1,47 @@
 # Punch
 
 ## API
-```bash
-# Start and stop
-punch in bidpro
-punch out
 
-# With description
-punch in bidpro "Designing login screen"
+### Key
+- `[something]` is a required parameter.
+- `[?something]` is an optional parameter.
+- `[?something=value]` is a parameter that is set to a default value if not passed.
 
-# Get current time worked
-punch time
-#=> You've worked on Morganizer for 1h 32m this session.
+### Commands
 
-# Rewind a missed punch or a break
-punch rewind 15m
-#=> Rewound Morganizer session by 15m (1h 32m -> 1h 17m)
-```
+#### `in [project]`
 
-## File Format
+Punch in on a project.
 
-Entries are added line by line on an append-only basis.
+#### `out [?comment]`
 
-Structure goes something like this:
-```
-in  timestamp project
-out timestamp project [description]
-rewind  amount  project
-```
+Punch out of the current project. You can provide an optional comment to keep track of how you spent the time.
 
-This could potentially get compacted occasionally to save space:
-```
-session start end project [description]
-```
+#### `rewind [time]`
 
-Tabs separate each value and newlines separate each punch.
+> NOT YET IMPLEMENTED
 
+Subtract a specified amount of time from the current (or previous) session if, for example, you took a 15 minute break but forgot to punch out.
 
+#### `create [project] [timeIn] [timeOut] [?comment]`
 
+Create an entire punch (in and out) if you forgot to punch, or if you're importing punches from another format.
 
+#### `now`
+
+Show the current project and time spent in the current session.
+
+#### `report [?when=today]`
+
+> ONLY 'TODAY' AND 'YESTERDAY' ARE CURRENTLY IMPLEMENTED
+
+Show a summarized list of total time and pay for a given period of time.
+
+#### `sync [?backend=all]`
+
+> ONLY AMAZON S3 IS IMPLEMENTED
+
+Synchronize punch files with the provided backend (or all of them if none are specified).
 
 ## Dir structure
 
@@ -77,7 +80,7 @@ Punch file:
 ]
 ```
 
-Theoretically you should be able to run `punch sync` with a project left punched in and then `punch out` on another computer and resync.
+Thanks to the stateless and file-based nature of Punch, nothing actually runs in the background while punched in. You *can* `punch in` on one computer, `punch sync`, then `punch out` on another computer.
 
 # Fixing
 
