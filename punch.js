@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const config = require('./files/config')();
+const syncer = require('./sync/syncer')(config);
 const puncher = require('./files/puncher')(config);
 const reporter = require('./analysis/reporter')(config);
 const datefmt = require('./formatting/time');
@@ -8,6 +9,8 @@ const durationfmt = require('./formatting/duration');
 
 const command = process.argv[2];
 const params = process.argv.slice(3);
+
+const { autoSync } = config.sync;
 
 if (command == null) {
   return cmdHelp();
@@ -46,15 +49,16 @@ case 'out':
   return cmdOut();
 case 'rewind':
   return cmdRewind();
+case 'current':
 case 'time':
 case 'now':
   return cmdNow();
-case 'sessions':
-  return cmdSessions();
 case 'projects':
   return cmdProjects();
 case 'report':
   return cmdReport();
+case 'sync':
+  return cmdSync();
 default:
   console.error(`Unrecognized command: ${command}`);
   return cmdHelp();
@@ -82,6 +86,9 @@ async function cmdIn() {
     const label = getLabelFor(project);
     puncher.punchIn(project);
     console.log(`Punched in on ${label} at ${time}.`);
+    if (autoSync) {
+      syncer.sync();
+    }
   }
 }
 
@@ -98,6 +105,9 @@ async function cmdOut() {
 
     puncher.punchOut(comment);
     console.log(`Punched out on ${label} at ${time}. Worked for ${durationfmt(duration)} and earned \$${pay.toFixed(2)}.`);
+    if (autoSync) {
+      syncer.sync();
+    }
   } else {
     console.log(`You're not punched in!`);
   }
@@ -110,6 +120,9 @@ function cmdRewind() {
   if (current) {
     puncher.rewind(amount);
     console.log(`Rewound by ${amount} on current ${getLabelFor(current.project)} session.`);
+    if (autoSync) {
+      syncer.sync();
+    }
   } else {
     console.log('You\'re not currently punched in. Do you want to apply this rewind to the previous session?');
     console.log('[NOT IMPLEMENTED] Get user input (y/n)');
@@ -126,11 +139,6 @@ function cmdNow() {
   } else {
     console.log('No current session.');
   }
-  // console.log('[NOT IMPLEMENTED] Show current project and time elapsed since punch in');
-}
-
-function cmdSessions() {
-  puncher.sessionsByProject();
 }
 
 function cmdProjects() {
@@ -161,6 +169,10 @@ function cmdReport() {
     console.log(`Unknown time: ${when}`);
     break;
   }
+}
+
+function cmdSync() {
+  syncer.sync();
 }
 
 function cmdHelp() {

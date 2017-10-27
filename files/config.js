@@ -9,7 +9,7 @@ module.exports = function() {
     file = fs.readFileSync(path.join(home, '.punch', 'punchconfig.json'), 'utf8');
   } catch (err) {
     console.error(err);
-    throw new Error('Missing config: No .punch.json file found in your home directory. Please create it and restart punch.');
+    throw new Error('Missing config: No .punch/punchconfig.json found in your home directory. Please create it and restart punch.');
   }
 
   try {
@@ -17,6 +17,9 @@ module.exports = function() {
   } catch (err) {
     throw new Error(err)
   }
+
+  file.configPath = path.join(home, '.punch', 'punchconfig.json');
+  file.punchPath = path.join(home, '.punch', 'punches');
 
   return file;
 }

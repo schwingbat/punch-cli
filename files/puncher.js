@@ -126,10 +126,6 @@ module.exports = function(config) {
 
   }
 
-  function sessionsByProject() {
-
-  }
-
   /*=======================*\
   ||       Reporting       ||
   \*=======================*/
@@ -147,7 +143,6 @@ module.exports = function(config) {
 
     let projects = {};
     file.contents.punches.forEach(punch => {
-      if (!punch.out) return;
       if (project && punch.project !== project) return;
 
       if (!projects[punch.project]) projects[punch.project] = {
@@ -157,15 +152,29 @@ module.exports = function(config) {
         sessions: [],
       }
 
-      projects[punch.project].time += punch.out - punch.in;
+      let end = punch.out || Date.now();
+
+      projects[punch.project].time += end - punch.in;
       projects[punch.project].sessions.push({
         start: datefmt.dateTime(punch.in),
-        end: datefmt.dateTime(punch.out),
-        time: punch.out - punch.in,
+        end: punch.out ? datefmt.dateTime(punch.out) : "Now",
+        time: end - punch.in,
         comment: punch.comment,
-        duration: durationfmt(punch.out - punch.in),
+        duration: durationfmt(end - punch.in),
       });
     });
+
+    let dayTime = 0;
+    let dayPay = 0;
+    for (const name in projects) {
+      const proj = config.projects.find(p => p.alias === name);
+      dayTime += projects[name].time;
+      if (proj && proj.hourlyRate) {
+        dayPay += projects[name].time / 1000 / 60 / 60 * proj.hourlyRate;
+      }
+    }
+
+    console.log(`\nWORK FOR ${datefmt.date(date)} (${durationfmt(dayTime)} / \$${dayPay.toFixed(2)})`);
 
     for (const name in projects) {
       const proj = config.projects.find(p => p.alias === name);
@@ -203,7 +212,6 @@ module.exports = function(config) {
     rewind,
     currentSession,
     lastSession,
-    sessionsByProject,
     reportForSession,
     reportForDay,
     reportForMonth,
