@@ -1,19 +1,18 @@
 {
-  "name": "punch",
+  "name": "@schwingbat/punch",
   "version": "1.0.0",
-  "description": "",
+  "description": "A CLI time tracker that syncs across all your computers",
   "main": "index.js",
   "bin": "./punch.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Tony McCoy <tony@ratwizard.io>",
+  "license": "MIT",
   "dependencies": {
     "aws-sdk": "^2.141.0",
     "dateformat": "^3.0.2",
-    "node-s3": "^1.1.0",
     "read-last-lines": "^1.2.0"
   }
 }
