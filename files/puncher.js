@@ -43,7 +43,7 @@ module.exports = function(config) {
     };
   }
 
-  function getLastPunchFile() {
+  function getLastPunchFile(now) {
     const files = fs.readdirSync(punchPath).sort();
     let file;
     let filePath;
@@ -68,26 +68,30 @@ module.exports = function(config) {
     fs.writeFileSync(file.path, JSON.stringify(file.contents, null, 2));
   }
 
-  function punchIn(project) {
+  function createPunch(project, timeIn, timeOut, comment) {
     const now = Date.now();
-    const file = getPunchFile(now, true);
+    const file = getPunchFile(timeIn, true);
+
+    const p = {
+      project,
+      in: timeIn,
+      out: timeOut || null,
+      comment: comment || null,
+      rewind: 0,
+    }
 
     file.contents.updated = now;
-    file.contents.punches.push({
-      project,
-      in: now,
-      out: null,
-      comment: null,
-      rewind: 0,
-    });
+    file.contents.punches.push(p);
 
     savePunchFile(file);
-    // console.log(JSON.stringify(file.contents, null, 2));
   }
 
-  function punchOut(comment) {
-    const file = getLastPunchFile();
-    const now = Date.now();
+  function punchIn(project, now = Date.now()) {
+    createPunch(project, now);
+  }
+
+  function punchOut(comment, now = Date.now()) {
+    const file = getLastPunchFile(now);
 
     if (!file) {
       return console.warn('Nothing to punch out from!');
@@ -109,7 +113,7 @@ module.exports = function(config) {
   }
 
   function currentSession() {
-    const file = getLastPunchFile();
+    const file = getLastPunchFile(Date.now());
     if (file) {
       const { punches } = file.contents;
       if (punches[punches.length - 1].out == null) {
@@ -207,6 +211,7 @@ module.exports = function(config) {
   }
 
   return {
+    createPunch,
     punchIn,
     punchOut,
     rewind,

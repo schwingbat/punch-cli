@@ -13,6 +13,8 @@
   "dependencies": {
     "aws-sdk": "^2.141.0",
     "dateformat": "^3.0.2",
-    "read-last-lines": "^1.2.0"
+    "moment": "^2.19.1",
+    "read-last-lines": "^1.2.0",
+    "readline-sync": "^1.4.7"
   }
 }
