@@ -123,6 +123,22 @@ module.exports = function(config) {
 
   }
 
+  function getPunchesForPeriod(start, end) {
+    const files = fs.readdirSync(punchPath).filter(f => {
+      let [p, y, m, d] = f.split('_').map(n => parseInt(n));
+      const readDate = new Date(y, m - 1, d);
+      return readDate >= start && readDate <= end;
+    });
+
+    const punches = [];
+
+    files.forEach(f => {
+      punches.push(...JSON.parse(fs.readFileSync(path.resolve(punchPath, f))).punches);
+    });
+
+    return punches;
+  }
+
   function currentSession() {
     const file = getLastPunchFile(Date.now());
     if (file) {
@@ -184,6 +200,7 @@ module.exports = function(config) {
     punchIn,
     punchOut,
     rewind,
+    getPunchesForPeriod,
     currentSession,
     lastSession,
     reportForDay,
