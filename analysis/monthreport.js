@@ -4,6 +4,7 @@ const moment = require('moment');
 
 module.exports = function(config, punches, date, project) {
   let projects = {};
+  const projName = project;
   punches.forEach(punch => {
     if (project && punch.project !== project) return;
 
@@ -29,11 +30,13 @@ module.exports = function(config, punches, date, project) {
 
   let dayTime = 0;
   let dayPay = 0;
+  let paidTime = 0;
   for (const name in projects) {
     const proj = config.projects.find(p => p.alias === name);
     dayTime += projects[name].time;
     if (proj && proj.hourlyRate) {
       dayPay += projects[name].time / 1000 / 60 / 60 * proj.hourlyRate;
+      paidTime += projects[name].time;
     }
   }
 
@@ -88,33 +91,80 @@ module.exports = function(config, punches, date, project) {
       sessionsByDay[day].push(session);
     });
 
-    for (const day in sessionsByDay) {
-      let dayDate = moment(sessionsByDay[day][0].startStamp);
-      const sum = {
-        time: 0,
-        pay: 0,
-        comments: [],
-      };
+    if (!projName && Object.keys(sessionsByDay).length > 7) {
+      let byWeek = {};
+      for (const day in sessionsByDay) {
+        let dayDate = moment(sessionsByDay[day][0].startStamp);
+        const weekNum = dayDate.week();
+        const wDate = moment(sessionsByDay[day][0].startStamp);
+        const wEndDate = moment(sessionsByDay[day][0].startStamp);
+        wDate.set('day', 1);
+        wEndDate.set('day', 7);
+        if (!byWeek[weekNum]) byWeek[weekNum] = {
+          title: wDate.format('MMM Do') + ' - ' + wEndDate.format('MMM Do'),
+          time: 0,
+          pay: 0,
+          comments: []
+        };
 
-      sessionsByDay[day].forEach(session => {
-        sum.time += session.time;
-        sum.pay += session.pay;
-        if (session.comment) sum.comments.push(session.comment);
-      });
-
-      let line = '  ' + dayDate.format('dddd, MMM Do') + ' (';
-      line += durationfmt(sum.time);
-      if (sum.pay) {
-        line += ' / $' + sum.pay.toFixed(2);
+        const week = byWeek[weekNum];
+        sessionsByDay[day].forEach(session => {
+          week.time += session.time;
+          week.pay += session.pay;
+          if (session.comment) week.comments.push(session.comment);
+        });
       }
-      line += ')';
-      console.log(line);
 
-      sum.comments.forEach(comment => {
-        console.log('      -> ' + comment);
-      });
-      // if (sum.comments.length !== 0) console.log();
+      for (const week in byWeek) {
+        const w = byWeek[week];
+        let line = '  ' + w.title + ' (';
+        line += durationfmt(w.time);
+        if (w.pay) {
+          line += ' / $' + w.pay.toFixed(2);
+        }
+        line += ')';
+        console.log(line);
+        w.comments.forEach(comment => {
+          console.log('      -> ' + comment);
+        });
+      }
+    } else {
+      for (const day in sessionsByDay) {
+        let dayDate = moment(sessionsByDay[day][0].startStamp);
+        const sum = {
+          time: 0,
+          pay: 0,
+          comments: [],
+        };
+  
+        sessionsByDay[day].forEach(session => {
+          sum.time += session.time;
+          sum.pay += session.pay;
+          if (session.comment) sum.comments.push(session.comment);
+        });
+  
+        let line = '  ' + dayDate.format('dddd, MMM Do') + ' (';
+        line += durationfmt(sum.time);
+        if (sum.pay) {
+          line += ' / $' + sum.pay.toFixed(2);
+        }
+        line += ')';
+        console.log(line);
+  
+        sum.comments.forEach(comment => {
+          console.log('      -> ' + comment);
+        });
+        // if (sum.comments.length !== 0) console.log();
+      }
     }
   });
+
+  console.log();
+  console.log('-------------------------------------------------');
+  console.log(`   Average hours per week (paid): ${(paidTime / 3600000 / 4).toFixed(1)}`);
+  console.log(`  Average hours per week (total): ${(dayTime / 3600000 / 4).toFixed(1)}`);
+  console.log(`              Average $ per hour: \$${(dayPay / (paidTime / 3600000)).toFixed(2)}`);
+  console.log(`    % of time spent on paid work: ${(paidTime / dayTime * 100).toFixed()}%`);
+  console.log('-------------------------------------------------');
   console.log();
 }

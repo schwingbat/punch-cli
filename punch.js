@@ -148,14 +148,25 @@ function cmdCreate() {
     return console.log('Please enter dates formatted as \'mm-dd-yyyy@hours:minutesAM\'');
   }
 
+  const proj = config.projects.find(p => p.alias === project);
+  const duration = timeOut - timeIn;
+  let pay;
+  if (proj && proj.hourlyRate) {
+    pay = '$' + (duration / 3600000 * proj.hourlyRate).toFixed(2);
+  } else {
+    pay = 'N/A';
+  }
+
   let str = '';
 
-  str += `  Project:  ${getLabelFor(project)}\n`;
-  str += `  Time In:  ${timeIn}\n`;
-  str += `  Time Out: ${timeOut}\n`;
+  str += `   Project: ${getLabelFor(project)}\n`;
+  str += `   Time In: ${timeIn.format('dddd, MMM Do YYYY [@] h:mma')}\n`;
+  str += `  Time Out: ${timeOut.format('dddd, MMM Do YYYY [@] h:mma')}\n`;
+  str += `  Duration: ${durationfmt(duration)}\n`;
+  str += `       Pay: ${pay}\n`;
 
   if (comment) {
-    str += `  Comment:  ${comment}\n`;
+    str += `   Comment: ${comment}\n`;
   }
 
   str += '\nCreate this punch? [y/n]';
