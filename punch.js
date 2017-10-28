@@ -212,6 +212,11 @@ function cmdReport() {
     break;
   case 'month':
   case 'this month':
+    puncher.reportForMonth(date);
+    break;
+  case 'last month':
+    date.setMonth(date.getMonth() - 1);
+    puncher.reportForMonth(date);
     break;
   default:
     console.log(`Unknown time: ${when}`);

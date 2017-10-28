@@ -11,6 +11,7 @@
   "author": "Tony McCoy <tony@ratwizard.io>",
   "license": "MIT",
   "dependencies": {
+    "@abcnews/fuzzy-dates": "^1.2.0",
     "aws-sdk": "^2.141.0",
     "dateformat": "^3.0.2",
     "moment": "^2.19.1",

@@ -1,7 +1,18 @@
 const fs = require('fs');
 const path = require('path');
+const moment = require('moment');
 const datefmt = require('../formatting/time');
 const durationfmt = require('../formatting/duration');
+const dayReport = require('../analysis/dayreport');
+const monthReport = require('../analysis/monthreport');
+
+function readAsJSON(filePath) {
+  try {
+    return JSON.parse(fs.readFileSync(filePath));
+  } catch (err) {
+    return false;
+  }
+}
 
 module.exports = function(config) {
   const punchPath = path.join(require('os').homedir(), '.punch', 'punches');
@@ -134,10 +145,6 @@ module.exports = function(config) {
   ||       Reporting       ||
   \*=======================*/
 
-  function reportForSession(session) {
-
-  }
-
   function reportForDay(date = new Date(), project) {
     const file = getPunchFile(date);
 
@@ -145,65 +152,27 @@ module.exports = function(config) {
       return console.log(`No sessions for ${datefmt.date(date)}.`);
     }
 
-    let projects = {};
-    file.contents.punches.forEach(punch => {
-      if (project && punch.project !== project) return;
-
-      if (!projects[punch.project]) projects[punch.project] = {
-        name: punch.project,
-        time: 0,
-        rewind: 0,
-        sessions: [],
-      }
-
-      let end = punch.out || Date.now();
-
-      projects[punch.project].time += end - punch.in;
-      projects[punch.project].sessions.push({
-        start: datefmt.dateTime(punch.in),
-        end: punch.out ? datefmt.dateTime(punch.out) : "Now",
-        time: end - punch.in,
-        comment: punch.comment,
-        duration: durationfmt(end - punch.in),
-      });
-    });
-
-    let dayTime = 0;
-    let dayPay = 0;
-    for (const name in projects) {
-      const proj = config.projects.find(p => p.alias === name);
-      dayTime += projects[name].time;
-      if (proj && proj.hourlyRate) {
-        dayPay += projects[name].time / 1000 / 60 / 60 * proj.hourlyRate;
-      }
-    }
-
-    console.log(`\nWORK FOR ${datefmt.date(date)} (${durationfmt(dayTime)} / \$${dayPay.toFixed(2)})`);
-
-    for (const name in projects) {
-      const proj = config.projects.find(p => p.alias === name);
-
-      const time = durationfmt(projects[name].time - projects[name].rewind);
-      let pay;
-      if (proj && proj.hourlyRate) {
-        pay = '$' + (projects[name].time / 1000 / 60 / 60 * proj.hourlyRate).toFixed(2);
-      }
-
-      console.log();
-      console.log(`${proj ? proj.name : name} (${time}${pay ? ' / ' + pay : ''})`);
-      projects[name].sessions.forEach(session => {
-        const span = session.start.split(' ').pop() + ' - ' + session.end.split(' ').pop();
-        let sessionPay;
-        if (proj && proj.hourlyRate) {
-          sessionPay = '$' + (session.time / 1000 / 60 / 60 * proj.hourlyRate).toFixed(2);
-        }
-        console.log(`  ${span} (${session.duration}${sessionPay ? ' / ' + sessionPay : ''}) ${session.comment ? ' => "' + session.comment + '"' : ''}`);
-      });
-    }
+    return dayReport(config, file.contents.punches, date, project);
   }
 
-  function reportForMonth(date, project) {
+  function reportForMonth(date = new Date(), project) {
+    const punches = [];
+    const month = date.getMonth() + 1;
+    const files = fs.readdirSync(punchPath).filter(file => {
+      const [p, y, m, d] = file.split('_');
+      return m == month; // double equals because m is a string.
+    });
 
+    if (files.length === 0) {
+      return console.log(`No punches recorded for ${moment(date).format('MMMM YYYY')}.`);
+    }
+
+    files.forEach(file => {
+      const f = readAsJSON(path.join(punchPath, file));
+      if (f) punches.push(...f.punches);
+    });
+
+    return monthReport(config, punches, date, project);
   }
 
   function reportForYear(date, project) {
@@ -217,7 +186,6 @@ module.exports = function(config) {
     rewind,
     currentSession,
     lastSession,
-    reportForSession,
     reportForDay,
     reportForMonth,
     reportForYear,
