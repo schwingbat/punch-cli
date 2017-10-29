@@ -6,7 +6,10 @@ module.exports = function(data, outPath) {
 
   doc.pipe(fs.createWriteStream(outPath));
 
-  doc.text('Test');
+  doc
+    .font('Times-Roman')
+    .fontSize(20)
+    .text('Contractor');
   
   doc.end();
 }

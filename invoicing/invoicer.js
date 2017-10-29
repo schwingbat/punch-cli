@@ -1,3 +1,5 @@
+const durationfmt = require('../formatting/duration');
+
 module.exports = function(config) {
   const formats = {};
   formats.pdf = require('./pdf.js');
@@ -10,9 +12,31 @@ module.exports = function(config) {
         return console.log(`Format ${format} not supported (yet?)`);
       }
 
-      const formatter = formats[format.toLowerCase()];
+      let totalTime = 0;
+      let comments = [];
 
-      return formatter(data, data.output.path);
+      data.punches.forEach(punch => {
+        totalTime += punch.out - punch.in - punch.rewind;
+        if (punch.comment) {
+          comments.push(punch.comment);
+        }
+      });
+
+      let msToNearestMinute = Math.ceil(totalTime / 1000 / 60) * 1000 * 60;
+      let totalHours = msToNearestMinute / 3600000;
+      let totalPay = totalHours * data.project.hourlyRate;
+
+      const invoice = {
+        start: data.startDate.format('MMMM Do, YYYY'),
+        end: data.endDate.format('MMMM Do, YYYY'),
+        contractor: data.user,
+        client: data.project.client,
+        time: durationfmt(msToNearestMinute),
+        pay: '$' + totalPay.toFixed(2),
+        comments,
+      };
+
+      return formats[format.toLowerCase()](invoice, data.output.path);
     }
   }
 }

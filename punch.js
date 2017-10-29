@@ -260,7 +260,6 @@ function cmdInvoice() {
   str += `       Project: ${project.name || alias}\n`;
   str += `    Start Date: ${startDate.format('dddd, MMM Do YYYY')}\n`;
   str += `      End Date: ${endDate.format('dddd, MMM Do YYYY')}\n`;
-  str += `   Hourly Rate: \$${project.hourlyRate.toFixed(2)}\n`;
   str += `Invoice Format: ${format.toUpperCase()}\n`;
   str += `     Output To: ${resolvePath(output)}\n`
 
@@ -275,8 +274,13 @@ function cmdInvoice() {
       console.log('Creating invoice...');
 
       const data = {
-        punches: puncher.getPunchesForPeriod(startDate.toDate(), endDate.toDate()),
+        startDate,
+        endDate,
+        punches: puncher
+          .getPunchesForPeriod(startDate.toDate(), endDate.toDate())
+          .filter(p => p.project === project.alias),
         project,
+        user: config.user,
         output: {
           path: resolvePath(output),
         }

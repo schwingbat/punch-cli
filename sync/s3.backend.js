@@ -57,6 +57,7 @@ module.exports = function(config) {
       return new Promise((resolve, reject) => {
         if (results.uploads.length === 0) {
           results.uploaded = [];
+          console.log('Nothing to upload.');
           return resolve(results);
         }
         const { length } = results.uploadable;
@@ -86,6 +87,7 @@ module.exports = function(config) {
         const { length } = results.downloads;
         if (length === 0) {
           results.downloaded = [];
+          console.log('Nothing to download.');
           return resolve(results);
         }
 

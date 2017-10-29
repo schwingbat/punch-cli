@@ -54,25 +54,41 @@ module.exports = function(config) {
     };
   }
 
-  function getLastPunchFile(now) {
-    const files = fs.readdirSync(punchPath).sort();
+  function getLastFileWhere(func, timestamp) {
+    const date = moment(timestamp);
+    
+    let y, m, d;
+    
+    y = date.year();
+    m = date.month() + 1;
+    d = date.date();
+
     let file;
-    let filePath;
+    let misses = 0;
 
-    for (let i = files.length - 1; i >= 0; i--) {
+    while (!file && misses <= 5) {
+      let filename = `punch_${y}_${m}_${d}.json`;
       try {
-        filePath = path.join(punchPath, files[i]);
-        file = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-      } catch (err) {
-        console.error('Failed to read punchfile: ' + files[i]);
-      }
+        file = JSON.parse(fs.readFileSync(path.join(punchPath, filename)));
+        if (func(file)) {
+          return {
+            path: path.join(punchPath, filename),
+            exists: true,
+            contents: file
+          };
+        }
+        return false;
 
-      return {
-        path: filePath,
-        exists: true,
-        contents: file,
-      };
+      } catch (err) {
+        misses += 1;
+        date.set('date', date.date() - 1);
+        y = date.year();
+        m = date.month() + 1;
+        d = date.date();
+      }
     }
+
+    return false;
   }
 
   function savePunchFile(file) {
@@ -102,7 +118,9 @@ module.exports = function(config) {
   }
 
   function punchOut(comment, now = Date.now()) {
-    const file = getLastPunchFile(now);
+    const file = getLastFileWhere(f =>
+      f.punches.find(p => p.out == null),
+      now);
 
     if (!file) {
       return console.warn('Nothing to punch out from!');
@@ -140,16 +158,20 @@ module.exports = function(config) {
   }
 
   function currentSession() {
-    const file = getLastPunchFile(Date.now());
-    if (file) {
-      const { punches } = file.contents;
-      if (punches[punches.length - 1].out == null) {
-        return punches[punches.length - 1];
-      } else {
-        return false;
+    const file = getLastFileWhere(f => {
+      for (let i = 0; i < f.punches.length; i++) {
+        if (f.punches[i].out == null) {
+          return true;
+        }
       }
-    } else {
-      return false;
+    });
+
+    if (file) {
+      for (let i = 0; i < file.contents.punches.length; i++) {
+        if (file.contents.punches[i].out == null) {
+          return file.contents.punches[i];
+        }
+      }
     }
   }
 
