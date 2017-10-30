@@ -12,7 +12,7 @@ const datefmt = require('./formatting/time');
 const durationfmt = require('./formatting/duration');
 const resolvePath = require('./utils/resolvepath');
 
-const command = process.argv[2];
+const command = process.argv[2].trim();
 const params = process.argv.slice(3);
 
 const { autoSync } = config.sync;
@@ -62,6 +62,10 @@ case 'now':
   return cmdNow();
 case 'projects':
   return cmdProjects();
+case 'today':
+case 'yesterday':
+  // 'today' and 'yesterday' are short for 'report today', etc.
+  params.unshift(command);
 case 'report':
   return cmdReport();
 case 'invoice':
