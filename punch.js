@@ -2,6 +2,7 @@
 
 const readline = require('readline-sync');
 const moment = require('moment');
+const path = require('path');
 
 const config = require('./files/config')();
 const syncer = require('./sync/syncer')(config);
@@ -69,6 +70,7 @@ case 'yesterday':
 case 'report':
   return cmdReport();
 case 'invoice':
+  // punch invoice [project] [start_date] [end_date] [output].pdf
   return cmdInvoice();
 case 'sync':
   return cmdSync();
@@ -248,7 +250,7 @@ function cmdReport() {
 
 function cmdInvoice() {
   // punch invoice project start_date end_date format output
-  let [projectName, startDate, endDate, format, output] = params;
+  let [projectName, startDate, endDate, output] = params;
   const project = config.projects.find(p => p.alias === projectName);
   if (!project) {
     return console.log(`Can't invoice for '${alias}'. Make sure the project is in your config file.`);
@@ -257,14 +259,29 @@ function cmdInvoice() {
   projectName = project.name;
   startDate = moment(startDate, 'MM-DD-YYYY');
   endDate = moment(endDate, 'MM-DD-YYYY');
-  format = format.toUpperCase();
+  
+  let format;
+  let ext = path.extname(output);
+
+  switch (ext.toLowerCase()) {
+    case '.pdf':
+      format = 'PDF';
+      break;
+    case '.html':
+      format = 'HTML';
+      break;
+    case '.txt':
+      return console.log('Plaintext invoices are not yet supported. Use PDF.');
+    default:
+      return console.log(`Can't export to file with an extension of ${ext}`);
+  }
 
   let str = '\n';
   
   str += `       Project: ${project.name || alias}\n`;
   str += `    Start Date: ${startDate.format('dddd, MMM Do YYYY')}\n`;
   str += `      End Date: ${endDate.format('dddd, MMM Do YYYY')}\n`;
-  str += `Invoice Format: ${format.toUpperCase()}\n`;
+  str += `Invoice Format: ${format}\n`;
   str += `     Output To: ${resolvePath(output)}\n`
 
   console.log(str);

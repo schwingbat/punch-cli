@@ -1,8 +1,14 @@
 const durationfmt = require('../formatting/duration');
+const moment = require('moment');
+
+function roundToMinute(ms) {
+  return Math.ceil(ms / 1000 / 60) * 1000 * 60
+}
 
 module.exports = function(config) {
   const formats = {};
   formats.pdf = require('./pdf.js');
+  formats.html = require('./html.js');
 
   return {
     create(data, format) {
@@ -15,23 +21,52 @@ module.exports = function(config) {
       let totalTime = 0;
       let comments = [];
 
+      const days = {};
+
       data.punches.forEach(punch => {
-        totalTime += punch.out - punch.in - punch.rewind;
+        const date = moment(punch.in);
+        const time = punch.out - punch.in - punch.rewind;
+        
+        totalTime += time;
+
+        const key = date.date();
+        if (!days[key]) days[key] = {
+          date: date.format('MM/DD/YYYY'),
+          time: 0,
+          comments: []
+        };
+        const d = days[key];
+        d.time += time;
+
         if (punch.comment) {
-          comments.push(punch.comment);
+          d.comments.push(punch.comment);
         }
       });
 
-      let msToNearestMinute = Math.ceil(totalTime / 1000 / 60) * 1000 * 60;
+      let dayArray = [];
+
+      for (const day in days) {
+        const time = roundToMinute(days[day].time);
+        days[day].pay = '$' + ((time / 3600000) * data.project.hourlyRate).toFixed(2);
+        days[day].time = durationfmt(time);
+        dayArray.push(days[day]);
+      }
+
+      dayArray = dayArray.sort();
+
+      let msToNearestMinute = roundToMinute(totalTime);
       let totalHours = msToNearestMinute / 3600000;
       let totalPay = totalHours * data.project.hourlyRate;
 
       const invoice = {
-        start: data.startDate.format('MMMM Do, YYYY'),
-        end: data.endDate.format('MMMM Do, YYYY'),
-        contractor: data.user,
+        start: data.startDate.format('MM/DD/YYYY'),
+        end: data.endDate.format('MM/DD/YYYY'),
+        today: moment().format('MM/DD/YYYY'),
+        user: data.user,
         client: data.project.client,
+        project: data.project,
         time: durationfmt(msToNearestMinute),
+        days: dayArray,
         pay: '$' + totalPay.toFixed(2),
         comments,
       };

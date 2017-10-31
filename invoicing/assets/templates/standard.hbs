@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{ project.name }} Invoice</title>
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet">
+    <style>
+      *,
+      *:before,
+      *:after {
+        box-sizing: border-box;
+        padding: 0;
+        margin: 0;
+      }
+
+      body {
+        padding: 1.5em;
+        font-family: "Source Sans Pro", sans-serif;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 1em;
+        color: #bbb;
+      }
+
+      .client-block {
+        /*padding: 0 2em;*/
+        display: flex;
+        align-items: stretch;
+      }
+      
+      .client-block-column {
+        flex: 1 1 50%;
+        display: flex;
+        flex-flow: column nowrap;
+      }
+
+      .item-time {
+        white-space: nowrap;
+      }
+
+      .line-items {
+        margin-top: 3em;
+      }
+
+      .line-items td {
+        padding: 0.25em 1em;
+      }
+
+      .line-items thead td {
+        border-bottom: 2px solid #000;
+        font-weight: bold;
+        text-transform: uppercase;
+      }
+
+      .line-items tbody td {
+        padding-top: 0.5em;
+      }
+
+      .table-label {
+        font-weight: bold;
+        padding-right: 1em;
+      }
+
+      .totals {
+        display: flex;
+        align-items: flex-end;
+        justify-content: flex-end;
+        margin-top: 3em;
+      }
+
+      .line {
+        width: 100%;
+        height: 1px;
+        background-color: #000;
+        margin: 2em 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 class="header">INVOICE</h1>
+    <div class="user-block">
+      <div>{{ user.firstName }} {{ user.lastName }}</div>
+      <div>{{ user.address.street }}</div>
+      <div>{{ user.address.city }}, {{ user.address.state }} {{ user.address.zip }}</div>
+    </div>
+
+    <div class="line"></div>
+
+    <div class="client-block">
+      <div class="client-block-column">
+        <table>
+          <tr>
+            <td class="table-label" valign="top">To</td>
+            <td>
+              <div>{{ client.name }}</div>
+              <div>{{ client.company }}</div>
+              <div>{{ client.address.street }}</div>
+              <div>{{ client.address.city }}, {{ client.address.state }} {{ client.address.zip }}</div>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="client-block-column">
+        <table>
+          <tr>
+            <td class="table-label">Project</td>
+            <td>{{project.name}}</td>
+          </tr>
+          <tr>
+            <td class="table-label">Period</td>
+            <td>{{start}} &mdash; {{end}}</td>
+          </tr>
+          <tr>
+            <td class="table-label">Invoice Date</td>
+            <td>{{today}}</td>
+          </tr>
+        </table>
+
+      </div>
+    </div>
+
+    <table class="line-items" cellspacing="0">
+      <thead>
+        <tr>
+          <td>Date</td>
+          <td>Hours</td>
+          <td>Amount</td>
+          <td>Notes</td>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each days}}
+          <tr>
+            <td class="item-date">{{date}}</td>
+            <td class="item-time">{{time}}</td>
+            <td class="item-pay">{{pay}}</td>
+            <td class="item-comments">{{comments}}</td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+
+    <div class="totals">
+      <table>
+        <tr>
+          <td class="table-label">Fees</td>
+          <td>{{pay}} ({{time}})</td>
+        </tr>
+        <tr>
+          <td class="table-label">Expenses</td>
+          <td>$0.00</td>
+        </tr>
+        <tr>
+          <td class="table-label">Amount Due</td>
+          <td>{{pay}}</td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
