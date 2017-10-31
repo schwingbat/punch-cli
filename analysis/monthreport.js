@@ -91,7 +91,7 @@ module.exports = function(config, punches, date, project) {
       sessionsByDay[day].push(session);
     });
 
-    if (!projName && Object.keys(sessionsByDay).length > 7) {
+    if (false && !projName && Object.keys(sessionsByDay).length > 7) {
       let byWeek = {};
       for (const day in sessionsByDay) {
         let dayDate = moment(sessionsByDay[day][0].startStamp);
@@ -134,13 +134,13 @@ module.exports = function(config, punches, date, project) {
         const sum = {
           time: 0,
           pay: 0,
-          comments: [],
+          sessions: [],
         };
-  
+
         sessionsByDay[day].forEach(session => {
           sum.time += session.time;
           sum.pay += session.pay;
-          if (session.comment) sum.comments.push(session.comment);
+          sum.sessions.push(session);
         });
   
         let line = '  ' + dayDate.format('dddd, MMM Do') + ' (';
@@ -150,9 +150,9 @@ module.exports = function(config, punches, date, project) {
         }
         line += ')';
         console.log(line);
-  
-        sum.comments.forEach(comment => {
-          console.log('      -> ' + comment);
+
+        sum.sessions.forEach(session => {
+          console.log('      ' + session.timeSpan + ' -> ' + session.comment);
         });
         // if (sum.comments.length !== 0) console.log();
       }
