@@ -48,7 +48,7 @@ module.exports = function(config, punches, date, project) {
       pay = projects[name].time / 1000 / 60 / 60 * proj.hourlyRate;
     }
 
-    projects[name].fullName = proj.name || name;
+    projects[name].fullName = proj && proj.name ? proj.name : name;
     projects[name].billableTime = projects[name].time - projects[name].rewind;
     projects[name].totalPay = pay;
     

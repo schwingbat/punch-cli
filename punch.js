@@ -307,8 +307,9 @@ function cmdInvoice() {
         }
       };
 
-      invoicer.create(data, format);
-      console.log('Invoice created!');
+      invoicer
+        .create(data, format)
+        .then(() => console.log('Invoice created!'));
 
     } else if (response === 'n' || response === 'no') {
       
