@@ -141,6 +141,44 @@ module.exports = function(config) {
 
   }
 
+  function purgeProject(alias, dryRun = true) {
+    let found = 0;
+    let time = 0;
+    let days = 0;
+
+    fs.readdirSync(punchPath).forEach(file => {
+      const fullPath = path.join(punchPath, file);
+
+      try {
+        const f = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
+
+        let foundOne = false;
+
+        f.punches = f.punches.filter(p => {
+          if (p.project === alias) {
+            found += 1;
+            time += (p.out || Date.now()) - p.in - (p.rewind || 0);
+            foundOne = true;
+            return false;
+          } else {
+            return true;
+          }
+        });
+
+        if (foundOne) days += 1;
+
+        if (!dryRun) {
+          fs.writeFileSync(fullPath, JSON.stringify(f));
+        }
+
+      } catch (err) {
+        console.log(`Failed to read ${file}: ${err}`);
+      }
+    });
+
+    return { found, time, days };
+  }
+
   function getPunchesForPeriod(start, end) {
     const files = fs.readdirSync(punchPath).filter(f => {
       let [p, y, m, d] = f.split('_').map(n => parseInt(n));
@@ -222,6 +260,7 @@ module.exports = function(config) {
     punchIn,
     punchOut,
     rewind,
+    purgeProject,
     getPunchesForPeriod,
     currentSession,
     lastSession,
