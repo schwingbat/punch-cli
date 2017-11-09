@@ -65,6 +65,22 @@ const getRateFor = proj => {
   }
 }
 
+const confirm = question => {
+  let response;
+
+  while (!['y', 'n', 'yes', 'no'].includes(response)) {
+    response = readline.question(`${question} [y/n]`).toLowerCase().trim();
+
+    if (response === 'y' || response === 'yes') {
+      return true;
+    } else if (response === 'n' || response === 'no') {
+      return false;
+    } else {
+      console.log('Please enter: y, n, yes or no.');
+    }
+  }
+}
+
 /*=========================*\
 ||      Parse/Dispatch     ||
 \*=========================*/
@@ -198,26 +214,25 @@ function cmdCreate() {
   str += `       Pay: ${pay}\n`;
 
   if (comment) {
-    str += `   Comment: ${comment}\n`;
+    str += `   Comment: ${comment}\n\n`;
   }
 
-  str += '\nCreate this punch? [y/n]';
+  str += '\nCreate this punch?';
 
-  let response;
-
-  while (!['y', 'n', 'yes', 'no'].includes(response)) {
-    response = readline.question(str).toLowerCase().trim();
-
-    if (response === 'y' || response === 'yes') {
-      // puncher.punchIn(project, )
-      puncher.createPunch(project, timeIn.valueOf(), timeOut.valueOf(), comment);
-      console.log('Punch created');
-    } else if (response === 'n' || response === 'no') {
-      console.log('Punch not created');
-    } else {
-      console.log('Please enter: y, n, yes or no.');
-    }
+  if (confirm(str)) {
+    puncher.createPunch(project, timeIn.valueOf(), timeOut.valueOf(), comment);
+    console.log('Punch created');
+  } else {
+    console.log('Punch not created');
   }
+}
+
+function cmdPurge() {
+  const [project] = params;
+
+  console.log(`Purge all entries for project "${project}"?`);
+
+
 }
 
 function cmdNow() {
@@ -309,34 +324,25 @@ function cmdInvoice() {
 
   let response;
   
-  while (!['y', 'n', 'yes', 'no'].includes(response)) {
-    response = readline.question('Create invoice? [y/n]').toLowerCase().trim();
+  if (confirm('Create invoice?')) {
+    console.log('Creating invoice...');
 
-    if (response === 'y' || response === 'yes') {
-      console.log('Creating invoice...');
+    const data = {
+      startDate,
+      endDate,
+      punches: puncher
+        .getPunchesForPeriod(startDate.toDate(), endDate.toDate())
+        .filter(p => p.project === project.alias),
+      project,
+      user: config.user,
+      output: {
+        path: resolvePath(output),
+      }
+    };
 
-      const data = {
-        startDate,
-        endDate,
-        punches: puncher
-          .getPunchesForPeriod(startDate.toDate(), endDate.toDate())
-          .filter(p => p.project === project.alias),
-        project,
-        user: config.user,
-        output: {
-          path: resolvePath(output),
-        }
-      };
-
-      invoicer
-        .create(data, format)
-        .then(() => console.log('Invoice created!'));
-
-    } else if (response === 'n' || response === 'no') {
-      
-    } else {
-      console.log('Please enter: y, n, yes or no.');
-    }
+    invoicer
+      .create(data, format)
+      .then(() => console.log('Invoice created!'));
   }
 }
 
