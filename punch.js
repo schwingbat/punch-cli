@@ -94,6 +94,8 @@ case 'rewind':
   return cmdRewind();
 case 'create':
   return cmdCreate();
+case 'purge':
+  return cmdPurge();
 case 'current':
 case 'time':
 case 'now':
@@ -230,9 +232,19 @@ function cmdCreate() {
 function cmdPurge() {
   const [project] = params;
 
-  console.log(`Purge all entries for project "${project}"?`);
+  const { found, time, days } = puncher.purgeProject(project);
+  const label = getLabelFor(project);
 
+  if (found === 0) {
+    return console.log(`Project '${label}' has no entries.`);
+  }
 
+  if (confirm(`Purge ${found} entries over ${days} days with a total time of ${durationfmt(time)} for project '${label}'?`)) {
+    puncher.purgeProject(project, false);
+    console.log(`Purged project ${label}`);
+  } else {
+    console.log('Your entries are safe.');
+  }
 }
 
 function cmdNow() {
