@@ -3,18 +3,39 @@
 const readline = require('readline-sync');
 const moment = require('moment');
 const path = require('path');
+const flags = require('./flags');
+
+// Process command line args into params/flags
+
+const params = [];
+
+process.argv.slice(2).forEach(arg => {
+  if (arg[0] === '-') {
+    switch (arg.toLowerCase()) {
+    case '-v':
+    case '--verbose':
+      flags.VERBOSE = true;
+      break;
+    }
+  } else {
+    params.push(arg);
+  }
+});
+
+const command = params.shift();
+
+if (flags.VERBOSE) {
+  console.log({ command, params, flags });
+}
 
 const config = require('./files/config')();
-const syncer = require('./sync/syncer')(config);
-const puncher = require('./files/puncher')(config);
-const reporter = require('./analysis/reporter')(config);
-const invoicer = require('./invoicing/invoicer')(config);
+const syncer = require('./sync/syncer')(config, flags);
+const puncher = require('./files/puncher')(config, flags);
+const reporter = require('./analysis/reporter')(config, flags);
+const invoicer = require('./invoicing/invoicer')(config, flags);
 const datefmt = require('./formatting/time');
 const durationfmt = require('./formatting/duration');
 const resolvePath = require('./utils/resolvepath');
-
-const command = process.argv[2].trim();
-const params = process.argv.slice(3);
 
 const { autoSync } = config.sync;
 

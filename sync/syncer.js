@@ -1,7 +1,11 @@
 const fs = require('fs');
 const path = require('path');
+const chalk = require('chalk');
+const logUpdate = require('log-update');
+const { write } = process.stdout;
 
-module.exports = function(config) {
+module.exports = function(config, flags) {
+  const { VERBOSE } = flags;
   const backends = {};
 
   const { punchPath, configPath } = config;
@@ -10,7 +14,7 @@ module.exports = function(config) {
     const modulePath = path.join(__dirname, `${name}.backend.js`);
 
     if (fs.existsSync(modulePath)) {
-      backends[name] = require(modulePath)(config.sync.backends[name]);
+      backends[name] = require(modulePath)(config.sync.backends[name], flags);
     } else {
       console.log(`Config specifies a "${name}" backend config, but Punch doesn't have a module for it.`);
     }
@@ -49,39 +53,78 @@ module.exports = function(config) {
               uploads.push(file);
             }
           });
+          if (VERBOSE) console.log(`Finished diffing ${total} files.`);
           return resolve({ uploads, downloads, manifest });
         }
       }
     });
   }
 
-  function writeFiles(results) {
-    return new Promise((resolve, reject) => {
-      if (results.downloaded) {
-        for (const name in results.downloaded) {
-          const d = results.downloaded[name];
-          fs.writeFileSync(path.join(config.punchPath, name), JSON.stringify(d, null, 2));
-        }
+  async function writeFiles(results) {
+    if (results.downloaded) {
+      let count = 0;
+      for (const name in results.downloaded) {
+        const d = results.downloaded[name];
+        fs.writeFileSync(path.join(config.punchPath, name), JSON.stringify(d, null, 2));
       }
-      return resolve(results);
-    });
+      if (VERBOSE && count > 0) console.log(`Wrote ${count} downloaded files.`);
+    }
+    return results;
   }
 
-  function readFiles(results) {
-    return new Promise((resolve, reject) => {
-      const uploadable = {};
-      results.uploads.forEach(u => {
-        uploadable[u] = JSON.parse(fs.readFileSync(path.join(punchPath, u), 'utf8'));
-      });
-      results.uploadable = uploadable;
-      return resolve(results);
+  async function readFiles(results) {
+    if (VERBOSE && results.uploads.length > 0) console.log(`Reading contents of files to be uploaded.`);
+
+    let count = 0;
+    const uploadable = {};
+    results.uploads.forEach(u => {
+      count += 1;
+      uploadable[u] = JSON.parse(fs.readFileSync(path.join(punchPath, u), 'utf8'));
     });
+    results.uploadable = uploadable;
+
+    if (VERBOSE && count > 0) {
+      console.log(`Read contents of ${count} files.`);
+    }
+
+    return results;
+  }
+
+  async function updateStamps(results) {
+    const { uploads, postManifest } = results;
+
+    if (uploads.length > 0) {
+      if (VERBOSE) console.log('Updating timestamps on uploaded files...');
+      uploads.forEach(file => {
+        if (postManifest[file]) {
+          try {
+            const p = path.join(punchPath, file)
+            const f = JSON.parse(fs.readFileSync(p, 'utf8'));
+            f.updated = postManifest[file];
+            fs.writeFileSync(p, JSON.stringify(f, null, 2));
+          } catch (err) {
+            console.error(`There was a problem updating the timestamp on ${file}: ${err}`);
+          }
+        }
+      });
+    }
+
+    return results;
   }
 
   return {
     sync() {
       const syncers = [];
       const start = Date.now();
+
+      process.stdout.write("Syncing...");
+      const frames = ['|', '/', '-', '\\'];
+      let i = 0;
+
+      const interv = setInterval(() => {
+        logUpdate(chalk.yellow(frames[i]) + ' Syncing');
+        i = (i + 1) % frames.length;
+      }, 80);
 
       for (const name in backends) {
         backends[name]
@@ -91,9 +134,15 @@ module.exports = function(config) {
           .then(backends[name].upload)
           .then(backends[name].download)
           .then(writeFiles)
+          .then(updateStamps)
           .then(r => {
             const count = r.downloads.length + r.uploads.length;
-            console.log(`Synced ${count} file${count === 1 ? '' : 's'} in ${Date.now() - start}ms.`);
+            if (VERBOSE) {
+              console.log(` Synced ${count} file${count === 1 ? '' : 's'} in ${Date.now() - start}ms.`);
+            } else {
+              clearInterval(interv);
+              logUpdate(chalk.green('✔️') + ' Synced');
+            }
           });
       }
 
