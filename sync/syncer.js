@@ -118,11 +118,20 @@ module.exports = function(config, flags) {
       const start = Date.now();
 
       process.stdout.write("Syncing...");
-      const frames = ['|', '/', '-', '\\'];
+      const frames = [
+        chalk.yellow('⣾') + ' Syncing',
+        chalk.yellow('⣽') + ' _yncing',
+        chalk.yellow('⣻') + ' S_ncing',
+        chalk.yellow('⢿') + ' Sy_cing',
+        chalk.yellow('⡿') + ' Syn_ing',
+        chalk.yellow('⣟') + ' Sync_ng',
+        chalk.yellow('⣯') + ' Synci_g',
+        chalk.yellow('⣷') + ' Syncin_',
+      ];
       let i = 0;
 
       const interv = setInterval(() => {
-        logUpdate(chalk.yellow(frames[i]) + ' Syncing');
+        logUpdate(frames[i]);
         i = (i + 1) % frames.length;
       }, 80);
 
