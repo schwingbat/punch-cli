@@ -15,7 +15,6 @@
       body {
         padding: 1.5em;
         font-family: "Source Sans Pro", sans-serif;
-        font-size: 12px;
       }
 
       .header {
@@ -25,7 +24,6 @@
       }
 
       .client-block {
-        /*padding: 0 2em;*/
         display: flex;
         align-items: stretch;
       }
@@ -46,6 +44,7 @@
 
       .line-items td {
         padding: 0.25em 1em;
+        vertical-align: top;
       }
 
       .line-items thead td {
@@ -56,6 +55,10 @@
 
       .line-items tbody td {
         padding-top: 0.5em;
+      }
+
+      .item-comments-list {
+        list-style: none;
       }
 
       .table-label {
@@ -81,7 +84,7 @@
   <body>
     <h1 class="header">INVOICE</h1>
     <div class="user-block">
-      <div>{{ user.firstName }} {{ user.lastName }}</div>
+      <div>{{ user.name }}</div>
       <div>{{ user.address.street }}</div>
       <div>{{ user.address.city }}, {{ user.address.state }} {{ user.address.zip }}</div>
     </div>
@@ -137,7 +140,13 @@
             <td class="item-date">{{date}}</td>
             <td class="item-time">{{time}}</td>
             <td class="item-pay">{{pay}}</td>
-            <td class="item-comments">{{comments}}</td>
+            <td class="item-comments">
+              <ul class="item-comments-list">
+                {{#each comments}}
+                  <li class="item-comment">{{.}}</li>
+                {{/each}}
+              </ul>
+            </td>
           </tr>
         {{/each}}
       </tbody>
