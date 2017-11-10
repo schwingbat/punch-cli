@@ -1,5 +1,7 @@
 const durationfmt = require('../formatting/duration');
 const moment = require('moment');
+const chalk = require('chalk');
+const Loader = require('../utils/loader');
 
 function roundToMinute(ms) {
   return Math.ceil(ms / 1000 / 60) * 1000 * 60
@@ -11,12 +13,19 @@ module.exports = function(config) {
   formats.html = require('./html.js');
 
   return {
-    create(data, format) {
+    async create(data, format) {
       if (!format) {
         return console.log(`No format specified for invoicer.create()`);
       } else if (!formats[format.toLowerCase()]) {
         return console.log(`Format ${format} not supported (yet?)`);
       }
+
+      const loader = Loader({
+        text: `Generating ${format} invoice...`,
+        animation: 'braille'
+      });
+
+      loader.start();
 
       let totalTime = 0;
       let comments = [];
@@ -71,7 +80,11 @@ module.exports = function(config) {
         comments,
       };
 
-      return formats[format.toLowerCase()](invoice, data.output.path);
+      const result = await formats[format.toLowerCase()](invoice, data.output.path);
+
+      loader.stop(chalk.green('✔️') + ` Done!`);
+
+      return result;
     }
   }
 }

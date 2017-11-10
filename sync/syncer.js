@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const chalk = require('chalk');
 const logUpdate = require('log-update');
+const Loader = require('../utils/loader');
 const { write } = process.stdout;
 
 module.exports = function(config, flags) {
@@ -117,23 +118,12 @@ module.exports = function(config, flags) {
       const syncers = [];
       const start = Date.now();
 
-      process.stdout.write("Syncing...");
-      const frames = [
-        chalk.yellow('⣾') + ' Syncing',
-        chalk.yellow('⣽') + ' _yncing',
-        chalk.yellow('⣻') + ' S_ncing',
-        chalk.yellow('⢿') + ' Sy_cing',
-        chalk.yellow('⡿') + ' Syn_ing',
-        chalk.yellow('⣟') + ' Sync_ng',
-        chalk.yellow('⣯') + ' Synci_g',
-        chalk.yellow('⣷') + ' Syncin_',
-      ];
-      let i = 0;
+      const loader = new Loader({
+        text: 'Syncing...',
+        animation: 'braille',
+      });
 
-      const interv = setInterval(() => {
-        logUpdate(frames[i]);
-        i = (i + 1) % frames.length;
-      }, 80);
+      loader.start();
 
       for (const name in backends) {
         backends[name]
@@ -149,8 +139,7 @@ module.exports = function(config, flags) {
             if (VERBOSE) {
               console.log(` Synced ${count} file${count === 1 ? '' : 's'} in ${Date.now() - start}ms.`);
             } else {
-              clearInterval(interv);
-              logUpdate(chalk.green('✔️') + ' Synced');
+              loader.stop(chalk.green('✔️') + ' Synced!');
             }
           });
       }
