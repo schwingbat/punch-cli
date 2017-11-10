@@ -2,6 +2,7 @@
 <html>
   <head>
     <title>{{ project.name }} Invoice</title>
+    {{!-- <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet"> --}}
     <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet">
     <style>
       *,
@@ -73,18 +74,19 @@
       ||   Line Item Specifics   ||
       \*=========================*/
 
-      .item-comments-list {
-        list-style: none;
-      }
-
       .item-time {
         white-space: nowrap;
+      }
+
+      .item-comments-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
       }
 
       .item-comment {
         display: flex;
         flex-flow: row nowrap;
-        /*align-items: center;*/
       }
 
       .item-comment:before {
