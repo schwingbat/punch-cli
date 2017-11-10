@@ -11,16 +11,12 @@
   "author": "Tony McCoy <tony@ratwizard.io>",
   "license": "MIT",
   "dependencies": {
-    "@abcnews/fuzzy-dates": "^1.2.0",
     "aws-sdk": "^2.141.0",
     "chalk": "^2.3.0",
-    "dateformat": "^3.0.2",
     "handlebars": "^4.0.11",
-    "html-pdf": "^2.2.0",
+    "html5-to-pdf": "^2.2.9",
     "log-update": "^2.3.0",
     "moment": "^2.19.1",
-    "pdfkit": "^0.8.3",
-    "read-last-lines": "^1.2.0",
     "readline-sync": "^1.4.7"
   }
 }

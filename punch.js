@@ -337,8 +337,6 @@ function cmdInvoice() {
   let response;
   
   if (confirm('Create invoice?')) {
-    console.log('Creating invoice...');
-
     const data = {
       startDate,
       endDate,
@@ -353,8 +351,7 @@ function cmdInvoice() {
     };
 
     invoicer
-      .create(data, format)
-      .then(() => console.log('Invoice created!'));
+      .create(data, format);
   }
 }
 

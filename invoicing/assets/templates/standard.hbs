@@ -2,6 +2,7 @@
 <html>
   <head>
     <title>{{ project.name }} Invoice</title>
+    {{!-- <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet"> --}}
     <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet">
     <style>
       *,
@@ -15,7 +16,8 @@
       body {
         padding: 1.5em;
         font-family: "Source Sans Pro", sans-serif;
-        font-size: 12px;
+        color: #000;
+        background-color: #fff;
       }
 
       .header {
@@ -24,10 +26,14 @@
         color: #bbb;
       }
 
+      .user-block {
+        margin-bottom: 3em;
+      }
+
       .client-block {
-        /*padding: 0 2em;*/
         display: flex;
         align-items: stretch;
+        margin-bottom: 3em;
       }
       
       .client-block-column {
@@ -36,25 +42,26 @@
         flex-flow: column nowrap;
       }
 
-      .item-time {
-        white-space: nowrap;
+      /*=========================*\
+      ||    Line Item General    ||
+      \*=========================*/
+
+      .line-items-table {
+        width: 100%;
       }
 
-      .line-items {
-        margin-top: 3em;
-      }
-
-      .line-items td {
+      .line-items-table td {
         padding: 0.25em 1em;
+        vertical-align: top;
       }
 
-      .line-items thead td {
+      .line-items-table thead td {
         border-bottom: 2px solid #000;
         font-weight: bold;
         text-transform: uppercase;
       }
 
-      .line-items tbody td {
+      .line-items-table tbody td {
         padding-top: 0.5em;
       }
 
@@ -63,30 +70,59 @@
         padding-right: 1em;
       }
 
+      /*=========================*\
+      ||   Line Item Specifics   ||
+      \*=========================*/
+
+      .item-time {
+        white-space: nowrap;
+      }
+
+      .item-comments-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      .item-comment {
+        display: flex;
+        flex-flow: row nowrap;
+      }
+
+      .item-comment:before {
+        content: '';
+        display: inline-block;
+
+        margin-top: calc(0.5em - 1px);
+
+        width: 0;
+        height: 0;
+        border-top: 4px solid transparent;
+        border-bottom: 4px solid transparent;
+        border-left: 4px solid #ccc;
+
+        margin-right: 0.7em;
+      }
+
+      /*=========================*\
+      ||  Total Fees & Expenses  ||
+      \*=========================*/
+
       .totals {
         display: flex;
         align-items: flex-end;
         justify-content: flex-end;
         margin-top: 3em;
       }
-
-      .line {
-        width: 100%;
-        height: 1px;
-        background-color: #000;
-        margin: 2em 0;
-      }
     </style>
   </head>
   <body>
     <h1 class="header">INVOICE</h1>
     <div class="user-block">
-      <div>{{ user.firstName }} {{ user.lastName }}</div>
-      <div>{{ user.address.street }}</div>
-      <div>{{ user.address.city }}, {{ user.address.state }} {{ user.address.zip }}</div>
+      <div>{{user.name}}</div>
+      <div>{{user.address.street}}</div>
+      <div>{{user.address.city}}, {{user.address.state}} {{user.address.zip}}</div>
     </div>
-
-    <div class="line"></div>
 
     <div class="client-block">
       <div class="client-block-column">
@@ -94,10 +130,10 @@
           <tr>
             <td class="table-label" valign="top">To</td>
             <td>
-              <div>{{ client.name }}</div>
-              <div>{{ client.company }}</div>
-              <div>{{ client.address.street }}</div>
-              <div>{{ client.address.city }}, {{ client.address.state }} {{ client.address.zip }}</div>
+              <div>{{client.name}}</div>
+              <div>{{client.company}}</div>
+              <div>{{client.address.street}}</div>
+              <div>{{client.address.city}}, {{client.address.state}} {{client.address.zip}}</div>
             </td>
           </tr>
         </table>
@@ -122,13 +158,13 @@
       </div>
     </div>
 
-    <table class="line-items" cellspacing="0">
+    <table class="line-items-table" cellspacing="0">
       <thead>
         <tr>
           <td>Date</td>
           <td>Hours</td>
           <td>Amount</td>
-          <td>Notes</td>
+          <td>Work</td>
         </tr>
       </thead>
       <tbody>
@@ -137,7 +173,13 @@
             <td class="item-date">{{date}}</td>
             <td class="item-time">{{time}}</td>
             <td class="item-pay">{{pay}}</td>
-            <td class="item-comments">{{comments}}</td>
+            <td class="item-comments">
+              <ul class="item-comments-list">
+                {{#each comments}}
+                  <li class="item-comment">{{.}}</li>
+                {{/each}}
+              </ul>
+            </td>
           </tr>
         {{/each}}
       </tbody>
