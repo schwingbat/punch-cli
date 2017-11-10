@@ -1,5 +1,5 @@
 const moment = require('moment');
 
-exports.date = time => moment(time).format('m/d/yyyy');
-exports.time = time => moment(time).format('h:MMtt');
-exports.dateTime = time => moment(time).format('m/d/yyyy h:MMtt');
+exports.date = time => moment(time).format('MMM Do YYYY');
+exports.time = time => moment(time).format('h[:]mm A');
+exports.dateTime = time => moment(time).format('MMM Do YYYY h[:]mm A');
