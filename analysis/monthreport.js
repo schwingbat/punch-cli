@@ -1,6 +1,7 @@
 const datefmt = require('../formatting/time');
 const durationfmt = require('../formatting/duration');
 const moment = require('moment');
+const chalk = require('chalk');
 
 module.exports = function(config, punches, date, project) {
   let projects = {};
@@ -19,8 +20,8 @@ module.exports = function(config, punches, date, project) {
 
     projects[punch.project].time += end - punch.in;
     projects[punch.project].sessions.push({
-      start: datefmt.dateTime(punch.in),
-      end: punch.out ? datefmt.dateTime(punch.out) : "Now",
+      start: datefmt.time(punch.in),
+      end: punch.out ? datefmt.time(punch.out) : "Now",
       startStamp: punch.in,
       time: end - punch.in,
       comment: punch.comment,
@@ -40,7 +41,8 @@ module.exports = function(config, punches, date, project) {
     }
   }
 
-  console.log(`\nWORK FOR ${moment(date).format('MMMM YYYY').toUpperCase()} (${durationfmt(dayTime)} / \$${dayPay.toFixed(2)})`);
+  console.log(`\n${chalk.bold(`WORK FOR ${moment(date).format('MMMM YYYY').toUpperCase()}`)}`);
+  console.log(`${durationfmt(dayTime)} ${chalk.grey('/')} \$${dayPay.toFixed(2)}`);
 
   const projArr = [];
 
@@ -57,7 +59,7 @@ module.exports = function(config, punches, date, project) {
     projects[name].totalPay = pay;
     
     projects[name].sessions.map(session => {
-      session.timeSpan = session.start.split(' ').pop() + ' - ' + session.end.split(' ').pop(); 
+      session.timeSpan = session.start.padStart(8) + ' - ' + session.end.padStart(8);
       let sessionPay;
       if (proj && proj.hourlyRate) {
         sessionPay = session.time / 1000 / 60 / 60 * proj.hourlyRate;
@@ -80,7 +82,17 @@ module.exports = function(config, punches, date, project) {
     let pay;
     if (project.totalPay) pay = '$' + project.totalPay.toFixed(2);
 
-    console.log(`\n${project.fullName} (${durationfmt(project.billableTime)}${pay ? ' / ' + pay : ''})\n`);
+    const projectName = project.fullName;
+    const timeAndPay = `${durationfmt(project.billableTime)}${pay ? chalk.grey(' / ') + pay : ''}`;
+    const longer = projectName.length > timeAndPay.length
+      ? projectName.length
+      : timeAndPay.length;
+    const margin = 2;
+
+    console.log();
+    console.log('  ' + chalk.bold.yellow(projectName));
+    console.log('  ' + timeAndPay);
+    console.log();
 
     // Sort sessions by day
     let sessionsByDay = {};
@@ -143,28 +155,34 @@ module.exports = function(config, punches, date, project) {
           sum.sessions.push(session);
         });
   
-        let line = '  ' + dayDate.format('dddd, MMM Do') + ' (';
+        let line = '  ' + chalk.bold(dayDate.format('dddd, MMM Do')) + '\n    ';
         line += durationfmt(sum.time);
         if (sum.pay) {
-          line += ' / $' + sum.pay.toFixed(2);
+          line += ' ' + chalk.grey('/') + ' $' + sum.pay.toFixed(2);
         }
-        line += ')';
         console.log(line);
 
         sum.sessions.forEach(session => {
-          console.log('      ' + session.timeSpan + ' -> ' + session.comment);
+          console.log('      ' + chalk.cyan.bold.italic(session.timeSpan) + chalk.grey(' >>> ') + (session.comment || chalk.grey("No comment for session")));
         });
         // if (sum.comments.length !== 0) console.log();
       }
     }
   });
 
-  console.log();
-  console.log('-------------------------------------------------');
-  console.log(`   Average hours per week (paid): ${(paidTime / 3600000 / 4).toFixed(1)}`);
-  console.log(`  Average hours per week (total): ${(dayTime / 3600000 / 4).toFixed(1)}`);
-  console.log(`              Average $ per hour: \$${(dayPay / (paidTime / 3600000)).toFixed(2)}`);
-  console.log(`    % of time spent on paid work: ${(paidTime / dayTime * 100).toFixed()}%`);
-  console.log('-------------------------------------------------');
-  console.log();
+  let lines = [
+    `Average hours per week: ${(dayTime / 3600000 / 4).toFixed(1)}`,
+    `Average $ per hour: \$${(dayPay / (dayTime / 3600000)).toFixed(2)}`,
+  ];
+  const longest = lines.reduce((prev, l) => l.length > prev ? l.length : prev, 0);
+  const margin = 2;
+
+  let divider = ''.padStart(longest + (margin * 2), '-');
+  let spacer = ''.padStart(margin);
+
+  console.log('\n ' + divider + ' ');
+  lines.forEach(line => {
+    console.log('|' + spacer + line.padEnd(longest + margin) + '|');
+  });
+  console.log(' ' + divider + ' \n');
 }
