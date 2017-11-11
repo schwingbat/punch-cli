@@ -31,7 +31,6 @@ if (flags.VERBOSE) {
 const config = require('./files/config')();
 const syncer = require('./sync/syncer')(config, flags);
 const puncher = require('./files/puncher')(config, flags);
-const reporter = require('./analysis/reporter')(config, flags);
 const invoicer = require('./invoicing/invoicer')(config, flags);
 const datefmt = require('./formatting/time');
 const durationfmt = require('./formatting/duration');

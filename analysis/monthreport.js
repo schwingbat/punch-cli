@@ -2,6 +2,7 @@ const datefmt = require('../formatting/time');
 const durationfmt = require('../formatting/duration');
 const moment = require('moment');
 const chalk = require('chalk');
+const { reportHeader, projectHeader, projectDay } = require('./printing');
 
 module.exports = function(config, punches, date, project) {
   let projects = {};
@@ -41,8 +42,10 @@ module.exports = function(config, punches, date, project) {
     }
   }
 
-  console.log(`\n${chalk.bold(`WORK FOR ${moment(date).format('MMMM YYYY').toUpperCase()}`)}`);
-  console.log(`${durationfmt(dayTime)} ${chalk.grey('/')} \$${dayPay.toFixed(2)}`);
+  console.log(reportHeader(
+    'Work for ' + moment(date).format('MMMM YYYY'),
+    [durationfmt(dayTime), '$' + dayPay.toFixed(2)]
+  ));
 
   const projArr = [];
 
@@ -52,6 +55,7 @@ module.exports = function(config, punches, date, project) {
     let pay;
     if (proj && proj.hourlyRate) {
       pay = projects[name].time / 1000 / 60 / 60 * proj.hourlyRate;
+      projects[name].hourlyRate = proj.hourlyRate;
     }
 
     projects[name].fullName = proj && proj.name ? proj.name : name;
@@ -72,27 +76,25 @@ module.exports = function(config, punches, date, project) {
   }
 
   projArr.sort((a, b) => {
-    // Descending by time
+    // Descending by time spent
     return +(a.billableTime < b.billableTime);
 
     // Descending by money
     // return +(a.totalPay > b.totalPay);
   }).forEach(project => {
-    // console.log(project);
     let pay;
     if (project.totalPay) pay = '$' + project.totalPay.toFixed(2);
 
-    const projectName = project.fullName;
-    const timeAndPay = `${durationfmt(project.billableTime)}${pay ? chalk.grey(' / ') + pay : ''}`;
-    const longer = projectName.length > timeAndPay.length
-      ? projectName.length
-      : timeAndPay.length;
-    const margin = 2;
-
-    console.log();
-    console.log('  ' + chalk.bold.yellow(projectName));
-    console.log('  ' + timeAndPay);
-    console.log();
+    console.log(projectHeader(
+      project.fullName,
+      [
+        durationfmt(project.billableTime),
+        pay,
+        project.hourlyRate
+          ? '$' + project.hourlyRate.toFixed(2) + '/hr'
+          : null
+      ]
+    ));
 
     // Sort sessions by day
     let sessionsByDay = {};
@@ -103,86 +105,29 @@ module.exports = function(config, punches, date, project) {
       sessionsByDay[day].push(session);
     });
 
-    if (false && !projName && Object.keys(sessionsByDay).length > 7) {
-      let byWeek = {};
-      for (const day in sessionsByDay) {
-        let dayDate = moment(sessionsByDay[day][0].startStamp);
-        const weekNum = dayDate.week();
-        const wDate = moment(sessionsByDay[day][0].startStamp);
-        const wEndDate = moment(sessionsByDay[day][0].startStamp);
-        wDate.set('day', 1);
-        wEndDate.set('day', 7);
-        if (!byWeek[weekNum]) byWeek[weekNum] = {
-          title: wDate.format('MMM Do') + ' - ' + wEndDate.format('MMM Do'),
-          time: 0,
-          pay: 0,
-          comments: []
-        };
+    for (const day in sessionsByDay) {
+      const sum = {
+        time: 0,
+        pay: 0,
+        sessions: [],
+      };
 
-        const week = byWeek[weekNum];
-        sessionsByDay[day].forEach(session => {
-          week.time += session.time;
-          week.pay += session.pay;
-          if (session.comment) week.comments.push(session.comment);
-        });
-      }
+      sessionsByDay[day].forEach(session => {
+        sum.time += session.time;
+        sum.pay += session.pay;
+        sum.sessions.push(session);
+      });
 
-      for (const week in byWeek) {
-        const w = byWeek[week];
-        let line = '  ' + w.title + ' (';
-        line += durationfmt(w.time);
-        if (w.pay) {
-          line += ' / $' + w.pay.toFixed(2);
-        }
-        line += ')';
-        console.log(line);
-        w.comments.forEach(comment => {
-          console.log('      -> ' + comment);
-        });
-      }
-    } else {
-      for (const day in sessionsByDay) {
-        let dayDate = moment(sessionsByDay[day][0].startStamp);
-        const sum = {
-          time: 0,
-          pay: 0,
-          sessions: [],
-        };
-
-        sessionsByDay[day].forEach(session => {
-          sum.time += session.time;
-          sum.pay += session.pay;
-          sum.sessions.push(session);
-        });
-  
-        let line = '  ' + chalk.bold(dayDate.format('dddd, MMM Do')) + '\n    ';
-        line += durationfmt(sum.time);
-        if (sum.pay) {
-          line += ' ' + chalk.grey('/') + ' $' + sum.pay.toFixed(2);
-        }
-        console.log(line);
-
-        sum.sessions.forEach(session => {
-          console.log('      ' + chalk.cyan.bold.italic(session.timeSpan) + chalk.grey(' >>> ') + (session.comment || chalk.grey("No comment for session")));
-        });
-        // if (sum.comments.length !== 0) console.log();
-      }
+      console.log(projectDay({
+        date: moment(sessionsByDay[day][0].startStamp),
+        stats: [
+          durationfmt(sum.time),
+          sum.pay
+            ? '$' + sum.pay.toFixed(2)
+            : null
+          ],
+        sessions: sum.sessions
+      }));
     }
   });
-
-  let lines = [
-    `Average hours per week: ${(dayTime / 3600000 / 4).toFixed(1)}`,
-    `Average $ per hour: \$${(dayPay / (dayTime / 3600000)).toFixed(2)}`,
-  ];
-  const longest = lines.reduce((prev, l) => l.length > prev ? l.length : prev, 0);
-  const margin = 2;
-
-  let divider = ''.padStart(longest + (margin * 2), '-');
-  let spacer = ''.padStart(margin);
-
-  console.log('\n ' + divider + ' ');
-  lines.forEach(line => {
-    console.log('|' + spacer + line.padEnd(longest + margin) + '|');
-  });
-  console.log(' ' + divider + ' \n');
 }

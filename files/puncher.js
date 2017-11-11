@@ -213,10 +213,6 @@ module.exports = function(config) {
     }
   }
 
-  function lastSession() {
-
-  }
-
   /*=======================*\
   ||       Reporting       ||
   \*=======================*/
@@ -224,11 +220,7 @@ module.exports = function(config) {
   function reportForDay(date = new Date(), project) {
     const file = getPunchFile(date);
 
-    if (!file.exists) {
-      return console.log(`No sessions for ${datefmt.date(date)}.`);
-    }
-
-    return dayReport(config, file.contents.punches, date, project);
+    return dayReport(config, file && file.contents ? file.contents.punches : [], date, project);
   }
 
   function reportForMonth(date = new Date(), project) {
@@ -252,7 +244,7 @@ module.exports = function(config) {
   }
 
   function reportForYear(date, project) {
-
+    console.log('Yearly reports are not implemented yet.');
   }
 
   return {
@@ -263,7 +255,6 @@ module.exports = function(config) {
     purgeProject,
     getPunchesForPeriod,
     currentSession,
-    lastSession,
     reportForDay,
     reportForMonth,
     reportForYear,
