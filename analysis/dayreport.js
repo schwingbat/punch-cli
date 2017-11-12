@@ -1,7 +1,16 @@
 const datefmt = require('../formatting/time');
+const moment = require('moment');
+const chalk = require('chalk');
 const durationfmt = require('../formatting/duration');
+const { reportHeader, projectHeader, projectDay } = require('./printing');
 
 module.exports = function(config, punches, date, project) {
+  date = moment(date);
+
+  if (punches.length === 0) {
+    return console.log('\n' + chalk.bold.white('▋  No sessions for ' + date.format('MMMM Do YYYY')) + '\n');
+  }
+
   let projects = {};
   punches.forEach(punch => {
     if (project && punch.project !== project) return;
@@ -17,8 +26,8 @@ module.exports = function(config, punches, date, project) {
 
     projects[punch.project].time += end - punch.in;
     projects[punch.project].sessions.push({
-      start: datefmt.dateTime(punch.in),
-      end: punch.out ? datefmt.dateTime(punch.out) : "Now",
+      start: datefmt.time(punch.in),
+      end: punch.out ? datefmt.time(punch.out) : "Now",
       startStamp: punch.in,
       time: end - punch.in,
       comment: punch.comment,
@@ -36,7 +45,10 @@ module.exports = function(config, punches, date, project) {
     }
   }
 
-  console.log(`\nWORK FOR ${datefmt.date(date)} (${durationfmt(dayTime)} / \$${dayPay.toFixed(2)})\n`);
+  console.log(reportHeader(
+    'Work for ' + date.format('MMMM Do YYYY'),
+    [durationfmt(dayTime), dayPay ? '$' + dayPay.toFixed(2) : null]
+  ));
 
   const projArr = [];
 
@@ -53,7 +65,7 @@ module.exports = function(config, punches, date, project) {
     projects[name].totalPay = pay;
     
     projects[name].sessions.map(session => {
-      session.timeSpan = session.start.split(' ').pop() + ' - ' + session.end.split(' ').pop(); 
+      session.timeSpan = session.start.padStart(8) + ' - ' + session.end.padStart(8);
       let sessionPay;
       if (proj && proj.hourlyRate) {
         sessionPay = session.time / 1000 / 60 / 60 * proj.hourlyRate;
@@ -76,22 +88,33 @@ module.exports = function(config, punches, date, project) {
     let pay;
     if (project.totalPay) pay = '$' + project.totalPay.toFixed(2);
 
-    console.log(`${project.fullName} (${durationfmt(project.billableTime)}${pay ? ' / ' + pay : ''})`);
+    console.log(projectHeader(
+      project.fullName,
+      [durationfmt(project.billableTime), pay]
+    ));
 
-    console.log();
     project.sessions.sort((a, b) => {
       // Chronological ascending
       return +(a.startStamp > b.startStamp);
     }).forEach(session => {
-      let str = '  ';
-      str += session.timeSpan.toUpperCase() + ' ';
-      str += '(';
-      str += session.duration;
-      if (session.pay) str += ' / $' + session.pay.toFixed(2);
-      str += ')';
-      if (session.comment) str += '\n        -> ' + session.comment;
+      let str = '';
+
+      str += '      ';
+      str += chalk.cyan.bold.italic(session.timeSpan);
+      str += chalk.grey(' >>> ');
+      str += session.comment || chalk.grey('No comment for session');
+
       console.log(str);
+
+      // let str = '  ';
+      // str += session.timeSpan.toUpperCase() + ' ';
+      // str += '(';
+      // str += session.duration;
+      // if (session.pay) str += ' / $' + session.pay.toFixed(2);
+      // str += ')';
+      // if (session.comment) str += '\n        -> ' + session.comment;
+      // console.log(str);
     });
-    console.log();
   });
+  console.log();
 }
