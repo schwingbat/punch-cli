@@ -138,9 +138,8 @@ module.exports = function(config, flags) {
             const count = r.downloads.length + r.uploads.length;
             if (VERBOSE) {
               console.log(` Synced ${count} file${count === 1 ? '' : 's'} in ${Date.now() - start}ms.`);
-            } else {
-              loader.stop(chalk.green('✔️') + ' Synced!');
             }
+            loader.stop(chalk.green('✔️') + ' Synced!');
           });
       }
 

@@ -4,10 +4,15 @@ const readline = require('readline-sync');
 const moment = require('moment');
 const path = require('path');
 const flags = require('./flags');
+const CLI = require('./utils/cli.js');
+const package = require('./package.json');
+
+const { command, run, invoke } = CLI({
+  name: 'punch',
+  version: package.version,
+});
 
 // Process command line args into params/flags
-
-const params = [];
 
 process.argv.slice(2).forEach(arg => {
   if (arg[0] === '-') {
@@ -17,15 +22,11 @@ process.argv.slice(2).forEach(arg => {
       flags.VERBOSE = true;
       break;
     }
-  } else {
-    params.push(arg);
   }
 });
 
-const command = params.shift();
-
 if (flags.VERBOSE) {
-  console.log({ command, params, flags });
+  console.log({ params: process.argv.slice(2), flags });
 }
 
 const config = require('./files/config')();
@@ -37,10 +38,6 @@ const durationfmt = require('./formatting/duration');
 const resolvePath = require('./utils/resolvepath');
 
 const { autoSync } = config.sync;
-
-if (command == null) {
-  return cmdHelp();
-}
 
 /*=========================*\
 ||          Utils          ||
@@ -84,73 +81,37 @@ const confirm = question => {
 ||      Parse/Dispatch     ||
 \*=========================*/
 
-switch (command.toLowerCase()) {
-case 'in':
-  return cmdIn();
-case 'out':
-  return cmdOut();
-case 'rewind':
-  return cmdRewind();
-case 'create':
-  return cmdCreate();
-case 'purge':
-  return cmdPurge();
-case 'current':
-case 'time':
-case 'now':
-  return cmdNow();
-case 'projects':
-  return cmdProjects();
-case 'today':
-case 'yesterday':
-  // 'today' and 'yesterday' are short for 'report today', etc.
-  params.unshift(command);
-case 'report':
-  return cmdReport();
-case 'invoice':
-  // punch invoice [project] [start_date] [end_date] [output].pdf
-  return cmdInvoice();
-case 'sync':
-  return cmdSync();
-default:
-  console.error(`Unrecognized command: ${command}`);
-  return cmdHelp();
-}
+/*
+  required param: 'in :project'
+  optional param: 'in :project?'
+  splat (rest): 'report *when'
+  optional splat: 'report *when?'
+*/
 
-/*=========================*\
-||         Commands        ||
-\*=========================*/
+command('in :project', 'start tracking time on a project', (args) => {
 
-async function cmdIn() {
-  // Begin a session.
-  const [project] = params;
-
-  if (!project) {
-    return console.log(`Can't punch in without a project name. Try: 'punch in [project]'`);
-  }
+  const { project } = args;
 
   const current = puncher.currentSession();
 
   if (current) {
-    const label = getLabelFor(current.project);
-    return console.log(`You're already punched in on ${label}! Punch out first.`);
+    return console.log(`You're already punched in on ${getLabelFor(project)}! Punch out first.`);
   } else {
     const time = datefmt.time(Date.now());
-    const label = getLabelFor(project);
     puncher.punchIn(project);
-    console.log(`Punched in on ${label} at ${time}.`);
-    if (autoSync) {
-      syncer.sync();
-    }
+    console.log(`Punched in on ${getLabelFor(project)} at ${time}.`);
+    if (autoSync) { syncer.sync(); }
   }
-}
 
-async function cmdOut() {
-  // End a session.
+});
+
+command('out *comment?', 'stop tracking time and record an optional description of tasks completed', (args) => {
+
+  const { comment } = args;
+
   const current = puncher.currentSession();
-
+  
   if (current) {
-    const comment = params.join(' '); // Join the rest of the params into a sentence.
     const label = getLabelFor(current.project);
     const time = datefmt.time(Date.now());
     const duration = Date.now() - current.in;
@@ -158,17 +119,17 @@ async function cmdOut() {
 
     puncher.punchOut(comment);
     console.log(`Punched out on ${label} at ${time}. Worked for ${durationfmt(duration)} and earned \$${pay.toFixed(2)}.`);
-    if (autoSync) {
-      syncer.sync();
-    }
+    if (autoSync) { syncer.sync(); }
   } else {
     console.log(`You're not punched in!`);
   }
-}
 
-function cmdRewind() {
+});
+
+command('rewind :amount', 'subtract payable time from a project to account for breaks and interruptions', (args) => {
+
   const current = puncher.currentSession();
-  const [amount] = params;
+  const { amount } = args;
 
   if (current) {
     puncher.rewind(amount);
@@ -180,25 +141,27 @@ function cmdRewind() {
     console.log('You\'re not currently punched in. Do you want to apply this rewind to the previous session?');
     console.log('[NOT IMPLEMENTED] Get user input (y/n)');
   }
-}
 
-function cmdCreate() {
-  const [project, rawTimeIn, rawTimeOut, comment] = params;
+});
+
+command('create :project :timeIn :timeOut :comment?', 'create a punch', (args) => {
+
+  const { project, timeIn, timeOut, comment } = args;
   
-  let timeIn, timeOut;
+  let punchIn, punchOut;
   try {
-    timeIn = moment(rawTimeIn, 'MM-DD-YYYY@hh:mmA');
-    timeOut = moment(rawTimeOut, 'MM-DD-YYYY@hh:mmA');
+    punchIn = moment(timeIn, 'MM-DD-YYYY@hh:mmA');
+    punchOut = moment(timeOut, 'MM-DD-YYYY@hh:mmA');
   } catch (err) {
     console.log('Please enter dates formatted as \'mm-dd-yyyy@hours:minutesAM\'');
   }
 
-  if (!timeIn.isValid() || !timeOut.isValid()) {
+  if (!punchIn.isValid() || !punchOut.isValid()) {
     return console.log('Please enter dates formatted as \'mm-dd-yyyy@hours:minutesAM\'');
   }
 
   const proj = config.projects.find(p => p.alias === project);
-  const duration = timeOut - timeIn;
+  const duration = punchOut - punchIn;
   let pay;
   if (proj && proj.hourlyRate) {
     pay = '$' + (duration / 3600000 * proj.hourlyRate).toFixed(2);
@@ -209,8 +172,8 @@ function cmdCreate() {
   let str = '';
 
   str += `   Project: ${getLabelFor(project)}\n`;
-  str += `   Time In: ${timeIn.format('dddd, MMM Do YYYY [@] h:mma')}\n`;
-  str += `  Time Out: ${timeOut.format('dddd, MMM Do YYYY [@] h:mma')}\n`;
+  str += `   Time In: ${punchIn.format('dddd, MMM Do YYYY [@] h:mma')}\n`;
+  str += `  Time Out: ${punchOut.format('dddd, MMM Do YYYY [@] h:mma')}\n`;
   str += `  Duration: ${durationfmt(duration)}\n`;
   str += `       Pay: ${pay}\n`;
 
@@ -221,16 +184,18 @@ function cmdCreate() {
   str += '\nCreate this punch?';
 
   if (confirm(str)) {
-    puncher.createPunch(project, timeIn.valueOf(), timeOut.valueOf(), comment);
+    puncher.createPunch(project, punchIn.valueOf(), punchOut.valueOf(), comment);
     console.log('Punch created');
   } else {
     console.log('Punch not created');
   }
-}
 
-function cmdPurge() {
-  const [project] = params;
+});
 
+command('purge :project', 'destroy all punches for a given project', (args) => {
+
+  const { project } = args;
+  
   const { found, time, days } = puncher.purgeProject(project);
   const label = getLabelFor(project);
 
@@ -244,9 +209,11 @@ function cmdPurge() {
   } else {
     console.log('Your entries are safe.');
   }
-}
 
-function cmdNow() {
+});
+
+command('now', 'show the status of the current session', () => {
+
   const current = puncher.currentSession();
   if (current) {
     const duration = Date.now() - current.in;
@@ -256,16 +223,30 @@ function cmdNow() {
   } else {
     console.log('No current session.');
   }
-}
 
-function cmdProjects() {
+});
+
+command('projects', 'show a list of all projects in your config file', () => {
+
   console.log('[NOT IMPLEMENTED] List all projects from config file');
-}
 
-function cmdReport() {
-  let when = (params.length === 0)
-    ? 'today'
-    : params.join(' ').toLowerCase();
+});
+
+command('today', 'show a summary of today\'s punches (shorthand for "punch report today")', () => {
+
+  invoke('report today');
+
+});
+
+command('yesterday', 'show a summary of yesterday\'s punches (short for "punch report yesterday")', () => {
+
+  invoke('report yesterday');
+
+});
+
+command('report *when?', 'show a summary of punches for a given period', (args) => {
+
+  let when = args.when || 'today';
   let date = new Date();
 
   switch (when) {
@@ -293,22 +274,23 @@ function cmdReport() {
     console.log(`Unknown time: ${when}`);
     break;
   }
-}
 
-function cmdInvoice() {
-  // punch invoice project start_date end_date format output
-  let [projectName, startDate, endDate, output] = params;
-  const project = config.projects.find(p => p.alias === projectName);
-  if (!project) {
+});
+
+command('invoice :project :startDate :endDate :outputFile', 'automatically generate an invoice using punch data', (args) => {
+
+  let { project, startDate, endDate, outputFile } = args;
+  const projectData = config.projects.find(p => p.alias === project);
+  if (!projectData) {
     return console.log(`Can't invoice for '${alias}'. Make sure the project is in your config file.`);
   }
 
-  projectName = project.name;
+  project = projectData.name;
   startDate = moment(startDate, 'MM-DD-YYYY');
   endDate = moment(endDate, 'MM-DD-YYYY');
   
   let format;
-  let ext = path.extname(output);
+  let ext = path.extname(outputFile);
 
   switch (ext.toLowerCase()) {
     case '.pdf':
@@ -325,11 +307,11 @@ function cmdInvoice() {
 
   let str = '\n';
   
-  str += `       Project: ${project.name || alias}\n`;
+  str += `       Project: ${projectData.name || alias}\n`;
   str += `    Start Date: ${startDate.format('dddd, MMM Do YYYY')}\n`;
   str += `      End Date: ${endDate.format('dddd, MMM Do YYYY')}\n`;
   str += `Invoice Format: ${format}\n`;
-  str += `     Output To: ${resolvePath(output)}\n`
+  str += `     Output To: ${resolvePath(outputFile)}\n`
 
   console.log(str);
 
@@ -341,23 +323,21 @@ function cmdInvoice() {
       endDate,
       punches: puncher
         .getPunchesForPeriod(startDate.toDate(), endDate.toDate())
-        .filter(p => p.project === project.alias),
-      project,
+        .filter(p => p.project === projectData.alias),
+      project: projectData,
       user: config.user,
       output: {
-        path: resolvePath(output),
+        path: resolvePath(outputFile),
       }
     };
 
     invoicer
       .create(data, format);
   }
-}
+});
 
-function cmdSync() {
+command('sync *provider?', 'synchronize with any providers you have configured', () => {
   syncer.sync();
-}
+});
 
-function cmdHelp() {
-  console.log('[NOT IMPLEMENTED] Show help');
-}
+run(process.argv.slice(2));

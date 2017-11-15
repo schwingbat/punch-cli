@@ -5,7 +5,7 @@
   "main": "index.js",
   "bin": "./punch.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "ava"
   },
   "keywords": [],
   "author": "Tony McCoy <tony@ratwizard.io>",
@@ -18,5 +18,8 @@
     "log-update": "^2.3.0",
     "moment": "^2.19.1",
     "readline-sync": "^1.4.7"
+  },
+  "devDependencies": {
+    "ava": "^0.23.0"
   }
 }
