@@ -1,16 +1,6 @@
 #!/usr/bin/env node
 
-const readline = require('readline-sync');
-const moment = require('moment');
-const path = require('path');
 const flags = require('./flags');
-const CLI = require('./utils/cli.js');
-const package = require('./package.json');
-
-const { command, run, invoke } = CLI({
-  name: 'punch',
-  version: package.version,
-});
 
 // Process command line args into params/flags
 
@@ -29,6 +19,9 @@ if (flags.VERBOSE) {
   console.log({ params: process.argv.slice(2), flags });
 }
 
+const path = require('path');
+const moment = require('moment');
+const readline = require('readline-sync');
 const config = require('./files/config')();
 const syncer = require('./sync/syncer')(config, flags);
 const puncher = require('./files/puncher')(config, flags);
@@ -36,24 +29,31 @@ const invoicer = require('./invoicing/invoicer')(config, flags);
 const datefmt = require('./formatting/time');
 const durationfmt = require('./formatting/duration');
 const resolvePath = require('./utils/resolvepath');
+const CLI = require('./utils/cli.js');
+const package = require('./package.json');
 
 const { autoSync } = config.sync;
+
+const { command, run, invoke } = CLI({
+  name: 'punch',
+  version: package.version,
+});
 
 /*=========================*\
 ||          Utils          ||
 \*=========================*/
 
-const getLabelFor = param => {
-  const project = config.projects.find(p => p.alias === param);
+const getLabelFor = name => {
+  const project = config.projects.find(p => p.alias === name);
   if (project) {
     return project.name;
   } else {
-    return param;
+    return name;
   }
 };
 
-const getRateFor = proj => {
-  const project = config.projects.find(p => p.alias === proj);
+const getRateFor = name => {
+  const project = config.projects.find(p => p.alias === name);
   if (project) {
     return project.hourlyRate;
   } else {
@@ -147,7 +147,7 @@ command('rewind :amount', 'subtract payable time from a project to account for b
 command('create :project :timeIn :timeOut :comment?', 'create a punch', (args) => {
 
   const { project, timeIn, timeOut, comment } = args;
-  
+
   let punchIn, punchOut;
   try {
     punchIn = moment(timeIn, 'MM-DD-YYYY@hh:mmA');
