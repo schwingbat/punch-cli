@@ -153,7 +153,7 @@ command('create :project :timeIn :timeOut :comment?', 'create a punch', (args) =
     punchIn = moment(timeIn, 'MM-DD-YYYY@hh:mmA');
     punchOut = moment(timeOut, 'MM-DD-YYYY@hh:mmA');
   } catch (err) {
-    console.log('Please enter dates formatted as \'mm-dd-yyyy@hours:minutesAM\'');
+    console.log(`Please enter dates formatted as 'mm-dd-yyyy@hours:minutesAM' (err: ${err})`);
   }
 
   if (!punchIn.isValid() || !punchOut.isValid()) {
