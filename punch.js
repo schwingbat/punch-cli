@@ -226,6 +226,16 @@ command('now', 'show the status of the current session', () => {
 
 });
 
+command ('watch', 'continue running to show automatically updated stats of your current session', () => {
+  const current = puncher.currentSession();
+
+  if (current) {
+    
+  } else {
+    console.log('You aren\'t punched right now.');
+  }
+});
+
 command('projects', 'show a list of all projects in your config file', () => {
 
   console.log('[NOT IMPLEMENTED] List all projects from config file');
