@@ -21,6 +21,7 @@ if (flags.VERBOSE) {
 
 const path = require('path');
 const moment = require('moment');
+const logUpdate = require('log-update');
 const readline = require('readline-sync');
 const config = require('./files/config')();
 const syncer = require('./sync/syncer')(config, flags);
@@ -230,7 +231,23 @@ command ('watch', 'continue running to show automatically updated stats of your 
   const current = puncher.currentSession();
 
   if (current) {
-    
+    const project = config.projects.find(p => p.alias === current.project);
+    const label = project && project.name ? project.name : current.project;
+    const rate = project && project.hourlyRate ? project.hourlyRate : 0;
+
+    setInterval(() => {
+      let time = Date.now() - current.in;
+      let pay = (time / 3600000) * rate;
+      let duration = durationfmt(Date.now() - current.in);
+
+      let str = `\nYou've been working on ${label} for ${duration}`;
+
+      if (pay && pay > 0) {
+        str += ` (\$${pay.toFixed(2)})\n`;
+      }
+
+      logUpdate(str);
+    }, 1000);
   } else {
     console.log('You aren\'t punched right now.');
   }
