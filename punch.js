@@ -29,9 +29,12 @@ const puncher = require('./files/puncher')(config, flags);
 const invoicer = require('./invoicing/invoicer')(config, flags);
 const datefmt = require('./formatting/time');
 const durationfmt = require('./formatting/duration');
+const currencyfmt = require('./formatting/currency');
+const summaryfmt = require('./formatting/projsummary');
 const resolvePath = require('./utils/resolvepath');
 const CLI = require('./utils/cli.js');
 const package = require('./package.json');
+const print = require('./analysis/printing');
 
 const { autoSync } = config.sync;
 
@@ -119,7 +122,7 @@ command('out *comment?', 'stop tracking time and record an optional description 
     const pay = duration / 1000 / 60 / 60 * getRateFor(current.project);
 
     puncher.punchOut(comment);
-    console.log(`Punched out on ${label} at ${time}. Worked for ${durationfmt(duration)} and earned \$${pay.toFixed(2)}.`);
+    console.log(`Punched out on ${label} at ${time}. Worked for ${durationfmt(duration)} and earned ${currencyfmt(pay)}.`);
     if (autoSync) { syncer.sync(); }
   } else {
     console.log(`You're not punched in!`);
@@ -165,7 +168,7 @@ command('create :project :timeIn :timeOut :comment?', 'create a punch', (args) =
   const duration = punchOut - punchIn;
   let pay;
   if (proj && proj.hourlyRate) {
-    pay = '$' + (duration / 3600000 * proj.hourlyRate).toFixed(2);
+    pay = currencyfmt(duration / 3600000 * proj.hourlyRate);
   } else {
     pay = 'N/A';
   }
@@ -220,7 +223,7 @@ command('now', 'show the status of the current session', () => {
     const duration = Date.now() - current.in;
     const pay = duration / 1000 / 60 / 60 * getRateFor(current.project);
     const punchedIn = datefmt.time(current.in);
-    console.log(`You punched in on ${getLabelFor(current.project)} at ${punchedIn} and have been working for ${durationfmt(duration)} (\$${pay.toFixed(2)}).`);
+    console.log(`You punched in on ${getLabelFor(current.project)} at ${punchedIn} and have been working for ${durationfmt(duration)} (${currencyfmt(pay)}).`);
   } else {
     console.log('No current session.');
   }
@@ -243,7 +246,7 @@ command ('watch', 'continue running to show automatically updated stats of your 
       let str = `\nYou've been working on ${label} for ${duration}`;
 
       if (pay && pay > 0) {
-        str += ` (\$${pay.toFixed(2)})\n`;
+        str += ` (${currencyfmt(pay)})\n`;
       }
 
       logUpdate(str);
@@ -253,10 +256,17 @@ command ('watch', 'continue running to show automatically updated stats of your 
   }
 });
 
-command('projects', 'show a list of all projects in your config file', () => {
+command('project *args?', 'get statistics for a specific project', (args) => {
+  
+  invoke(`projects ${args.args || ''}`);
 
-  console.log('[NOT IMPLEMENTED] List all projects from config file');
+});
 
+command('projects *names?', 'show statistics for all projects in your config file', (args) => {
+  const names = args.names ? args.names.split(' ') : null;
+  const projects = puncher.getProjectSummaries(names);
+
+  projects.forEach(p => console.log(print.projectSummary(summaryfmt(p))));
 });
 
 command('today', 'show a summary of today\'s punches (shorthand for "punch report today")', () => {
@@ -333,12 +343,15 @@ command('invoice :project :startDate :endDate :outputFile', 'automatically gener
   }
 
   let str = '\n';
-  
-  str += `       Project: ${projectData.name || alias}\n`;
-  str += `    Start Date: ${startDate.format('dddd, MMM Do YYYY')}\n`;
-  str += `      End Date: ${endDate.format('dddd, MMM Do YYYY')}\n`;
-  str += `Invoice Format: ${format}\n`;
-  str += `     Output To: ${resolvePath(outputFile)}\n`
+
+  str += print.labelTable([
+    { label: 'Project', value: projectData.name || alias },
+    { label: 'Start Date', value: startDate.format('dddd, MMM Do YYYY') },
+    { label: 'End Date', value: endDate.format('dddd, MMM Do YYYY') },
+    { label: 'Invoice Format', value: format },
+    { label: 'Output To', value: resolvePath(outputFile) },
+  ]);
+
 
   console.log(str);
 

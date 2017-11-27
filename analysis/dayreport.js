@@ -1,4 +1,5 @@
 const datefmt = require('../formatting/time');
+const currencyfmt = require('../formatting/currency');
 const moment = require('moment');
 const chalk = require('chalk');
 const durationfmt = require('../formatting/duration');
@@ -47,7 +48,7 @@ module.exports = function(config, punches, date, project) {
 
   console.log(reportHeader(
     'Work for ' + date.format('MMMM Do YYYY'),
-    [durationfmt(dayTime), dayPay ? '$' + dayPay.toFixed(2) : null]
+    [durationfmt(dayTime), dayPay ? currencyfmt(dayPay) : null]
   ));
 
   const projArr = [];
@@ -86,7 +87,7 @@ module.exports = function(config, punches, date, project) {
   }).forEach(project => {
     // console.log(project);
     let pay;
-    if (project.totalPay) pay = '$' + project.totalPay.toFixed(2);
+    if (project.totalPay) pay = currencyfmt(project.totalPay);
 
     console.log(projectHeader(
       project.fullName,

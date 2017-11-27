@@ -12,29 +12,55 @@ const slashList = (things, parens) => {
     : slashed;
 };
 
-exports.reportHeader = function(text, stats) {
+const labelTable = (items) => {
+  let str = '';
+  let length = items.reduce(
+      (longest, item) =>
+        item.label && item.label.length > longest
+          ? item.label.length
+          : longest,
+        0);
+
+  items.forEach(({ label, value }) => {
+    if (!label) {
+      str += '   ' + value + '\n';
+    } else {
+      str += `   ${(label + ':').padStart(length + 2)} ${value}\n`;
+    }
+  });
+
+  return str;
+};
+
+function reportHeader(text, stats) {
   let str = '\n';
 
   str += '▋  ' + chalk.bold(text) + '\n';
-  str += '▋  ' + slashList(stats);
+  if (stats) {
+    str += '▋  ' + slashList(stats);
+  }
 
   return str;
 };
 
-exports.projectHeader = function(text, stats) {
+function projectHeader(text, stats) {
   let str = '\n';
 
   str += chalk.bold.yellow('▋  ' + text) + '';
-  str += ' ' + slashList(stats, true) + '\n';
+  if (stats) {
+    str += ' ' + slashList(stats, true) + '\n';
+  }
 
   return str;
 };
 
-exports.projectDay = function({ date, stats, sessions }) {
+function projectDay({ date, stats, sessions }) {
   let str = '';
 
   str += chalk.grey('   ▶  ') + chalk.white.bold(date.format('MMM Do, dddd'));
-  str += ' ' + slashList(stats, true) + '\n';
+  if (stats) {
+    str += ' ' + slashList(stats, true) + '\n';
+  }
 
   sessions.forEach(session => {
     str += '      ';
@@ -47,4 +73,23 @@ exports.projectDay = function({ date, stats, sessions }) {
   return str;
 };
 
-exports.slashList = slashList;
+function projectSummary({ name, pay, time, rate, stats }) {
+  let str = '';
+
+  str += projectHeader(name) + ' ' + slashList([pay, time, rate], true) + '\n\n';
+
+  if (stats) {
+    str += labelTable(stats);
+  }
+
+  return str;
+};
+
+module.exports = {
+  slashList,
+  labelTable,
+  reportHeader,
+  projectHeader,
+  projectDay,
+  projectSummary,
+};

@@ -213,6 +213,93 @@ module.exports = function(config) {
     }
   }
 
+  function getProjectSummaries(names) {
+    const files = fs.readdirSync(punchPath).map(f => {
+      const filePath = path.join(punchPath, f);
+      try {
+        return parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      } catch (err) {
+        console.log(`Failed to read or parse file ${f}: ${err}`);
+      }
+    }).filter(f => f);
+
+    const summarize = (project) => {
+      const punches = [];
+      let firstPunch;
+      let latestPunch;
+      let totalDays = 0;
+
+      files.forEach(f => {
+        let worked = false;
+
+        f.punches.forEach(p => {
+          if (p.project.toLowerCase() === project.toLowerCase()) {
+            if (!firstPunch || p.in < firstPunch.in) {
+              firstPunch = p;
+            }
+            if (!latestPunch || p.in > latestPunch.in) {
+              latestPunch = p;
+            }
+            p.duration = (p.out || Date.now()) - p.in - (p.rewind || 0);
+            punches.push(p);
+            worked = true;
+          }
+        });
+
+        if (worked) totalDays += 1;
+      });
+
+      const projectData = config.projects.find(p => p.alias === project);
+      const fullName = projectData
+        ? projectData.name
+        : project;
+      const totalTime = punches.reduce(
+        (sum, punch) =>
+          sum + ((punch.out || Date.now()) - punch.in - (punch.rewind || 0)),
+        0);
+      const totalHours = (totalTime / 3600000);
+      const totalPay = projectData && projectData.hourlyRate
+        ? totalHours * projectData.hourlyRate
+        : 0;
+      const hourlyRate = projectData && projectData.hourlyRate
+        ? projectData.hourlyRate
+        : 0;
+
+      let longestPunch;
+      let shortestPunch;
+
+      punches.forEach(p => {
+        if (!longestPunch || p.duration > longestPunch.duration) {
+          longestPunch = p;
+        }
+        if (!shortestPunch || p.duration < shortestPunch.duration) {
+          shortestPunch = p;
+        }
+      });
+
+
+      return {
+        fullName,
+        totalTime,
+        totalHours,
+        totalPay,
+        hourlyRate,
+        firstPunch,
+        latestPunch,
+        shortestPunch,
+        longestPunch,
+        totalPunches: punches.length,
+        totalDays
+      };
+    };
+
+    if (names) {
+      return names.map(n => summarize(n));
+    } else {
+      return config.projects.map(p => summarize(p.alias));
+    }
+  }
+
   /*=======================*\
   ||       Reporting       ||
   \*=======================*/
@@ -254,6 +341,7 @@ module.exports = function(config) {
     rewind,
     purgeProject,
     getPunchesForPeriod,
+    getProjectSummaries,
     currentSession,
     reportForDay,
     reportForMonth,
