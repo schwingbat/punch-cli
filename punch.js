@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+const startTime = Date.now();
+
 const flags = require('./flags');
 
 // Process command line args into params/flags
@@ -11,6 +13,10 @@ process.argv.slice(2).forEach(arg => {
     case '--verbose':
       flags.VERBOSE = true;
       break;
+    case '-b':
+    case '--benchmark':
+      flags.BENCHMARK = true;
+      break;
     }
   }
 });
@@ -19,21 +25,32 @@ if (flags.VERBOSE) {
   console.log({ params: process.argv.slice(2), flags });
 }
 
+if (flags.BENCHMARK) {
+  console.log(`Args parsed at ${Date.now() - startTime}ms`);
+}
+
+// Dependencies
 const path = require('path');
 const moment = require('moment');
 const logUpdate = require('log-update');
 const readline = require('readline-sync');
+
 const config = require('./files/config')();
-const syncer = require('./sync/syncer')(config, flags);
-const puncher = require('./files/puncher')(config, flags);
-const invoicer = require('./invoicing/invoicer')(config, flags);
+const Puncher = require('./files/puncher');
+const Syncer = require('./sync/syncer');
+const Invoicer = require('./invoicing/invoicer');
+
+// Formatting
 const datefmt = require('./formatting/time');
 const durationfmt = require('./formatting/duration');
 const currencyfmt = require('./formatting/currency');
 const summaryfmt = require('./formatting/projsummary');
+
+// Utils
 const resolvePath = require('./utils/resolvepath');
 const CLI = require('./utils/cli.js');
 const package = require('./package.json');
+
 const print = require('./analysis/printing');
 
 const { autoSync } = config.sync;
@@ -42,6 +59,8 @@ const { command, run, invoke } = CLI({
   name: 'punch',
   version: package.version,
 });
+
+if (flags.BENCHMARK) console.log(`Modules required at ${Date.now() - startTime}ms`);
 
 /*=========================*\
 ||          Utils          ||
@@ -96,6 +115,7 @@ command('in :project', 'start tracking time on a project', (args) => {
 
   const { project } = args;
 
+  const puncher = Puncher(config, flags);
   const current = puncher.currentSession();
 
   if (current) {
@@ -104,7 +124,10 @@ command('in :project', 'start tracking time on a project', (args) => {
     const time = datefmt.time(Date.now());
     puncher.punchIn(project);
     console.log(`Punched in on ${getLabelFor(project)} at ${time}.`);
-    if (autoSync) { syncer.sync(); }
+    if (autoSync) {
+      const syncer = Syncer(config, flags);
+      syncer.sync();
+    }
   }
 
 });
@@ -113,6 +136,7 @@ command('out *comment?', 'stop tracking time and record an optional description 
 
   const { comment } = args;
 
+  const puncher = Puncher(config, flags);
   const current = puncher.currentSession();
   
   if (current) {
@@ -123,7 +147,10 @@ command('out *comment?', 'stop tracking time and record an optional description 
 
     puncher.punchOut(comment);
     console.log(`Punched out on ${label} at ${time}. Worked for ${durationfmt(duration)} and earned ${currencyfmt(pay)}.`);
-    if (autoSync) { syncer.sync(); }
+    if (autoSync) {
+      const syncer = Syncer(config, flags);
+      syncer.sync();
+    }
   } else {
     console.log(`You're not punched in!`);
   }
@@ -132,6 +159,7 @@ command('out *comment?', 'stop tracking time and record an optional description 
 
 command('rewind :amount', 'subtract payable time from a project to account for breaks and interruptions', (args) => {
 
+  const puncher = Puncher(config, flags);
   const current = puncher.currentSession();
   const { amount } = args;
 
@@ -139,6 +167,7 @@ command('rewind :amount', 'subtract payable time from a project to account for b
     puncher.rewind(amount);
     console.log(`Rewound by ${amount} on current ${getLabelFor(current.project)} session.`);
     if (autoSync) {
+      const syncer = Syncer(config, flags);
       syncer.sync();
     }
   } else {
@@ -188,6 +217,7 @@ command('create :project :timeIn :timeOut :comment?', 'create a punch', (args) =
   str += '\nCreate this punch?';
 
   if (confirm(str)) {
+    const puncher = Puncher(config, flags);
     puncher.createPunch(project, punchIn.valueOf(), punchOut.valueOf(), comment);
     console.log('Punch created');
   } else {
@@ -200,6 +230,7 @@ command('purge :project', 'destroy all punches for a given project', (args) => {
 
   const { project } = args;
   
+  const puncher = Puncher(config, flags);
   const { found, time, days } = puncher.purgeProject(project);
   const label = getLabelFor(project);
 
@@ -218,6 +249,7 @@ command('purge :project', 'destroy all punches for a given project', (args) => {
 
 command('now', 'show the status of the current session', () => {
 
+  const puncher = Puncher(config, flags);
   const current = puncher.currentSession();
   if (current) {
     const duration = Date.now() - current.in;
@@ -231,6 +263,7 @@ command('now', 'show the status of the current session', () => {
 });
 
 command ('watch', 'continue running to show automatically updated stats of your current session', () => {
+  const puncher = Puncher(config, flags);
   const current = puncher.currentSession();
 
   if (current) {
@@ -252,7 +285,7 @@ command ('watch', 'continue running to show automatically updated stats of your 
       logUpdate(str);
     }, 1000);
   } else {
-    console.log('You aren\'t punched right now.');
+    console.log('You aren\'t punched in right now.');
   }
 });
 
@@ -264,6 +297,7 @@ command('project *args?', 'get statistics for a specific project', (args) => {
 
 command('projects *names?', 'show statistics for all projects in your config file', (args) => {
   const names = args.names ? args.names.split(' ') : null;
+  const puncher = Puncher(config, flags);
   const projects = puncher.getProjectSummaries(names);
 
   projects.forEach(p => console.log(print.projectSummary(summaryfmt(p))));
@@ -283,6 +317,7 @@ command('yesterday', 'show a summary of yesterday\'s punches (short for "punch r
 
 command('report *when?', 'show a summary of punches for a given period', (args) => {
 
+  const puncher = Puncher(config, flags);
   let when = args.when || 'today';
   let date = new Date();
 
@@ -351,13 +386,13 @@ command('invoice :project :startDate :endDate :outputFile', 'automatically gener
     { label: 'Invoice Format', value: format },
     { label: 'Output To', value: resolvePath(outputFile) },
   ]);
-
-
   console.log(str);
 
   let response;
   
   if (confirm('Create invoice?')) {
+    const puncher = Puncher(config, flags);
+
     const data = {
       startDate,
       endDate,
@@ -377,7 +412,16 @@ command('invoice :project :startDate :endDate :outputFile', 'automatically gener
 });
 
 command('sync *provider?', 'synchronize with any providers you have configured', () => {
+  const syncer = Syncer(config, flags);
   syncer.sync();
 });
 
+if (flags.BENCHMARK) {
+  console.log(`Commands parsed at ${Date.now() - startTime}ms`);
+}
+
 run(process.argv.slice(2));
+
+if (flags.BENCHMARK) {
+  console.log(`Program run in ${Date.now() - startTime}ms`);
+}

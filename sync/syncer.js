@@ -140,6 +140,9 @@ module.exports = function(config, flags) {
               console.log(` Synced ${count} file${count === 1 ? '' : 's'} in ${Date.now() - start}ms.`);
             }
             loader.stop(chalk.green('✔️') + ' Synced!');
+          })
+          .catch(err => {
+            console.error('There was a problem syncing', err);
           });
       }
 
