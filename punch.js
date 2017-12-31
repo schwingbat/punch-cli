@@ -111,7 +111,8 @@ const confirm = question => {
   optional splat: 'report *when?'
 */
 
-command('in :project', 'start tracking time on a project', (args) => {
+command('in <project>',
+        'start tracking time on a project', (args) => {
 
   const { project } = args;
 
@@ -132,7 +133,8 @@ command('in :project', 'start tracking time on a project', (args) => {
 
 });
 
-command('out *comment?', 'stop tracking time and record an optional description of tasks completed', (args) => {
+command('out [*comment]',
+        'stop tracking time and record an optional description of tasks completed', (args) => {
 
   const { comment } = args;
 
@@ -157,7 +159,8 @@ command('out *comment?', 'stop tracking time and record an optional description 
 
 });
 
-command('rewind :amount', 'subtract payable time from a project to account for breaks and interruptions', (args) => {
+command('rewind <amount>',
+        'subtract payable time from a project to account for breaks and interruptions', (args) => {
 
   const puncher = Puncher(config, flags);
   const current = puncher.currentSession();
@@ -177,7 +180,8 @@ command('rewind :amount', 'subtract payable time from a project to account for b
 
 });
 
-command('create :project :timeIn :timeOut :comment?', 'create a punch', (args) => {
+command('create <project> <timeIn> <timeOut> [*comment]',
+        'create a punch', (args) => {
 
   const { project, timeIn, timeOut, comment } = args;
 
@@ -226,7 +230,8 @@ command('create :project :timeIn :timeOut :comment?', 'create a punch', (args) =
 
 });
 
-command('purge :project', 'destroy all punches for a given project', (args) => {
+command('purge <project>',
+        'destroy all punches for a given project', (args) => {
 
   const { project } = args;
   
@@ -247,7 +252,8 @@ command('purge :project', 'destroy all punches for a given project', (args) => {
 
 });
 
-command('now', 'show the status of the current session', () => {
+command('now',
+        'show the status of the current session', () => {
 
   const puncher = Puncher(config, flags);
   const current = puncher.currentSession();
@@ -262,7 +268,9 @@ command('now', 'show the status of the current session', () => {
 
 });
 
-command ('watch', 'continue running to show automatically updated stats of your current session', () => {
+command ('watch',
+         'continue running to show automatically updated stats of your current session', () => {
+
   const puncher = Puncher(config, flags);
   const current = puncher.currentSession();
 
@@ -289,33 +297,38 @@ command ('watch', 'continue running to show automatically updated stats of your 
   }
 });
 
-command('project *args?', 'get statistics for a specific project', (args) => {
+command('project <name>',
+        'get statistics for a specific project', (args) => {
   
-  invoke(`projects ${args.args || ''}`);
+  invoke(`projects ${args.name || ''}`);
 
 });
 
-command('projects *names?', 'show statistics for all projects in your config file', (args) => {
-  const names = args.names ? args.names.split(' ') : null;
+command('projects [names...]',
+        'show statistics for all projects in your config file', (args) => {
+
   const puncher = Puncher(config, flags);
-  const projects = puncher.getProjectSummaries(names);
+  const projects = puncher.getProjectSummaries(args.names);
 
   projects.forEach(p => console.log(print.projectSummary(summaryfmt(p))));
 });
 
-command('today', 'show a summary of today\'s punches (shorthand for "punch report today")', () => {
+command('today',
+        'show a summary of today\'s punches (shorthand for "punch report today")', () => {
 
   invoke('report today');
 
 });
 
-command('yesterday', 'show a summary of yesterday\'s punches (short for "punch report yesterday")', () => {
+command('yesterday',
+        'show a summary of yesterday\'s punches (short for "punch report yesterday")', () => {
 
   invoke('report yesterday');
 
 });
 
-command('report *when?', 'show a summary of punches for a given period', (args) => {
+command('report [*when]',
+        'show a summary of punches for a given period', (args) => {
 
   const puncher = Puncher(config, flags);
   let when = args.when || 'today';
@@ -349,7 +362,8 @@ command('report *when?', 'show a summary of punches for a given period', (args) 
 
 });
 
-command('invoice :project :startDate :endDate :outputFile', 'automatically generate an invoice using punch data', (args) => {
+command('invoice <project> <startDate> <endDate> <outputFile>',
+        'automatically generate an invoice using punch data', (args) => {
 
   let { project, startDate, endDate, outputFile } = args;
   const projectData = config.projects.find(p => p.alias === project);
@@ -392,6 +406,7 @@ command('invoice :project :startDate :endDate :outputFile', 'automatically gener
   
   if (confirm('Create invoice?')) {
     const puncher = Puncher(config, flags);
+    const invoicer = Invoicer(config, flags);
 
     const data = {
       startDate,
@@ -411,9 +426,27 @@ command('invoice :project :startDate :endDate :outputFile', 'automatically gener
   }
 });
 
-command('sync *provider?', 'synchronize with any providers you have configured', () => {
+command('sync [providers...]',
+        'synchronize with any providers you have configured', () => {
+
   const syncer = Syncer(config, flags);
   syncer.sync();
+});
+
+command('config [editor]',
+        'open config file in editor - uses EDITOR env var unless an editor command is specified.', args => {
+
+const editor = args.editor || process.env.EDITOR;
+
+if (!editor) {
+  console.error('No editor specified and no EDITOR variable available. Please specify an editor to use: punch config <editor>');
+}
+
+console.log(`Editing with ${editor}`);
+const exec = require('child_process').execSync;
+
+exec(`${editor} ~/.punch/punchconfig.json`);
+
 });
 
 if (flags.BENCHMARK) {

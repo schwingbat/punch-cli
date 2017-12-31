@@ -1,6 +1,6 @@
 const chalk = require('chalk');
 
-function parseCmdString(str) {
+function parseOldCmdString(str) {
   let i = 0;
   let end = str.length;
   const argMap = [];
@@ -64,6 +64,94 @@ function parseCmdString(str) {
   return argMap;
 }
 
+function parseSignature(str) {
+  let i = 0;
+  let end = str.length;
+  const argMap = [];
+
+  let buffer = '';
+  let inArg = false;
+  let inOpt = false;
+  let inSplat = false;
+  let inMulti = false;
+
+  const addArg = () => {
+    if (inSplat && inMulti) {
+      throw new Error(`Error at index ${i} - param is both splat and multiple`);
+    }
+
+    const obj = {
+      name: buffer,
+      optional: inOpt,
+      multiple: inMulti,
+      splat: inSplat,
+    };
+
+    argMap.push(obj);
+    buffer = '';
+
+    inArg = false;
+    inOpt = false;
+    inSplat = false;
+    inMulti = false;
+  };
+
+  while (i < end) {
+    switch (str[i]) {
+    case '<':
+      inArg = true;
+      inOpt = false;
+      break;
+    case '>':
+      addArg();
+      break;
+    case '[':
+      inArg = true;
+      inOpt = true;
+      break;
+    case ']':
+      addArg();
+      break;
+    case '.':
+      if (inArg && buffer.length > 0) {
+        let eq = str[i] === '.'
+              && str[i+1] === '.'
+              && str[i+2] === '.';
+
+        if (eq) {
+          i += 2;
+          inMulti = true;
+        }
+      }
+      break;
+    case '*':
+      if (inArg && buffer.length === 0) {
+        // If '*' is the first thing to appear in the name
+        inSplat = true;
+      }
+      break;
+    case ' ':
+      break;
+    default:
+      if (inArg) {
+        buffer += str[i];
+      }
+      break;
+    }
+
+    i += 1;
+  }
+
+
+  if (buffer.length > 0) {
+    if (inArg) {
+      addArg();
+    }
+  }
+
+  return argMap;
+}
+
 function mapArgs(args, argMap) {
   // Using a command's argMap, map the args to their proper names.
 
@@ -73,6 +161,8 @@ function mapArgs(args, argMap) {
     if (args[i]) {
       if (arg.splat) {
         mapped[arg.name] = args.slice(i).join(' ');
+      } else if (arg.multiple) {
+        mapped[arg.name] = args.slice(i);
       } else {
         mapped[arg.name] = args[i];
       }
@@ -95,21 +185,36 @@ function requiredArgsProvided(mappedArgs, argMap) {
   return true;
 }
 
+function formatSentence(str) {
+  let sentence = str[0].toUpperCase() + str.slice(1);
+  if (sentence[sentence.length - 1] !== '.') {
+    sentence += '.';
+  }
+
+  return sentence;
+}
+
+function toSnakeCase(str) {
+  return str.replace(/([a-z][A-Z])/g, cap => cap[0] + '_' + cap[1].toLowerCase());
+}
+
 function makeHelp(programName, command, argMap, mapped) {
   let str = '\n';
 
-  str += 'Usage: ' + programName + ' ' + command;
+  str += `Usage: ${programName} ${command}`;
 
   argMap.forEach(arg => {
-    let argStr = ' <';
-    // if (arg.splat) {
-    //   argStr += '...';
-    // }
-    argStr += arg.name;
-    if (arg.optional) {
-      argStr += '?';
+    let argStr = ' ';
+    let name = toSnakeCase(arg.name);
+    if (arg.splat) {
+      name += '...';
     }
-    argStr += '>';
+
+    if (arg.optional) {
+      argStr += `[${name}]`;
+    } else {
+      argStr += `<${name}>`;
+    }
 
     // Highlight in red if this arg was missed.
     if (!mapped[arg.name]) {
@@ -133,32 +238,11 @@ function makeGeneralHelp(program, commands) {
   str += chalk.bold('  Commands:') + '\n';
 
   for (const cmd in commands) {
-    const c = commands[cmd];
+    const { signature, purpose } = commands[cmd];
 
-    str += '    ';
-    str += cmd;
-    c.args.forEach(arg => {
-      str += ' <';
-      // if (arg.splat) {
-      //   str += '...';
-      // }
-      str += arg.name;
-      if (arg.optional) {
-        str += '?';
-      }
-      str += '>';
-    });
-    str += '\n';
-
-    if (c.purpose) {
-      c.purpose = c.purpose[0].toUpperCase() + c.purpose.slice(1);
-      if (c.purpose[c.purpose.length - 1] !== '.') {
-        c.purpose += '.';
-      }
-
-      str += '      ';
-      str += chalk.italic.grey(c.purpose);
-      str += '\n';
+    str += `    ${toSnakeCase(signature)}\n`;
+    if (purpose) {
+      str += '      ' + chalk.italic.grey(formatSentence(purpose)) + '\n';
     }
   }
 
@@ -168,18 +252,18 @@ function makeGeneralHelp(program, commands) {
 function CLI(program) {
   const commands = {};
 
-  const command = (cmd, purpose, callback) => {
+  const command = (signature, purpose, callback) => {
     if (typeof purpose === 'function' && !callback) {
       callback = purpose;
       purpose = null;
     }
 
-    const command = cmd.split(' ')[0];
-    const parsed = parseCmdString(cmd);
+    const command = signature.split(' ')[0];
 
     commands[command] = {
-      args: parsed,
+      signature,
       purpose,
+      args: parseSignature(signature),
       fn: callback,
     };
   };
@@ -211,7 +295,7 @@ function CLI(program) {
 
 // Expose for testing.
 CLI.___ = {
-  parseCmdString,
+  parseSignature,
   mapArgs,
   requiredArgsProvided
 };

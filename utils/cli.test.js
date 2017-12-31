@@ -2,7 +2,7 @@ const test = require('ava');
 const CLI = require('./cli.js');
 
 const {
-  parseCmdString,
+  parseSignature,
   mapArgs
 } = CLI.___;
 
@@ -11,42 +11,80 @@ const {
 \*=======================*/
 
 test('returns empty argMap array if no params are named', t => {
-  const testString = 'command';
-
-  t.deepEqual(parseCmdString(testString), []);
+  t.deepEqual(parseSignature('command'), []);
 });
 
 test('returns filled in argMap array for named params', t => {
-  const testString = 'command :one :two :three';
-
-  t.deepEqual(parseCmdString(testString), [
+  t.deepEqual(parseSignature('command <one> <two> <three>'), [
     {
       name: 'one',
       optional: false,
+      multiple: false,
+      splat: false,
     },
     {
       name: 'two',
       optional: false,
+      multiple: false,
+      splat: false,
     },
     {
       name: 'three',
       optional: false,
+      multiple: false,
+      splat: false,
     },
   ]);
 });
 
-test('sets optional to true for params ending in "?"', t => {
-  const testString = 'command :one :two?';
-
-  t.deepEqual(parseCmdString(testString), [
+test('sets optional to true for params in [square brackets]', t => {
+  t.deepEqual(parseSignature('command <one> [two]'), [
     {
       name: 'one',
       optional: false,
+      multiple: false,
+      splat: false,
     },
     {
       name: 'two',
-      optional: true
+      optional: true,
+      multiple: false,
+      splat: false,
     }
+  ]);
+});
+
+test('sets multiple to true for params ending in "..."', t => {
+  t.deepEqual(parseSignature('command <one> [two...]'), [
+    {
+      name: 'one',
+      optional: false,
+      multiple: false,
+      splat: false,
+    },
+    {
+      name: 'two',
+      optional: true,
+      multiple: true,
+      splat: false,
+    },
+  ]);
+});
+
+test('sets splat to true for params beginning in "*"', t => {
+  t.deepEqual(parseSignature('command <one> [*two]'), [
+    {
+      name: 'one',
+      optional: false,
+      multiple: false,
+      splat: false,
+    },
+    {
+      name: 'two',
+      optional: true,
+      multiple: false,
+      splat: true,
+    },
   ]);
 });
 

@@ -1,15 +1,35 @@
-const fs = require('fs');
+const fs = require('fs-extra');
 const path = require('path');
 
 module.exports = function() {
   const home = require('os').homedir();
+  const punchPath = path.join(require('os').homedir(), '.punch');
   let file;
 
   try {
-    file = fs.readFileSync(path.join(home, '.punch', 'punchconfig.json'), 'utf8');
+    file = fs.readFileSync(path.join(punchPath, 'punchconfig.json'), 'utf8');
   } catch (err) {
-    console.error(err);
-    throw new Error('Missing config: No .punch/punchconfig.json found in your home directory. Please create it and restart punch.');
+    try {
+      fs.ensureDirSync(punchPath);
+      fs.writeFileSync(path.join(punchPath, 'punchconfig.json'), JSON.stringify({
+        user: {
+          name: 'Your Name',
+          address: {
+            street: '123 1st Street',
+            city: 'Anytown',
+            state: 'WA',
+            zip: '12345'
+          }
+        },
+        sync: {
+          autoSync: false,
+          backends: {}
+        },
+        projects: []
+      }, null, 2));
+    } catch (err) {
+      throw new Error(`Error creating punchconfig: ${err.message}`);
+    }
   }
 
   try {
