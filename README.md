@@ -105,7 +105,7 @@ Show a summary of today's punches (shorthand for "punch report today").
 
 Show a summary of yesterday's punches (short for "punch report yesterday").
 
-#### `report <when?=today>`
+#### `report [when=today]`
 
 Show a summary of punches for a given period.
 
@@ -113,6 +113,6 @@ Show a summary of punches for a given period.
 
 Automatically generate an invoice using punch data. Currently supports .html and .pdf extensions.
 
-#### `sync <provider?>`
+#### `sync [providers...]`
 
 Synchronize with any providers you have configured.
