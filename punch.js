@@ -36,9 +36,11 @@ const logUpdate = require('log-update');
 const readline = require('readline-sync');
 
 const config = require('./files/config')();
+const tracker = require('./files/tracker')(config);
 const Puncher = require('./files/puncher');
 const Syncer = require('./sync/syncer');
 const Invoicer = require('./invoicing/invoicer');
+const Punchfile = require('./files/punchfile')(config);
 
 // Formatting
 const datefmt = require('./formatting/time');
@@ -84,11 +86,30 @@ const getRateFor = name => {
   }
 }
 
+const getFileFor = date => {
+  date = new Date(date);
+  const y = date.getFullYear();
+  const m = date.getMonth() + 1;
+  const d = date.getDate();
+
+  return path.join(config.punchPath, `punch_${y}_${m}_${d}.json`);
+}
+
+const warnIfUnsynced = () => {
+  const syncable = config.sync.autoSync == false
+                || Object.keys(config.sync.backends).length > 0;
+
+  if (syncable && tracker.hasUnsyncedChanges()) {
+    const number = tracker.sync.changes;
+    console.log(`You have ${number} unsynced change${number == 1 ? '' : 's'}. Run 'punch sync' to synchronize.`);
+  }
+}
+
 const confirm = question => {
   let response;
 
   while (!['y', 'n', 'yes', 'no'].includes(response)) {
-    response = readline.question(`${question} [y/n]`).toLowerCase().trim();
+    response = readline.question(`${question} [y/n] `).toLowerCase().trim();
 
     if (response === 'y' || response === 'yes') {
       return true;
@@ -104,60 +125,116 @@ const confirm = question => {
 ||      Parse/Dispatch     ||
 \*=========================*/
 
-/*
-  required param: 'in :project'
-  optional param: 'in :project?'
-  splat (rest): 'report *when'
-  optional splat: 'report *when?'
-*/
-
 command('in <project>',
         'start tracking time on a project', (args) => {
 
   const { project } = args;
 
-  const puncher = Puncher(config, flags);
-  const current = puncher.currentSession();
-
-  if (current) {
-    return console.log(`You're already punched in on ${getLabelFor(project)}! Punch out first.`);
+  if (tracker.hasActive()) {
+    console.log(`You're already punched in on ${getLabelFor(project)}! Punch out first.`);
   } else {
-    const time = datefmt.time(Date.now());
-    puncher.punchIn(project);
+    const file = Punchfile.readOrCreate(getFileFor(Date.now()));
+    file.punchIn(project);
+    file.save();
+    tracker.setActive(project);
+
+    const time = moment().format('h:mm');
     console.log(`Punched in on ${getLabelFor(project)} at ${time}.`);
+    
     if (autoSync) {
       const syncer = Syncer(config, flags);
       syncer.sync();
+      tracker.resetSync();
+    } else {
+      tracker.incrementSync();
+      warnIfUnsynced();
     }
   }
-
 });
 
 command('out [*comment]',
         'stop tracking time and record an optional description of tasks completed', (args) => {
 
   const { comment } = args;
-
-  const puncher = Puncher(config, flags);
-  const current = puncher.currentSession();
+  const active = tracker.getActive();
   
-  if (current) {
-    const label = getLabelFor(current.project);
-    const time = datefmt.time(Date.now());
-    const duration = Date.now() - current.in;
-    const pay = duration / 1000 / 60 / 60 * getRateFor(current.project);
+  if (active) {
+    const file = Punchfile.read(getFileFor(active.timestamp));
 
-    puncher.punchOut(comment);
+    const label = getLabelFor(active.project);
+    const time = datefmt.time(Date.now());
+    const duration = Date.now() - active.timestamp;
+    const pay = duration / 1000 / 60 / 60 * getRateFor(active.project);
+
+    file.punchOut(active.project);
+    file.mostRecentPunch().comments.push(comment);
+    file.save();
+    tracker.clearActive();
+
     console.log(`Punched out on ${label} at ${time}. Worked for ${durationfmt(duration)} and earned ${currencyfmt(pay)}.`);
+    
     if (autoSync) {
       const syncer = Syncer(config, flags);
       syncer.sync();
+      tracker.resetSync();
+    } else {
+      tracker.incrementSync();
+      warnIfUnsynced();
     }
   } else {
     console.log(`You're not punched in!`);
   }
 
 });
+
+command('comment [*comment]',
+        'add a comment to your current session', (args) => {
+
+  const { comment } = args;
+  const active = tracker.getActive();
+
+  const file = Punchfile.mostRecent();
+  const punch = file.mostRecentPunch();
+
+  if (!active) {
+    let str = `You're not punched in. Do you want to apply the comment to your latest punch on ${getLabelFor(punch.project)}?`;
+
+    str += '\n\n';
+
+    str += getLabelFor(punch.project);
+
+    str += '\n\n';
+
+    if (!confirm(str)) {
+      return;
+    }
+  }
+
+  punch.comments.push(comment);
+  file.save();
+
+  console.log(punch);
+
+  // if (!tracker.hasActive()) {
+  //   if ()
+  // }
+
+  // if (tracker.hasActive()) {
+  //   const active = tracker.getActive();
+  //   const file = Punchfile.read(getFileFor(active.timestamp));
+
+  //   const punch = file.mostRecentPunch(active.project);
+
+  //   console.log(punch);
+  // } else {
+  //   // Want to apply to previous session?
+  //   const 
+
+  //   console.log(comment);
+  // }
+
+});
+
 
 command('rewind <amount>',
         'subtract payable time from a project to account for breaks and interruptions', (args) => {
@@ -172,6 +249,10 @@ command('rewind <amount>',
     if (autoSync) {
       const syncer = Syncer(config, flags);
       syncer.sync();
+      tracker.resetSync();
+    } else {
+      tracker.incrementSync();
+      warnIfUnsynced();
     }
   } else {
     console.log('You\'re not currently punched in. Do you want to apply this rewind to the previous session?');
@@ -255,13 +336,21 @@ command('purge <project>',
 command('now',
         'show the status of the current session', () => {
 
-  const puncher = Puncher(config, flags);
-  const current = puncher.currentSession();
-  if (current) {
-    const duration = Date.now() - current.in;
-    const pay = duration / 1000 / 60 / 60 * getRateFor(current.project);
-    const punchedIn = datefmt.time(current.in);
-    console.log(`You punched in on ${getLabelFor(current.project)} at ${punchedIn} and have been working for ${durationfmt(duration)} (${currencyfmt(pay)}).`);
+  const active = tracker.getActive();
+
+  if (active) {
+    const duration = Date.now() - active.timestamp;
+    const rate = getRateFor(active.project);
+    const pay = duration / 1000 / 60 / 60 * getRateFor(active.project);
+    const punchedIn = datefmt.time(active.timestamp);
+
+    let str = `You punched in on ${getLabelFor(active.project)} at ${punchedIn} (${durationfmt(duration)} ago)`;
+
+    if (rate) {
+      str += ` and have earned ${currencyfmt(pay)}`;
+    }
+
+    console.log(str + '.');
   } else {
     console.log('No current session.');
   }
@@ -271,18 +360,17 @@ command('now',
 command ('watch',
          'continue running to show automatically updated stats of your current session', () => {
 
-  const puncher = Puncher(config, flags);
-  const current = puncher.currentSession();
+  const active = tracker.getActive();
 
-  if (current) {
-    const project = config.projects.find(p => p.alias === current.project);
-    const label = project && project.name ? project.name : current.project;
+  if (active) {
+    const project = config.projects.find(p => p.alias === active.project);
+    const label = project && project.name ? project.name : active.project;
     const rate = project && project.hourlyRate ? project.hourlyRate : 0;
 
-    setInterval(() => {
-      let time = Date.now() - current.in;
+    const update = () => {
+      let time = Date.now() - active.timestamp;
       let pay = (time / 3600000) * rate;
-      let duration = durationfmt(Date.now() - current.in);
+      let duration = durationfmt(time);
 
       let str = `\nYou've been working on ${label} for ${duration}`;
 
@@ -290,8 +378,11 @@ command ('watch',
         str += ` (${currencyfmt(pay)})\n`;
       }
 
-      logUpdate(str);
-    }, 1000);
+      logUpdate(str + '.');
+    }
+
+    update();
+    setInterval(update, 1000);
   } else {
     console.log('You aren\'t punched in right now.');
   }
@@ -431,21 +522,22 @@ command('sync [providers...]',
 
   const syncer = Syncer(config, flags);
   syncer.sync();
+  tracker.resetSync();
 });
 
 command('config [editor]',
         'open config file in editor - uses EDITOR env var unless an editor command is specified.', args => {
 
-const editor = args.editor || process.env.EDITOR;
+  const editor = args.editor || process.env.EDITOR;
 
-if (!editor) {
-  console.error('No editor specified and no EDITOR variable available. Please specify an editor to use: punch config <editor>');
-}
+  if (!editor) {
+    console.error('No editor specified and no EDITOR variable available. Please specify an editor to use: punch config <editor>');
+  }
 
-console.log(`Editing with ${editor}`);
-const exec = require('child_process').execSync;
+  console.log(`Editing with ${editor}`);
+  const exec = require('child_process').execSync;
 
-exec(`${editor} ~/.punch/punchconfig.json`);
+  exec(`${editor} ~/.punch/punchconfig.json`);
 
 });
 

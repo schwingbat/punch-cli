@@ -54,6 +54,37 @@ function projectHeader(text, stats) {
   return str;
 };
 
+function daySessions(sessions) {
+  let str = '';
+
+  sessions.forEach(session => {
+    str += '      ';
+
+    if (session.timeSpan.slice(session.timeSpan.length - 3).toLowerCase() === 'now') {
+      str += chalk.green.bold.italic(session.timeSpan);
+    } else {
+      str += chalk.cyan.bold.italic(session.timeSpan);
+    }
+
+    if (session.comments.length > 0) {
+      for (let i = 0; i < session.comments.length; i++) {
+        const c = session.comments[i];
+        if (!c) continue;
+
+        if (i > 0) {
+          str += '\n                         ' + chalk.grey(' » ') + c;
+        } else {
+          str += chalk.grey(' » ') + c;
+        }
+      }
+    }
+
+    str += '\n';
+  });
+
+  return str;
+}
+
 function projectDay({ date, stats, sessions }) {
   let str = '';
 
@@ -62,13 +93,7 @@ function projectDay({ date, stats, sessions }) {
     str += ' ' + slashList(stats, true) + '\n';
   }
 
-  sessions.forEach(session => {
-    str += '      ';
-    str += chalk.cyan.bold.italic(session.timeSpan);
-    str += chalk.grey(' >>> ');
-    str += session.comment || chalk.grey('No comment for session');
-    str += '\n';
-  });
+  str += daySessions(sessions);
 
   return str;
 };
@@ -89,6 +114,7 @@ module.exports = {
   slashList,
   labelTable,
   reportHeader,
+  daySessions,
   projectHeader,
   projectDay,
   projectSummary,

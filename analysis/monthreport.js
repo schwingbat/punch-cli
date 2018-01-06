@@ -26,7 +26,7 @@ module.exports = function(config, punches, date, project) {
       end: punch.out ? datefmt.time(punch.out) : "Now",
       startStamp: punch.in,
       time: end - punch.in,
-      comment: punch.comment,
+      comments: punch.comments || [punch.comment],
       duration: durationfmt(end - punch.in),
     });
   });

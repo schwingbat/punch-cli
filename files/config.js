@@ -39,6 +39,7 @@ module.exports = function() {
   }
 
   file.configPath = path.join(home, '.punch', 'punchconfig.json');
+  file.trackerPath = path.join(home, '.punch', 'tracker.json');
   file.punchPath = path.join(home, '.punch', 'punches');
 
   return file;
