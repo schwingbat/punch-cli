@@ -34,6 +34,7 @@ const path = require('path');
 const moment = require('moment');
 const logUpdate = require('log-update');
 const readline = require('readline-sync');
+const chalk = require('chalk');
 
 const config = require('./files/config')();
 const tracker = require('./files/tracker')(config);
@@ -418,20 +419,6 @@ command('projects [names...]',
   projects.forEach(p => console.log(print.projectSummary(summaryfmt(p))));
 });
 
-command('today',
-        'show a summary of today\'s punches (shorthand for "punch report today")', () => {
-
-  invoke('report today');
-
-});
-
-command('yesterday',
-        'show a summary of yesterday\'s punches (short for "punch report yesterday")', () => {
-
-  invoke('report yesterday');
-
-});
-
 command('report [*when]',
         'show a summary of punches for a given period', (args) => {
 
@@ -467,13 +454,43 @@ command('report [*when]',
 
 });
 
+command('today',
+        'show a summary of today\'s punches (alias of "punch report today")', () => {
+
+  invoke('report today');
+
+});
+
+command('yesterday',
+        'show a summary of yesterday\'s punches (alias of "punch report yesterday")', () => {
+
+  invoke('report yesterday');
+
+});
+
+command('week',
+        'show a summary of punches for the current week (alias of "punch report this week")', () => {
+
+  invoke('report this week');
+
+});
+
+command('month',
+        'show a summary of punches for the current month (alias of "punch report this month")', () => {
+
+  invoke('report this month');
+
+});
+
 command('invoice <project> <startDate> <endDate> <outputFile>',
         'automatically generate an invoice using punch data', (args) => {
 
   let { project, startDate, endDate, outputFile } = args;
   const projectData = config.projects.find(p => p.alias === project);
   if (!projectData) {
-    return console.log(`Can't invoice for '${alias}'. Make sure the project is in your config file.`);
+    console.log(`Can't invoice for ${chalk.red(project)} because your config file contains no information for that project.`);
+    console.log(`You can run ${chalk.cyan('punch config')} to open your config file to add the project info.`);
+    return;
   }
 
   project = projectData.name;
