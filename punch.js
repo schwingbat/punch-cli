@@ -302,11 +302,25 @@ command('create <project> <timeIn> <timeOut> [*comment]',
   str += '\nCreate this punch?';
 
   if (confirm(str)) {
-    const puncher = Puncher(config, flags);
-    puncher.createPunch(project, punchIn.valueOf(), punchOut.valueOf(), comment);
-    console.log('Punch created');
-  } else {
-    console.log('Punch not created');
+    const file = Punchfile.forDate(punchIn.toDate());
+    file.addPunch({
+      project,
+      in: punchIn.toDate(),
+      out: punchOut.toDate(),
+      comments: comment,
+    });
+    file.save();
+
+    console.log('Punch created!');
+
+    if (autoSync) {
+      const syncer = Syncer(config, flags);
+      syncer.sync();
+      tracker.resetSync();
+    } else {
+      tracker.incrementSync();
+      warnIfUnsynced();
+    }
   }
 
 });

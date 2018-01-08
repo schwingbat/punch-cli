@@ -133,5 +133,15 @@ module.exports = function(config) {
     return this.read(path.join(config.punchPath, files[files.length - 1]));
   }
 
+  Punchfile.forDate = function(date) {
+    const y = date.getFullYear();
+    const m = date.getMonth() + 1;
+    const d = date.getDate();
+
+    const fileName = `punch_${y}_${m}_${d}.json`;
+
+    return this.readOrCreate(path.join(config.punchPath, fileName));
+  }
+
   return Punchfile;
 }

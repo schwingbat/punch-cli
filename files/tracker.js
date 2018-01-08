@@ -26,14 +26,13 @@ module.exports = function Tracker(config) {
 
   const save = () => {
     fs.writeFileSync(config.trackerPath, JSON.stringify({
+      updated: Date.now(),
       active,
       sync,
     }, null, 2));
   };
 
   return {
-    active,
-    sync,
     setActive(project) {
       active = {
         project,
@@ -42,10 +41,19 @@ module.exports = function Tracker(config) {
 
       save();
     },
+    getActive() {
+      return active;
+    },
     clearActive() {
       active = null;
 
       save();
+    },
+    hasActive() {
+      return !!active;
+    },
+    isActive(project) {
+      return active && active.project === project;
     },
     resetSync() {
       sync.last = Date.now();
@@ -56,20 +64,12 @@ module.exports = function Tracker(config) {
       sync.changes = (sync.changes || 0) + 1;
       save();
     },
-    hasActive() {
-      return !!active;
+    unsynced() {
+      // Returns a new array of changes so the tracker's internal data can't be changed.
+      return sync.changes.map(c => c);
     },
-    hasUnsyncedChanges() {
-      return sync.changes > 0;
-    },
-    lastSyncTime() {
+    lastSync() {
       return sync.last;
-    },
-    isActive(project) {
-      return active && active.project === project;
-    },
-    getActive(project) {
-      return active;
     },
   }
 }
