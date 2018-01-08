@@ -1,17 +1,17 @@
 const fs = require('fs-extra');
 const path = require('path');
 
-module.exports = function() {
+module.exports = function(options = {}) {
   const home = require('os').homedir();
-  const punchPath = path.join(require('os').homedir(), '.punch');
+  const punchDir = options.punchDir || path.join(require('os').homedir(), '.punch');
   let file;
 
   try {
-    file = fs.readFileSync(path.join(punchPath, 'punchconfig.json'), 'utf8');
+    file = fs.readFileSync(path.join(punchDir, 'punchconfig.json'), 'utf8');
   } catch (err) {
     try {
       fs.ensureDirSync(punchPath);
-      fs.writeFileSync(path.join(punchPath, 'punchconfig.json'), JSON.stringify({
+      fs.writeFileSync(path.join(punchDir, 'punchconfig.json'), JSON.stringify({
         user: {
           name: 'Your Name',
           address: {
@@ -38,9 +38,17 @@ module.exports = function() {
     throw new Error(err)
   }
 
-  file.configPath = path.join(home, '.punch', 'punchconfig.json');
-  file.trackerPath = path.join(home, '.punch', 'tracker.json');
-  file.punchPath = path.join(home, '.punch', 'punches');
+  file.configPath = path.join(punchDir, 'punchconfig.json');
+  file.trackerPath = path.join(punchDir, 'tracker.json');
+  file.punchPath = path.join(punchDir, 'punches');
+
+  if (options.overrides) {
+    const o = options.overrides;
+
+    if (o.configPath) file.configPath = o.configPath;
+    if (o.trackerPath) file.trackerPath = o.trackerPath;
+    if (o.punchPath) file.punchPath = o.punchPath;
+  }
 
   return file;
 }
