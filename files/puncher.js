@@ -6,6 +6,7 @@ const durationfmt = require('../formatting/duration');
 const dayReport = require('../analysis/dayreport');
 const monthReport = require('../analysis/monthreport');
 
+
 function readAsJSON(filePath) {
   try {
     return JSON.parse(fs.readFileSync(filePath));
@@ -15,46 +16,33 @@ function readAsJSON(filePath) {
 }
 
 module.exports = function(config) {
-  const punchPath = path.join(require('os').homedir(), '.punch', 'punches');
+  const { punchPath } = config;
 
-  function getPunchFile(timestamp = Date.now(), create = false) {
+  const Punchfile = require('./punchfile')(config);
+
+  function getPunchFile(timestamp = Date.now(), create = true) {
     const date = new Date(timestamp);
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    const year = date.getFullYear();
+    const m = date.getMonth() + 1;
+    const d = date.getDate();
+    const y = date.getFullYear();
 
-    const filePath = path.join(punchPath, `punch_${year}_${month}_${day}.json`);
-    let exists = fs.existsSync(filePath);
-    let created;
+    let file = false;
 
-    if (!exists && create) {
-      created = {
-        updated: Date.now(),
-        punches: []
-      };
-
-      fs.writeFileSync(filePath, JSON.stringify(created, null, 2));
-      exists = true;
-    }
-
-    let contents;
-
-    if (exists) {
-      try {
-        contents = created || JSON.parse(fs.readFileSync(filePath));
-      } catch (err) {
-        console.log(`Problem reading punchfile: ${err}`);
+    try {
+      file = Punchfile.read(path.join(punchPath, `punch_${y}_${m}_${d}.json`));
+    } catch (err) {
+      if (create) {
+        file = new Punchfile();
+        file.save();
       }
     }
 
-    return {
-      path: filePath,
-      exists,
-      contents,
-    };
+    return file;
   }
 
   function getLastFileWhere(func, timestamp) {
+    // Returns the latest file where a passed-in function returns true.
+
     const date = moment(timestamp);
     
     let y, m, d;
@@ -68,14 +56,11 @@ module.exports = function(config) {
 
     while (!file && misses <= 5) {
       let filename = `punch_${y}_${m}_${d}.json`;
+      let filePath = path.join(punchPath, filename);
       try {
-        file = JSON.parse(fs.readFileSync(path.join(punchPath, filename)));
+        file = Punchfile.read(filePath);
         if (func(file)) {
-          return {
-            path: path.join(punchPath, filename),
-            exists: true,
-            contents: file
-          };
+          return file;
         }
         return false;
 
@@ -89,56 +74,6 @@ module.exports = function(config) {
     }
 
     return false;
-  }
-
-  function savePunchFile(file) {
-    fs.writeFileSync(file.path, JSON.stringify(file.contents, null, 2));
-  }
-
-  function createPunch(project, timeIn, timeOut, comment) {
-    const now = Date.now();
-    const file = getPunchFile(timeIn, true);
-
-    const p = {
-      project,
-      in: timeIn,
-      out: timeOut || null,
-      comment: comment || null,
-      rewind: 0,
-    }
-
-    file.contents.updated = now;
-    file.contents.punches.push(p);
-
-    savePunchFile(file);
-  }
-
-  function punchIn(project, now = Date.now()) {
-    createPunch(project, now);
-  }
-
-  function punchOut(comment, now = Date.now()) {
-    const file = getLastFileWhere(f =>
-      f.punches.find(p => p.out == null),
-      now);
-
-    if (!file) {
-      return console.warn('Nothing to punch out from!');
-    }
-
-    const { punches } = file.contents;
-    const lastPunch = punches[punches.length - 1];
-
-    file.contents.updated = now;
-    lastPunch.out = now;
-    lastPunch.comment = comment || null;
-
-    savePunchFile(file);
-    // console.log(JSON.stringify(file.contents.punches, null, 2));
-  }
-
-  function rewind(fuzzyStr) {
-
   }
 
   function purgeProject(alias, dryRun = true) {
@@ -193,24 +128,6 @@ module.exports = function(config) {
     });
 
     return punches;
-  }
-
-  function currentSession() {
-    const file = getLastFileWhere(f => {
-      for (let i = 0; i < f.punches.length; i++) {
-        if (f.punches[i].out == null) {
-          return true;
-        }
-      }
-    });
-
-    if (file) {
-      for (let i = 0; i < file.contents.punches.length; i++) {
-        if (file.contents.punches[i].out == null) {
-          return file.contents.punches[i];
-        }
-      }
-    }
   }
 
   function getProjectSummaries(names) {
@@ -307,7 +224,7 @@ module.exports = function(config) {
   function reportForDay(date = new Date(), project) {
     const file = getPunchFile(date);
 
-    return dayReport(config, file && file.contents ? file.contents.punches : [], date, project);
+    return dayReport(config, file ? file.punches : [], date, project);
   }
 
   function reportForMonth(date = new Date(), project) {
@@ -323,7 +240,7 @@ module.exports = function(config) {
     }
 
     files.forEach(file => {
-      const f = readAsJSON(path.join(punchPath, file));
+      const f = Punchfile.read(path.join(punchPath, file));
       if (f) punches.push(...f.punches);
     });
 
@@ -335,14 +252,9 @@ module.exports = function(config) {
   }
 
   return {
-    createPunch,
-    punchIn,
-    punchOut,
-    rewind,
     purgeProject,
     getPunchesForPeriod,
     getProjectSummaries,
-    currentSession,
     reportForDay,
     reportForMonth,
     reportForYear,

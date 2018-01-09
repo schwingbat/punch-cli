@@ -3,7 +3,7 @@ const currencyfmt = require('../formatting/currency');
 const moment = require('moment');
 const chalk = require('chalk');
 const durationfmt = require('../formatting/duration');
-const { reportHeader, projectHeader, projectDay } = require('./printing');
+const { reportHeader, projectHeader, daySessions } = require('./printing');
 
 module.exports = function(config, punches, date, project) {
   date = moment(date);
@@ -31,7 +31,7 @@ module.exports = function(config, punches, date, project) {
       end: punch.out ? datefmt.time(punch.out) : "Now",
       startStamp: punch.in,
       time: end - punch.in,
-      comment: punch.comment,
+      comments: punch.comments || [punch.comment],
       duration: durationfmt(end - punch.in),
     });
   });
@@ -94,28 +94,12 @@ module.exports = function(config, punches, date, project) {
       [durationfmt(project.billableTime), pay]
     ));
 
-    project.sessions.sort((a, b) => {
+    const sessions = project.sessions.sort((a, b) => {
       // Chronological ascending
       return +(a.startStamp > b.startStamp);
-    }).forEach(session => {
-      let str = '';
-
-      str += '      ';
-      str += chalk.cyan.bold.italic(session.timeSpan);
-      str += chalk.grey(' >>> ');
-      str += session.comment || chalk.grey('No comment for session');
-
-      console.log(str);
-
-      // let str = '  ';
-      // str += session.timeSpan.toUpperCase() + ' ';
-      // str += '(';
-      // str += session.duration;
-      // if (session.pay) str += ' / $' + session.pay.toFixed(2);
-      // str += ')';
-      // if (session.comment) str += '\n        -> ' + session.comment;
-      // console.log(str);
     });
+
+    console.log(daySessions(sessions));
   });
   console.log();
 }
