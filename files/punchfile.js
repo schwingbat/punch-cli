@@ -143,5 +143,11 @@ module.exports = function(config) {
     return this.readOrCreate(path.join(config.punchPath, fileName));
   }
 
+  Punchfile.all = function() {
+    // Loads all punch files into an array and return it.
+    const files = fs.readdirSync(path.join(config.punchPath));
+    return files.map(f => this.read(path.join(config.punchPath, f)));
+  }
+
   return Punchfile;
 }

@@ -60,13 +60,12 @@ module.exports = function Tracker(config) {
       sync.changes = 0;
       save();
     },
-    incrementSync() {
-      sync.changes = (sync.changes || 0) + 1;
+    incrementSync(count = 1) {
+      sync.changes = (sync.changes || 0) + count;
       save();
     },
     unsynced() {
-      // Returns a new array of changes so the tracker's internal data can't be changed.
-      return sync.changes.map(c => c);
+      return sync.changes;
     },
     lastSync() {
       return sync.last;

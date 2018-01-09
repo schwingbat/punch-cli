@@ -100,9 +100,10 @@ const warnIfUnsynced = () => {
   const syncable = config.sync.autoSync == false
                 || Object.keys(config.sync.backends).length > 0;
 
-  if (syncable && tracker.hasUnsyncedChanges()) {
-    const number = tracker.sync.changes;
-    console.log(`You have ${number} unsynced change${number == 1 ? '' : 's'}. Run 'punch sync' to synchronize.`);
+  const changes = tracker.unsynced();
+
+  if (syncable && changes) {
+    console.log(`You have ${changes} unsynced change${changes == 1 ? '' : 's'}. Run 'punch sync' to synchronize.`);
   }
 }
 
@@ -330,20 +331,61 @@ command('purge <project>',
         'destroy all punches for a given project', (args) => {
 
   const { project } = args;
-  
-  const puncher = Puncher(config, flags);
-  const { found, time, days } = puncher.purgeProject(project);
   const label = getLabelFor(project);
+  const files = Punchfile.all();
 
-  if (found === 0) {
-    return console.log(`Project '${label}' has no entries.`);
-  }
+  const modified = [];
+  let punchCount = 0;
+  let totalTime = 0;
 
-  if (confirm(`Purge ${found} entries over ${days} days with a total time of ${durationfmt(time)} for project '${label}'?`)) {
-    puncher.purgeProject(project, false);
-    console.log(`Purged project ${label}`);
+  // Find and modify Punchfile objects with matching punches.
+  files.forEach(f => {
+    let modded = false;
+
+    // Filter out punches that match the given project alias.
+    // MANY SIDE EFFECTS. SUCH FUNCTIONAL. WOW.
+    f.punches = f.punches.filter(p => {
+      if (p.project === project) {
+        console.log(p);
+        modded = true;
+        punchCount += 1;
+        totalTime += (p.out || Date.now()) - p.in - p.rewind;
+        return false;
+      } else {
+        return true;
+      }
+    });
+
+    if (modded) {
+      modified.push(f);
+    }
+  });
+
+  if (punchCount > 0) {
+    // Confirm and commit changes to files.
+    const confirmString = `Purging ${label} would delete ${punchCount} punch${punchCount == 1 ? '' : 'es'} totalling ${durationfmt(totalTime)}. Do you really want to continue?`;
+
+    if (confirm(confirmString)) {
+
+      console.log('Committing changes...');
+      modified.forEach(f => {
+        f.save();
+      });
+
+      tracker.incrementSync(modified.length);
+
+      console.log(`Purged ${label}.`);
+
+      if (autoSync) {
+        const syncer = Syncer(config, flags);
+        syncer.sync();
+        tracker.resetSync();
+      } else {
+        warnIfUnsynced();
+      }
+    }
   } else {
-    console.log('Your entries are safe.');
+    console.log(`Project ${label} has no punches.`);
   }
 
 });
