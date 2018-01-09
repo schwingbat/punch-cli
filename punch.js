@@ -461,7 +461,7 @@ command('projects [names...]',
   projects.forEach(p => console.log(print.projectSummary(summaryfmt(p))));
 });
 
-command('report [*when]',
+command('log [*when]',
         'show a summary of punches for a given period', (args) => {
 
   const puncher = Puncher(config, flags);
@@ -497,30 +497,30 @@ command('report [*when]',
 });
 
 command('today',
-        'show a summary of today\'s punches (alias of "punch report today")', () => {
+        'show a summary of today\'s punches (alias of "punch log today")', () => {
 
-  invoke('report today');
+  invoke('log today');
 
 });
 
 command('yesterday',
-        'show a summary of yesterday\'s punches (alias of "punch report yesterday")', () => {
+        'show a summary of yesterday\'s punches (alias of "punch log yesterday")', () => {
 
-  invoke('report yesterday');
+  invoke('log yesterday');
 
 });
 
 command('week',
-        'show a summary of punches for the current week (alias of "punch report this week")', () => {
+        'show a summary of punches for the current week (alias of "punch log this week")', () => {
 
-  invoke('report this week');
+  invoke('log this week');
 
 });
 
 command('month',
-        'show a summary of punches for the current month (alias of "punch report this month")', () => {
+        'show a summary of punches for the current month (alias of "punch log this month")', () => {
 
-  invoke('report this month');
+  invoke('log this month');
 
 });
 
