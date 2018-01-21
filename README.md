@@ -2,9 +2,11 @@
 
 Punch is a cross-platform time tracker for your terminal. You just `punch in` when you start working and `punch out` when you stop. You can also `punch sync` to synchronize your data, so your work can follow you between computers and operating systems throughout the day. There is some assembly required, however:
 
-## To Do
+## v1.5 To Do
 
 - [ ] Add quick setup for fresh installs (generate directories, create skeleton config)
+- [ ] Make `rewind` command actually apply values instead of just printing
+- [ ] Make sure all command printing looks good and is relatively uniform across the board
 
 ## Configuration
 
@@ -108,11 +110,11 @@ Show a summary of yesterday's punches (alias of "punch log yesterday").
 
 #### `week`
 
-Show a summary of punches for the current week (alias of "punch log this week").
+Show a summary of punches for the current week (alias of `punch log this week`).
 
 #### `month`
 
-Show a summary of punches for the current month (alias of "punch log this month").
+Show a summary of punches for the current month (alias of `punch log this month`).
 
 #### `invoice <project> <start_date> <end_date> <output_file>`
 
@@ -120,8 +122,8 @@ Automatically generate an invoice using punch data.
 
 #### `sync [providers...]`
 
-Synchronize with any providers you have configured.
+Synchronize with any providers you have configured. Just running `punch sync` with no providers will sync with all of them.
 
 #### `config [editor]`
 
-Open config file in editor - uses EDITOR env var unless an editor command is specified.
+Open config file in `editor` - uses `EDITOR` env var unless an editor command is specified.
