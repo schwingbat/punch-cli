@@ -169,22 +169,32 @@ command('out [*comment]',
         'stop tracking time and record an optional description of tasks completed', (args) => {
 
   const { comment } = args;
-  const active = tracker.getActive();
+  const sqlish = SQLish(config, flags);
+  const current = sqlish.select()
+    .from('punches')
+    .where(p => !p.out)
+    .orderBy('in', 'desc')
+    .limit(1)
+    .run()[0];
 
-  if (active) {
-    const file = Punchfile.read(getFileFor(active.timestamp));
+  if (current) {
+    current._file.punchOut(current.project);
 
-    const label = getLabelFor(active.project);
+    const label = getLabelFor(current.project);
     const time = datefmt.time(Date.now());
-    const duration = Date.now() - active.timestamp;
-    const pay = duration / 1000 / 60 / 60 * getRateFor(active.project);
+    const duration = current.out - current.in;
+    const pay = duration / 1000 / 60 / 60 * getRateFor(current.project);
 
-    file.punchOut(active.project);
-    file.mostRecentPunch().comments.push(comment);
-    file.save();
+    current.comments.push(comment);
+    current._file.save();
     tracker.clearActive();
 
-    console.log(`Punched out on ${label} at ${time}. Worked for ${durationfmt(duration)} and earned ${currencyfmt(pay)}.`);
+    let str = `Punched out on ${label} at ${time}. Worked for ${durationfmt(duration)}`;
+    if (pay > 0) {
+       str += ` and earned ${currencyfmt(pay)}`;
+    }
+
+    console.log(str + '.');
 
     handleSync();
   } else {
