@@ -1,6 +1,12 @@
 # Punch
 
-Punch is a cross-platform time tracker for your terminal. You just `punch in` when you start working and `punch out` when you stop. You can also `punch sync` to synchronize your data, so your work can follow you between computers and operating systems throughout the day. There is some assembly required, however:
+Punch is a cross-platform time tracker for your terminal. You just `punch in` when you start working and `punch out` when you stop. You can also `punch sync` to synchronize your data, so your work can follow you between computers and operating systems throughout the day. Punch is currently functional; I've been using it every day to track and invoice projects for the last few months. It has the odd issue here and there, but over all it's currently pretty solid.
+
+## Requirements
+
+- A macOS, Linux or Windows computer
+- A terminal emulator (ideally with Unicode support)
+- [https://nodejs.org/en/](Node.js 8+)
 
 ## v1.5 To Do
 
