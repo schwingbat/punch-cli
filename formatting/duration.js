@@ -1,4 +1,4 @@
-module.exports = function(ms) {
+module.exports = function(ms, opts = {}) {
   let out = [];
   let seconds = ms / 1000;
   let minutes = seconds / 60;
@@ -13,15 +13,18 @@ module.exports = function(ms) {
   }
 
   if (hours >= 1) {
-    out.push(~~hours + 'h');
+    out.push(~~hours + (opts.long ? ` hour${~~hours == 1 ? '' : 's'}` : 'h') + (opts.long && (minutes >= 1 || seconds >= 1) ? ',' : ''));
   }
 
   if (minutes >= 1) {
-    out.push(~~minutes + 'm');
+    out.push(~~minutes + (opts.long ? ` minute${~~minutes == 1 ? '' : 's'}` : 'm'));
   }
 
   if (seconds >= 1) {
-    out.push(~~seconds + 's');
+    if (opts.long && out.length > 0) {
+      out.push('and');
+    }
+    out.push(~~seconds + (opts.long ? ` second${~~minutes == 1 ? '' : 's'}` : 's'));
   }
 
   return out.join(' ');

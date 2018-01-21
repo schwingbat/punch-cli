@@ -17,6 +17,11 @@ process.argv.slice(2).forEach(arg => {
     case '--benchmark':
       flags.BENCHMARK = true;
       break;
+    case '-ns':
+    case '--nosync':
+    case '--no-sync':
+      flags.NO_SYNC = true;
+      break;
     }
   }
 });
@@ -125,6 +130,17 @@ const confirm = question => {
   }
 }
 
+const handleSync = () => {
+  if (autoSync && !flags.NO_SYNC) {
+    const syncer = Syncer(config, flags);
+    syncer.sync();
+    tracker.resetSync();
+  } else {
+    tracker.incrementSync();
+    warnIfUnsynced();
+  }
+}
+
 /*=========================*\
 ||      Parse/Dispatch     ||
 \*=========================*/
@@ -145,14 +161,7 @@ command('in <project>',
     const time = moment().format('h:mm');
     console.log(`Punched in on ${getLabelFor(project)} at ${time}.`);
 
-    if (autoSync) {
-      const syncer = Syncer(config, flags);
-      syncer.sync();
-      tracker.resetSync();
-    } else {
-      tracker.incrementSync();
-      warnIfUnsynced();
-    }
+    handleSync();
   }
 });
 
@@ -177,14 +186,7 @@ command('out [*comment]',
 
     console.log(`Punched out on ${label} at ${time}. Worked for ${durationfmt(duration)} and earned ${currencyfmt(pay)}.`);
 
-    if (autoSync) {
-      const syncer = Syncer(config, flags);
-      syncer.sync();
-      tracker.resetSync();
-    } else {
-      tracker.incrementSync();
-      warnIfUnsynced();
-    }
+    handleSync();
   } else {
     console.log(`You're not punched in!`);
   }
@@ -194,74 +196,97 @@ command('out [*comment]',
 command('comment [*comment]',
         'add a comment to your current session', (args) => {
 
+  const sqlish = SQLish(config, flags);
+
   const { comment } = args;
-  const active = tracker.getActive();
+  const active = sqlish.select()
+    .from('punchfiles')
+    .where(f => f.punches && f.punches.find(p => !p.out))
+    .orderBy('created', 'desc')
+    .limit(1)
+    .run();
 
-  const file = Punchfile.mostRecent();
-  const punch = file.mostRecentPunch();
+  if (active.length == 0) {
+    const mostRecent = sqlish.select()
+      .from('punches')
+      .orderBy('out', 'desc')
+      .limit(1)
+      .run()
+      [0];
 
-  if (!active) {
-    let str = `You're not punched in. Do you want to apply the comment to your latest punch on ${getLabelFor(punch.project)}?`;
+    let label = getLabelFor(mostRecent.project);
+    let inTime = moment(mostRecent.in);
+    let outTime = moment(mostRecent.out);
+    let date = new Date().getDate();
 
-    str += '\n\n';
-
-    str += getLabelFor(punch.project);
-
-    str += '\n\n';
-
-    if (!confirm(str)) {
-      return;
+    if (inTime.date() !== date || outTime.date() !== date) {
+      inTime = inTime.format('MMM Qo hh:mma');
+      outTime = outTime.format('MMM Qo hh:mma');
+    } else {
+      inTime = inTime.format('hh:mma');
+      outTime = outTime.format('hh:mma');
     }
+
+    let str = `You're not punched in. Add to last punch on '${label}' (${inTime} - ${outTime})?`;
+
+    if (confirm(str)) {
+      mostRecent.comments.push(comment);
+      mostRecent._file.save();
+
+      handleSync();
+    }
+  } else {
+    const file = active[0];
+    const punch = file.punches.find(p => !p.out);
+
+    punch.comments.push(comment);
+    file.save();
+
+    console.log('Comment saved.');
+    handleSync();
   }
-
-  punch.comments.push(comment);
-  file.save();
-
-  console.log(punch);
-
-  // if (!tracker.hasActive()) {
-  //   if ()
-  // }
-
-  // if (tracker.hasActive()) {
-  //   const active = tracker.getActive();
-  //   const file = Punchfile.read(getFileFor(active.timestamp));
-
-  //   const punch = file.mostRecentPunch(active.project);
-
-  //   console.log(punch);
-  // } else {
-  //   // Want to apply to previous session?
-  //   const
-
-  //   console.log(comment);
-  // }
-
 });
 
 
-command('rewind <amount>',
+command('rewind [*amount]',
         'subtract payable time from a project to account for breaks and interruptions', (args) => {
 
-  const puncher = Puncher(config, flags);
-  const current = puncher.currentSession();
-  const { amount } = args;
+  const sqlish = SQLish(config, flags);
+  const timeParse = require('./utils/timeparse');
+  const latest = sqlish.select()
+    .from('punches')
+    .orderBy('in', 'desc')
+    .limit(1)
+    .run()[0];
 
-  if (current) {
-    puncher.rewind(amount);
-    console.log(`Rewound by ${amount} on current ${getLabelFor(current.project)} session.`);
-    if (autoSync) {
-      const syncer = Syncer(config, flags);
-      syncer.sync();
-      tracker.resetSync();
-    } else {
-      tracker.incrementSync();
-      warnIfUnsynced();
+  const time = timeParse(args.amount);
+
+  if (latest.out) {
+    let str = `You're not punched in. Do you want to rewind your last punch on ${getLabelFor(latest.project)}?`;
+
+    if (confirm(str)) {
+      console.log('BLAH');
     }
   } else {
-    console.log('You\'re not currently punched in. Do you want to apply this rewind to the previous session?');
-    console.log('[NOT IMPLEMENTED] Get user input (y/n)');
+    let length = Date.now() - latest.in;
+    let lengthText = durationfmt(length);
+    let subText = '-' + durationfmt(time).padStart(lengthText.length + 1);
+    let line = '_'.padStart(lengthText.length + 2, '_');
+    let result = durationfmt(length - time).padStart(lengthText.length + 2);
+
+    let str = `Subtract ${durationfmt(time, { long: true })} from current session?`;
+    str += '\n\n';
+    str += lengthText.padStart(lengthText.length + 2) + '\n';
+    str += subText += '\n';
+    str += line + '\n';
+    str += result + '\n\n';
+
+    if (confirm(str)) {
+      console.log('asdf');
+    }
   }
+
+  console.log(durationfmt());
 
 });
 
@@ -317,14 +342,7 @@ command('create <project> <timeIn> <timeOut> [*comment]',
 
     console.log('Punch created!');
 
-    if (autoSync) {
-      const syncer = Syncer(config, flags);
-      syncer.sync();
-      tracker.resetSync();
-    } else {
-      tracker.incrementSync();
-      warnIfUnsynced();
-    }
+    handleSync();
   }
 
 });
@@ -378,13 +396,7 @@ command('purge <project>',
 
       console.log(`Purged ${label}.`);
 
-      if (autoSync) {
-        const syncer = Syncer(config, flags);
-        syncer.sync();
-        tracker.resetSync();
-      } else {
-        warnIfUnsynced();
-      }
+      handleSync();
     }
   } else {
     console.log(`Project ${label} has no punches.`);

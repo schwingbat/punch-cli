@@ -98,7 +98,7 @@ module.exports = function SQLish(config, flags) {
 
     // Filter (where)
     if (options.condition) {
-      collection = collection.filter(p => options.condition(p));
+      collection = collection.filter(p => p && options.condition(p));
     }
 
     // Sort
@@ -128,6 +128,7 @@ module.exports = function SQLish(config, flags) {
       });
     }
 
+    options = {}; // Reset options
     return collection;
   }
 

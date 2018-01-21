@@ -13,6 +13,7 @@ module.exports = function(config) {
       this.punches = props.punches.map(p => {
         if (p.in) p.in = new Date(p.in);
         if (p.out) p.out = new Date(p.out);
+        p._file = this;
         return p;
       });
     }
@@ -87,9 +88,13 @@ module.exports = function(config) {
         created: this.created.getTime(),
         updated: this.updated.getTime(),
         punches: this.punches.map(p => {
-          if (p.in) p.in = p.in.getTime();
-          if (p.out) p.out = p.out.getTime();
-          return p;
+          return {
+            project: p.project,
+            in: p.in ? p.in.getTime() : null,
+            out: p.out ? p.out.getTime() : null,
+            rewind: p.rewind || 0,
+            comments: p.comment ? [p.comment] : p.comments.filter(c => c),
+          };
         }),
       };
 

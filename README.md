@@ -31,7 +31,7 @@ Your `punchconfig.json` should contain at least this minimal configuration:
   "projects": [
     {
       "name": "My First Project",
-      "alias": "my-project", // What you punch in with e.g. `punch in my-project`
+      "alias": "my-project",
       "hourlyRate": 55.55,
     },
   ],
@@ -44,16 +44,19 @@ Each punch file contains something like this:
 [
   {
     "project": "itzadoozie",
-    "in": 902898102, // punch in time
-    "out": 908210292, // punch out time
-    "rewind": 600120, // amount of time to subtract (break, etc.)
-    "comment": "Fixed sticky tiles"
+    "in": 902898102,
+    "out": 908210292,
+    "rewind": 600120,
+    "comments": [
+      "Fixed sticky tiles"
+    ]
   },
   {
     "project": "morganizer",
     "in": 902898102,
-    "out": null, // null means not punched out yet.
-    "rewind": 0
+    "out": null,
+    "rewind": 0,
+    "comments": []
   },
 ]
 ```
@@ -64,8 +67,8 @@ Thanks to the stateless and file-based nature of Punch, nothing actually runs in
 
 ### Key
 - `<something>` is a required parameter.
-- `<something?>` is an optional parameter.
-- `<something?=value>` is a parameter that is set to a default value if not passed.
+- `[something]` is an optional parameter.
+- `[*something] and [something...]` is a parameter that can include multiple words (`punch out this is all a comment` is equivalent to `punch out "this is all a comment"`).
 
 ### Commands
 
@@ -73,15 +76,19 @@ Thanks to the stateless and file-based nature of Punch, nothing actually runs in
 
 Start tracking time on a project.
 
-#### `out <comment?>`
+#### `out [*comment]`
 
 Stop tracking time and record an optional description of tasks completed.
+
+#### `comment [*comment]`
+
+Add a comment to your current session.
 
 #### `rewind <amount>`
 
 Subtract payable time from a project to account for breaks and interruptions.
 
-#### `create <project> <timeIn> <timeOut> <comment?>`
+#### `create <project> <time_in> <time_out> [*comment]`
 
 Create a punch.
 
@@ -93,26 +100,46 @@ Destroy all punches for a given project.
 
 Show the status of the current session.
 
-#### `projects`
+#### `watch`
 
-Show a list of all projects in your config file.
+Continue running to show automatically updated stats of your current session.
 
-#### `today`
+#### `project <name>`
 
-Show a summary of today's punches (shorthand for "punch report today").
+Get statistics for a specific project.
 
-#### `yesterday`
+#### `projects [names...]`
 
-Show a summary of yesterday's punches (short for "punch report yesterday").
+Show statistics for all projects in your config file.
 
-#### `report [when=today]`
+#### `log [*when]`
 
 Show a summary of punches for a given period.
 
-#### `invoice <project> <startDate> <endDate> <outputFile>`
+#### `today`
 
-Automatically generate an invoice using punch data. Currently supports .html and .pdf extensions.
+Show a summary of today's punches (alias of "punch log today").
+
+#### `yesterday`
+
+Show a summary of yesterday's punches (alias of "punch log yesterday").
+
+#### `week`
+
+Show a summary of punches for the current week (alias of "punch log this week").
+
+#### `month`
+
+Show a summary of punches for the current month (alias of "punch log this month").
+
+#### `invoice <project> <start_date> <end_date> <output_file>`
+
+Automatically generate an invoice using punch data.
 
 #### `sync [providers...]`
 
 Synchronize with any providers you have configured.
+
+#### `config [editor]`
+
+Open config file in editor - uses EDITOR env var unless an editor command is specified.
