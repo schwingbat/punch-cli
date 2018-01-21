@@ -2,6 +2,10 @@
 
 Punch is a cross-platform time tracker for your terminal. You just `punch in` when you start working and `punch out` when you stop. You can also `punch sync` to synchronize your data, so your work can follow you between computers and operating systems throughout the day. There is some assembly required, however:
 
+## To Do
+
+- [ ] Add quick setup for fresh installs (generate directories, create skeleton config)
+
 ## Configuration
 
 The basic configuration is thus: you have a folder in your home directory called `.punch`, which contains this structure:
