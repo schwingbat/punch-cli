@@ -6,7 +6,7 @@ Punch is a cross-platform time tracker for your terminal. You just `punch in` wh
 
 - A macOS, Linux or Windows computer
 - A terminal emulator (ideally with Unicode support)
-- [https://nodejs.org/en/](Node.js 8+)
+- [Node.js 8+](https://nodejs.org/en/)
 
 ## v1.5 To Do
 
