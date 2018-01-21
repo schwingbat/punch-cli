@@ -41,7 +41,9 @@ const tracker = require('./files/tracker')(config);
 const Puncher = require('./files/puncher');
 const Syncer = require('./sync/syncer');
 const Invoicer = require('./invoicing/invoicer');
+const Logger = require('./analysis/log');
 const Punchfile = require('./files/punchfile')(config);
+const SQLish = require('./files/sqlish');
 
 // Formatting
 const datefmt = require('./formatting/time');
@@ -142,7 +144,7 @@ command('in <project>',
 
     const time = moment().format('h:mm');
     console.log(`Punched in on ${getLabelFor(project)} at ${time}.`);
-    
+
     if (autoSync) {
       const syncer = Syncer(config, flags);
       syncer.sync();
@@ -159,7 +161,7 @@ command('out [*comment]',
 
   const { comment } = args;
   const active = tracker.getActive();
-  
+
   if (active) {
     const file = Punchfile.read(getFileFor(active.timestamp));
 
@@ -174,7 +176,7 @@ command('out [*comment]',
     tracker.clearActive();
 
     console.log(`Punched out on ${label} at ${time}. Worked for ${durationfmt(duration)} and earned ${currencyfmt(pay)}.`);
-    
+
     if (autoSync) {
       const syncer = Syncer(config, flags);
       syncer.sync();
@@ -230,7 +232,7 @@ command('comment [*comment]',
   //   console.log(punch);
   // } else {
   //   // Want to apply to previous session?
-  //   const 
+  //   const
 
   //   console.log(comment);
   // }
@@ -447,7 +449,7 @@ command ('watch',
 
 command('project <name>',
         'get statistics for a specific project', (args) => {
-  
+
   invoke(`projects ${args.name || ''}`);
 
 });
@@ -464,30 +466,30 @@ command('projects [names...]',
 command('log [*when]',
         'show a summary of punches for a given period', (args) => {
 
-  const puncher = Puncher(config, flags);
+  const log = Logger(config, flags);
   let when = args.when || 'today';
   let date = new Date();
 
   switch (when) {
   case 'today':
-    puncher.reportForDay(date);
+    log.forDay(date);
     break;
   case 'yesterday':
     date.setDate(date.getDate() - 1);
-    puncher.reportForDay(date);
+    log.forDay(date);
     break;
   case 'last week':
   case 'week':
   case 'this week':
-    console.log('Weekly report not implemented yet');
+    log.forWeek(date);
     break;
   case 'month':
   case 'this month':
-    puncher.reportForMonth(date);
+    log.forMonth(date);
     break;
   case 'last month':
     date.setMonth(date.getMonth() - 1);
-    puncher.reportForMonth(date);
+    log.forMonth(date);
     break;
   default:
     console.log(`Unknown time: ${when}`);
@@ -538,7 +540,7 @@ command('invoice <project> <startDate> <endDate> <outputFile>',
   project = projectData.name;
   startDate = moment(startDate, 'MM-DD-YYYY');
   endDate = moment(endDate, 'MM-DD-YYYY');
-  
+
   let format;
   let ext = path.extname(outputFile);
 
@@ -567,17 +569,22 @@ command('invoice <project> <startDate> <endDate> <outputFile>',
   console.log(str);
 
   let response;
-  
+
   if (confirm('Create invoice?')) {
-    const puncher = Puncher(config, flags);
+    const sqlish = SQLish(config, flags);
     const invoicer = Invoicer(config, flags);
+
+    const punches = sqlish.select()
+      .from('punches')
+      .where(p => p.project === projectData.alias
+               && p.in >= startDate.valueOf()
+               && p.in <= endDate.valueOf())
+      .run();
 
     const data = {
       startDate,
       endDate,
-      punches: puncher
-        .getPunchesForPeriod(startDate.toDate(), endDate.toDate())
-        .filter(p => p.project === projectData.alias),
+      punches,
       project: projectData,
       user: config.user,
       output: {
@@ -585,8 +592,7 @@ command('invoice <project> <startDate> <endDate> <outputFile>',
       }
     };
 
-    invoicer
-      .create(data, format);
+    invoicer.create(data, format);
   }
 });
 
@@ -603,22 +609,25 @@ command('config [editor]',
 
   const editor = args.editor || process.env.EDITOR;
 
-  if (!editor) {
-    console.error('No editor specified and no EDITOR variable available. Please specify an editor to use: punch config <editor>');
+  if (editor == null) {
+    return console.error('No editor specified and no EDITOR variable available. Please specify an editor to use: punch config <editor>');
   }
 
-  console.log(`Editing with ${editor}`);
-  const exec = require('child_process').execSync;
+  const spawn = require('child_process').spawn;
+  const configPath = path.join(require('os').homedir(), '.punch', 'punchconfig.json');
 
-  exec(`${editor} ~/.punch/punchconfig.json`);
+  const child = spawn(editor, [configPath], { stdio: 'inherit' });
 
+  child.on('exit', (e, code) => {
+    console.log('Config edited.');
+  });
 });
 
 if (flags.BENCHMARK) {
   console.log(`Commands parsed at ${Date.now() - startTime}ms`);
 }
 
-run(process.argv.slice(2));
+run(process.argv.slice(2).filter(a => a[0] !== '-'));
 
 if (flags.BENCHMARK) {
   console.log(`Program run in ${Date.now() - startTime}ms`);

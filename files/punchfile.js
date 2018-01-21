@@ -5,7 +5,7 @@ const path = require('path');
 
 module.exports = function(config) {
   function Punchfile(props = {}) {
-    this.created = new Date(props.created || new Date());
+    this.created = new Date(props.created || props.updated);
     this.updated = new Date(props.updated || new Date());
     this.punches = [];
 

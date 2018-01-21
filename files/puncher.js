@@ -3,9 +3,6 @@ const path = require('path');
 const moment = require('moment');
 const datefmt = require('../formatting/time');
 const durationfmt = require('../formatting/duration');
-const dayReport = require('../analysis/dayreport');
-const monthReport = require('../analysis/monthreport');
-
 
 function readAsJSON(filePath) {
   try {
@@ -44,9 +41,9 @@ module.exports = function(config) {
     // Returns the latest file where a passed-in function returns true.
 
     const date = moment(timestamp);
-    
+
     let y, m, d;
-    
+
     y = date.year();
     m = date.month() + 1;
     d = date.date();
@@ -217,46 +214,9 @@ module.exports = function(config) {
     }
   }
 
-  /*=======================*\
-  ||       Reporting       ||
-  \*=======================*/
-
-  function reportForDay(date = new Date(), project) {
-    const file = getPunchFile(date);
-
-    return dayReport(config, file ? file.punches : [], date, project);
-  }
-
-  function reportForMonth(date = new Date(), project) {
-    const punches = [];
-    const month = date.getMonth() + 1;
-    const files = fs.readdirSync(punchPath).filter(file => {
-      const [p, y, m, d] = file.split('_');
-      return m == month; // double equals because m is a string.
-    });
-
-    if (files.length === 0) {
-      return console.log(`No punches recorded for ${moment(date).format('MMMM YYYY')}.`);
-    }
-
-    files.forEach(file => {
-      const f = Punchfile.read(path.join(punchPath, file));
-      if (f) punches.push(...f.punches);
-    });
-
-    return monthReport(config, punches, date, project);
-  }
-
-  function reportForYear(date, project) {
-    console.log('Yearly reports are not implemented yet.');
-  }
-
   return {
     purgeProject,
     getPunchesForPeriod,
     getProjectSummaries,
-    reportForDay,
-    reportForMonth,
-    reportForYear,
   };
 }

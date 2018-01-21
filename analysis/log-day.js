@@ -64,7 +64,7 @@ module.exports = function(config, punches, date, project) {
     projects[name].fullName = proj && proj.name ? proj.name : name;
     projects[name].billableTime = projects[name].time - projects[name].rewind;
     projects[name].totalPay = pay;
-    
+
     projects[name].sessions.map(session => {
       session.timeSpan = session.start.padStart(8) + ' - ' + session.end.padStart(8);
       let sessionPay;

@@ -8,27 +8,37 @@ const { write } = process.stdout;
 module.exports = function(config, flags) {
   if (!config) throw new Error('S3 sync module was not initialized with a config file.');
   if (!config.credentials) throw new Error('S3 sync config doesn\'t include a credentials key.');
-  if (typeof config.credentials !== 'string') throw new Error('S3 sync config credentials is not a string. Must be a path to a JSON file containing your key and secret.');
 
   const { VERBOSE } = flags;
 
   let credentials;
-  let credPath;
 
-  if (config.credentials[0] === '~') {
-    credPath = path.join(require('os').homedir(), config.credentials.slice(1));
-  } else {
-    credPath = path.resolve(config.credentials);
-  }
+  if (typeof config.credentials === 'string') {
+    let credPath;
 
-  if (fs.existsSync(credPath)) {
-    try {
-      credentials = JSON.parse(fs.readFileSync(credPath));
-    } catch (err) {
-      throw new Error('There was a problem reading the S3 credentials file: ' + err);
+    if (config.credentials[0] === '~') {
+      credPath = path.join(require('os').homedir(), config.credentials.slice(1));
+    } else {
+      credPath = path.resolve(config.credentials);
     }
+
+    if (fs.existsSync(credPath)) {
+      try {
+        credentials = JSON.parse(fs.readFileSync(credPath));
+      } catch (err) {
+        throw new Error('There was a problem reading the S3 credentials file: ' + err);
+      }
+    } else {
+      throw new Error('S3 sync credentials was a string, but is an invalid path. File does not exist.');
+    }
+  } else if (typeof config.credentials === 'object') {
+    const creds = config.credentials;
+    if (!creds.hasOwnProperty('accessKeyId') || !creds.hasOwnProperty('secretAccessKey')) {
+      throw new Error('S3 sync credentials was an object, but does not have the correct properties. Must include both accessKeyId and secretAccessKey.');
+    }
+    credentials = creds;
   } else {
-    throw new Error('S3 sync credentials was a string, but is an invalid path. File does not exist.');
+    throw new Error('sync.backends.s3.credentials should either be a path to a JSON file containing your S3 credentials or an object containing the credentials themselves.');
   }
 
   const s3 = new AWS.S3({ credentials });
@@ -48,7 +58,7 @@ module.exports = function(config, flags) {
           data.Contents.forEach(p => {
             const name = p.Key.replace(/^punches\//, '');
             const timestamp = new Date(p.LastModified).getTime();
-            
+
             manifest[name] = timestamp;
           });
 
