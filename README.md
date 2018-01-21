@@ -7,6 +7,9 @@ Punch is a cross-platform time tracker for your terminal. You just `punch in` wh
 - [ ] Add quick setup for fresh installs (generate directories, create skeleton config)
 - [ ] Make `rewind` command actually apply values instead of just printing
 - [ ] Make sure all command printing looks good and is relatively uniform across the board
+- [ ] Implement weekly log
+- [ ] Implement yearly log
+- [ ] Generate logs for specific month/year (currently just relative - `this month`, `last month`)
 
 ## Configuration
 
