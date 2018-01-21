@@ -12,34 +12,12 @@ The basic configuration is thus: you have a folder in your home directory called
 
 ```
 ~/.punch/
-|-> punchconfig.json
+|-> punch.yaml
 |-> punches/
     |-> punches_10_25_2017.json
     |-> punches_10_26_2017.json
     |-> punches_10_27_2017.json
     |-> ...
-```
-
-I plan to create an automatic setup eventually, but if you're on Mac or Linux you can run this command: `mkdir -p ~/.punch/punches; touch ~/.punch/punchconfig.json`
-
-Your `punchconfig.json` should contain at least this minimal configuration:
-
-```json
-{
-  "user": {
-    "name": "Your Name",
-  },
-  "sync": {
-    "backends": [],
-  },
-  "projects": [
-    {
-      "name": "My First Project",
-      "alias": "my-project",
-      "hourlyRate": 55.55,
-    },
-  ],
-}
 ```
 
 Each punch file contains something like this:
@@ -65,14 +43,14 @@ Each punch file contains something like this:
 ]
 ```
 
-Thanks to the stateless and file-based nature of Punch, nothing actually runs in the background while punched in. You *can* `punch in` on one computer, `punch sync`, then `punch out` on another computer.
+Thanks to the stateless and file-based nature of Punch, nothing actually runs in the background while punched in. You can `punch in` on one computer and `punch out` on another as long as both computers are configured to sync with the same S3 bucket.
 
 ## API
 
 ### Key
 - `<something>` is a required parameter.
 - `[something]` is an optional parameter.
-- `[*something] and [something...]` is a parameter that can include multiple words (`punch out this is all a comment` is equivalent to `punch out "this is all a comment"`).
+- `[*something] and [something...]` are parameters that can include multiple words (`punch out this is all a comment` is equivalent to `punch out "this is all a comment"`).
 
 ### Commands
 
