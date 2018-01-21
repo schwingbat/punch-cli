@@ -41,7 +41,10 @@ const logUpdate = require('log-update');
 const readline = require('readline-sync');
 const chalk = require('chalk');
 
+if (flags.BENCHMARK) console.log(`External deps loaded at ${Date.now() - startTime}ms`);
+
 const config = require('./files/config')();
+if (flags.BENCHMARK) console.log(`Config file loaded at ${Date.now() - startTime}ms`);
 const tracker = require('./files/tracker')(config);
 const Puncher = require('./files/puncher');
 const Syncer = require('./sync/syncer');
@@ -70,7 +73,7 @@ const { command, run, invoke } = CLI({
   version: package.version,
 });
 
-if (flags.BENCHMARK) console.log(`Modules required at ${Date.now() - startTime}ms`);
+if (flags.BENCHMARK) console.log(`All modules required at ${Date.now() - startTime}ms`);
 
 /*=========================*\
 ||          Utils          ||
@@ -551,6 +554,10 @@ command('month',
 command('invoice <project> <startDate> <endDate> <outputFile>',
         'automatically generate an invoice using punch data', (args) => {
 
+  if (tracker.hasActive() && tracker.getActive().project === args.project) {
+    return console.log(`You're currently punched in on ${getLabelFor(tracker.getActive().project)}. Punch out before creating an invoice.`);
+  }
+
   let { project, startDate, endDate, outputFile } = args;
   const projectData = config.projects.find(p => p.alias === project);
   if (!projectData) {
@@ -636,13 +643,13 @@ command('config [editor]',
   }
 
   const spawn = require('child_process').spawn;
-  const configPath = path.join(require('os').homedir(), '.punch', 'punchconfig.json');
+  const configPath = config.configPath;
 
   const child = spawn(editor, [configPath], { stdio: 'inherit' });
 
-  child.on('exit', (e, code) => {
-    console.log('Config edited.');
-  });
+  // child.on('exit', (e, code) => {
+  //   console.log('Config edited.');
+  // });
 });
 
 if (flags.BENCHMARK) {

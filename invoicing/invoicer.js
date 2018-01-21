@@ -89,12 +89,18 @@ module.exports = function(config) {
       let totalHours = totalTime / 3600000;
       let totalPay = totalHours * data.project.hourlyRate;
 
+      let client;
+
+      if (typeof data.project.client === 'string' && data.project.client[0] === '@') {
+        client = config.clients[data.project.client.slice(1)];
+      }
+
       const invoice = {
         start: data.startDate.format('MM/DD/YYYY'),
         end: data.endDate.format('MM/DD/YYYY'),
         today: moment().format('MM/DD/YYYY'),
         user: data.user,
-        client: data.project.client,
+        client,
         project: data.project,
         time: durationfmt(msToNearestMinute),
         days: dayArray,
