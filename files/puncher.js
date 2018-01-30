@@ -1,6 +1,3 @@
-
-const lazy = require('../lazy.js');
-
 function readAsJSON(filePath) {
   try {
     return JSON.parse(fs.readFileSync(filePath));
@@ -10,11 +7,11 @@ function readAsJSON(filePath) {
 }
 
 module.exports = function(config) {
-  const fs = lazy.load('fs');
-  const path = lazy.load('path');
-  const moment = lazy.load('moment');
-  const datefmt = lazy.load('datefmt');
-  const durationfmt = lazy.load('durationfmt');
+  const fs = require('fs');
+  const path = require('path');
+  const moment = require('moment');
+  const datefmt = require('datefmt');
+  const durationfmt = require('durationfmt');
 
   const { punchPath } = config;
 

@@ -1,13 +1,13 @@
 // Sync with Amazon S3
 
-const fs = require('fs');
-const path = require('path');
-const AWS = require('aws-sdk');
-const { write } = process.stdout;
-
 module.exports = function(config, flags) {
   if (!config) throw new Error('S3 sync module was not initialized with a config file.');
   if (!config.credentials) throw new Error('S3 sync config doesn\'t include a credentials key.');
+
+  const fs = require('fs');
+  const path = require('path');
+  const AWS = require('aws-sdk');
+  const { write } = process.stdout;
 
   const { VERBOSE } = flags;
 

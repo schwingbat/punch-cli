@@ -1,9 +1,8 @@
 // Functions for reading and writing to punch files.
-const lazy = require('../lazy.js');
+const fs = require('fs');
+const path = require('path');
 
 module.exports = function(config) {
-  const fs = lazy.load('fs');
-  const path = lazy.load('path');
 
   function Punchfile(props = {}) {
     this.created = new Date(props.created || props.updated || new Date());

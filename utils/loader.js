@@ -1,5 +1,3 @@
-
-
 const loaders = {
   braille: ['⣾', '⣽', '⣻', '⢿', '⡿', '⣟', '⣯', '⣷'],
   spinner: ['|', '/', '-', '\\'],
@@ -17,10 +15,8 @@ const loaders = {
 };
 
 module.exports = function({ text, animation = 'braille', stopText, fps = 12 }) {
-  const lazy = require('../lazy.js');
-
-  const chalk = lazy.load('chalk');
-  const logUpdate = lazy.load('log-update');
+  const chalk = require('chalk');
+  const logUpdate = require('log-update');
 
   let interval;
   let frames = loaders[animation];

@@ -2,11 +2,9 @@
 // so we don't have to go searching through all the
 // punchfiles to figure out what's happening.
 
-const lazy = require('../lazy.js');
-
 module.exports = function Tracker(config) {
-  const fs = lazy.load('fs');
-  const path = lazy.load('path');
+  const fs = require('fs');
+  const path = require('path');
   
   let active;
   let sync;

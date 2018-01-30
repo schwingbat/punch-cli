@@ -37,7 +37,8 @@ if (flags.BENCHMARK) {
 }
 
 // Dependencies
-
+const path = require('path');
+const moment = require('moment');
 
 if (flags.BENCHMARK) console.log(`External deps loaded at ${Date.now() - startTime}ms`);
 
@@ -50,7 +51,6 @@ const Invoicer = require('./invoicing/invoicer');
 const Logger = require('./analysis/log');
 const Punchfile = require('./files/punchfile')(config);
 const SQLish = require('./files/sqlish');
-
 
 // Formatting
 const datefmt = require('./formatting/time');
