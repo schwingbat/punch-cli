@@ -1,11 +1,11 @@
-const datefmt = require('../formatting/time');
-const currencyfmt = require('../formatting/currency');
-const moment = require('moment');
-const chalk = require('chalk');
-const durationfmt = require('../formatting/duration');
-const { reportHeader, projectHeader, daySessions } = require('./printing');
-
 module.exports = function(config, punches, date, project) {
+  const datefmt = require('../formatting/time');
+  const currencyfmt = require('../formatting/currency');
+  const moment = require('moment');
+  const chalk = require('chalk');
+  const durationfmt = require('../formatting/duration');
+  const { reportHeader, projectHeader, daySessions } = require('./printing');
+
   date = moment(date);
 
   if (punches.length === 0) {

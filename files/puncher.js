@@ -1,8 +1,5 @@
-const fs = require('fs');
-const path = require('path');
-const moment = require('moment');
-const datefmt = require('../formatting/time');
-const durationfmt = require('../formatting/duration');
+
+const lazy = require('../lazy.js');
 
 function readAsJSON(filePath) {
   try {
@@ -13,6 +10,12 @@ function readAsJSON(filePath) {
 }
 
 module.exports = function(config) {
+  const fs = lazy.load('fs');
+  const path = lazy.load('path');
+  const moment = lazy.load('moment');
+  const datefmt = lazy.load('datefmt');
+  const durationfmt = lazy.load('durationfmt');
+
   const { punchPath } = config;
 
   const Punchfile = require('./punchfile')(config);

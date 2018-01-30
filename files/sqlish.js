@@ -12,7 +12,7 @@
     }, ...]
   or:
     select('*').from('punches').where(p => p.project === 'workstudy'
-                                        && p.out == null).descending().limit(1).run();
+                                      && p.out == null).descending().limit(1).run();
   to get the latest 'workstudy' punch in that I'm currently not punched out of
 */
 

@@ -1,11 +1,13 @@
 // The tracker file keeps track of the current state
-// so we don't have to go searching through all the 
+// so we don't have to go searching through all the
 // punchfiles to figure out what's happening.
 
-const fs = require('fs');
-const path = require('path');
+const lazy = require('../lazy.js');
 
 module.exports = function Tracker(config) {
+  const fs = lazy.load('fs');
+  const path = lazy.load('path');
+  
   let active;
   let sync;
 

@@ -1,8 +1,7 @@
-const fs = require('fs-extra');
-const path = require('path');
-const yaml = require('js-yaml');
-
 module.exports = function(options = {}, flags = {}) {
+  const fs = require('fs');
+  const path = require('path');
+
   let startedAt = Date.now();
 
   let punchDir;
@@ -13,12 +12,9 @@ module.exports = function(options = {}, flags = {}) {
   }
 
   let file;
-  let fileName;
 
   try {
-    // Try to load YAML
-    file = yaml.safeLoad(fs.readFileSync(path.join(punchDir, 'punch.yaml'), 'utf8'));
-    fileName = 'punch.yaml';
+    file = JSON.parse(fs.readFileSync(path.join(punchDir, 'punchconfig.json'), 'utf8'));
 
     // Map projects to an array
     const projects = [];
@@ -38,18 +34,11 @@ module.exports = function(options = {}, flags = {}) {
     });
 
   } catch (err) {
-    // Failed: try to load JSON
-    console.log(err);
-    try {
-      file = JSON.parse(fs.readFileSync(path.join(punchDir, 'punchconfig.json'), 'utf8'));
-      fileName = 'punchconfig.json';
-    } catch (err) {
-      // TODO: Neither file is readable. Start setup routine.
-      throw new Error('No readable config file: create a punch.yaml file in your punch directory and try again.');
-    }
+    console.error(err);
+    throw new Error('No readable config file: create a punchconfig.json file in your punch directory and try again.');
   }
 
-  file.configPath = path.join(punchDir, fileName);
+  file.configPath = path.join(punchDir, 'punchconfig.json');
   file.trackerPath = path.join(punchDir, 'tracker.json');
   file.punchPath = path.join(punchDir, 'punches');
 

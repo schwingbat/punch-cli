@@ -1,33 +1,33 @@
-const durationfmt = require('../formatting/duration');
-const moment = require('moment');
-const chalk = require('chalk');
-const Loader = require('../utils/loader');
-
-function roundToMinute(ms) {
-  return Math.ceil(ms / 1000 / 60) * 1000 * 60
-}
-
-function encomma(amount) {
-  // Add commas at appropriate places for currency.
-
-  let [whole, frac] = amount.split('.');
-
-  if (whole.length > 3) {
-    const chars = [];
-    const rev = whole.split('').reverse();
-    for (let i = 0; i < rev.length; i++) {
-      chars.push(rev[i]);
-      if (i !== 0 && (i + 1) % 3 === 0) {
-        chars.push(',');
-      }
-    }
-    return chars.reverse().join('') + '.' + frac;
-  } else {
-    return amount;
-  }
-}
-
 module.exports = function(config) {
+  const durationfmt = require('../formatting/duration');
+  const moment = require('moment');
+  const chalk = require('chalk');
+  const Loader = require('../utils/loader');
+
+  function roundToMinute(ms) {
+    return Math.ceil(ms / 1000 / 60) * 1000 * 60
+  }
+
+  function encomma(amount) {
+    // Add commas at appropriate places for currency.
+
+    let [whole, frac] = amount.split('.');
+
+    if (whole.length > 3) {
+      const chars = [];
+      const rev = whole.split('').reverse();
+      for (let i = 0; i < rev.length; i++) {
+        chars.push(rev[i]);
+        if (i !== 0 && (i + 1) % 3 === 0) {
+          chars.push(',');
+        }
+      }
+      return chars.reverse().join('') + '.' + frac;
+    } else {
+      return amount;
+    }
+  }
+
   const formats = {};
   formats.pdf = require('./pdf.js');
   formats.html = require('./html.js');

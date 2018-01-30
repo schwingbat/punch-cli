@@ -1,11 +1,13 @@
-const fs = require('fs');
-const path = require('path');
-const chalk = require('chalk');
-const logUpdate = require('log-update');
-const Loader = require('../utils/loader');
-const { write } = process.stdout;
-
 module.exports = function(config, flags) {
+  const lazy = require('../lazy.js');
+
+  const fs = lazy.load('fs');
+  const path = lazy.load('path');
+  const chalk = lazy.load('chalk');
+  const logUpdate = lazy.load('log-update');
+  const Loader = require('../utils/loader');
+  const { write } = process.stdout;
+
   const { VERBOSE } = flags;
   const backends = {};
 

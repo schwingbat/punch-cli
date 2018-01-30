@@ -1,11 +1,11 @@
-const datefmt = require('../formatting/time');
-const durationfmt = require('../formatting/duration');
-const currencyfmt = require('../formatting/currency');
-const moment = require('moment');
-const chalk = require('chalk');
-const { reportHeader, projectHeader, projectDay } = require('./printing');
-
 module.exports = function(config, punches, date, project) {
+  const datefmt = require('../formatting/time');
+  const durationfmt = require('../formatting/duration');
+  const currencyfmt = require('../formatting/currency');
+  const moment = require('moment');
+  const chalk = require('chalk');
+  const { reportHeader, projectHeader, projectDay } = require('./printing');
+
   let projects = {};
   const projName = project;
   punches.forEach(punch => {
@@ -62,7 +62,7 @@ module.exports = function(config, punches, date, project) {
     projects[name].fullName = proj && proj.name ? proj.name : name;
     projects[name].billableTime = projects[name].time - projects[name].rewind;
     projects[name].totalPay = pay;
-    
+
     projects[name].sessions.map(session => {
       session.timeSpan = session.start.padStart(8) + ' - ' + session.end.padStart(8);
       let sessionPay;
