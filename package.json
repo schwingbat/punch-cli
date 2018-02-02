@@ -22,5 +22,7 @@
     "readline-sync": "^1.4.7",
     "time-require": "^0.1.2"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "jest": "^22.1.4"
+  }
 }

@@ -8,11 +8,9 @@ Punch is a cross-platform time tracker for your terminal. You just `punch in` wh
 - A terminal emulator (ideally with Unicode support)
 - [Node.js 8+](https://nodejs.org/en/)
 
-## v1.5 To Do
+## v2.0 To Do
 
 - [ ] Add quick setup for fresh installs (generate directories, create skeleton config)
-- [ ] Make `rewind` command actually apply values instead of just printing
-- [ ] Make sure all command printing looks good and is relatively uniform across the board
 - [ ] Implement weekly log
 - [ ] Implement yearly log
 - [ ] Generate logs for specific month/year (currently just relative - `this month`, `last month`)
@@ -77,10 +75,6 @@ Stop tracking time and record an optional description of tasks completed.
 
 Add a comment to your current session.
 
-#### `rewind <amount>`
-
-Subtract payable time from a project to account for breaks and interruptions.
-
 #### `create <project> <time_in> <time_out> [*comment]`
 
 Create a punch.
@@ -103,7 +97,7 @@ Get statistics for a specific project.
 
 #### `projects [names...]`
 
-Show statistics for all projects in your config file.
+Show statistics for projects.
 
 #### `log [*when]`
 
@@ -129,7 +123,7 @@ Show a summary of punches for the current month (alias of `punch log this month`
 
 Automatically generate an invoice using punch data.
 
-#### `sync [providers...]`
+#### `sync`
 
 Synchronize with any providers you have configured. Just running `punch sync` with no providers will sync with all of them.
 
