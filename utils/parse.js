@@ -1,7 +1,7 @@
 // Parse time in this format: 1h 5m 3s
 // Returns duration in milliseconds
 
-module.exports = function(time) {
+exports.time = function time(time) {
   const parts = time.split(' ').map(s => s.trim().toLowerCase());
   let ms = 0;
 

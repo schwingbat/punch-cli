@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 
-const startTime = Date.now();
-
-const flags = require('./flags');
+const flags = {
+  VERBOSE: false,
+  BENCHMARK: false,
+  NO_SYNC: false
+}
 
 // Process command line args into params/flags
 
@@ -16,6 +18,7 @@ process.argv.slice(2).forEach(arg => {
     case '-b':
     case '--benchmark':
       flags.BENCHMARK = true;
+      require('time-require');
       break;
     case '-ns':
     case '--nosync':
@@ -30,23 +33,14 @@ if (flags.VERBOSE) {
   console.log({ params: process.argv.slice(2), flags });
 }
 
-if (flags.BENCHMARK) {
-  console.log(`Args parsed at ${Date.now() - startTime}ms`);
-}
-
 // Dependencies
 const path = require('path');
 const moment = require('moment');
-const logUpdate = require('log-update');
 const readline = require('readline-sync');
 const chalk = require('chalk');
-
-if (flags.BENCHMARK) console.log(`External deps loaded at ${Date.now() - startTime}ms`);
+const logUpdate = require('log-update');
 
 const config = require('./files/config')();
-if (flags.BENCHMARK) console.log(`Config file loaded at ${Date.now() - startTime}ms`);
-const tracker = require('./files/tracker')(config);
-const Puncher = require('./files/puncher');
 const Syncer = require('./sync/syncer');
 const Invoicer = require('./invoicing/invoicer');
 const Logger = require('./analysis/log');
@@ -54,15 +48,13 @@ const Punchfile = require('./files/punchfile')(config);
 const SQLish = require('./files/sqlish');
 
 // Formatting
-const datefmt = require('./formatting/time');
-const durationfmt = require('./formatting/duration');
-const currencyfmt = require('./formatting/currency');
+const format = require('./utils/format');
 const summaryfmt = require('./formatting/projsummary');
 
 // Utils
-const resolvePath = require('./utils/resolvepath');
 const CLI = require('./utils/cli.js');
 const package = require('./package.json');
+const resolvePath = require('./utils/resolve-path');
 
 const print = require('./analysis/printing');
 
@@ -73,14 +65,17 @@ const { command, run, invoke } = CLI({
   version: package.version,
 });
 
-if (flags.BENCHMARK) console.log(`All modules required at ${Date.now() - startTime}ms`);
-
 /*=========================*\
 ||          Utils          ||
 \*=========================*/
 
+const getProject = name => {
+  return config.projects.find(p => p.alias === name);
+  // return config.projects[name];
+}
+
 const getLabelFor = name => {
-  const project = config.projects.find(p => p.alias === name);
+  const project = getProject(name);
   if (project) {
     return project.name;
   } else {
@@ -89,7 +84,7 @@ const getLabelFor = name => {
 };
 
 const getRateFor = name => {
-  const project = config.projects.find(p => p.alias === name);
+  const project = getProject(name);
   if (project) {
     return project.hourlyRate;
   } else {
@@ -106,14 +101,25 @@ const getFileFor = date => {
   return path.join(config.punchPath, `punch_${y}_${m}_${d}.json`);
 }
 
-const warnIfUnsynced = () => {
-  const syncable = config.sync.autoSync == false
-                || Object.keys(config.sync.backends).length > 0;
+const getPunchedIn = (sqlish = SQLish(config, flags)) => {
+  // Get punches that are currently punched in (have a punch out timestamp of null)
+  return sqlish.select()
+               .from('punches')
+               .where(p => !p.out)
+               .orderBy('in', 'desc')
+               .run();
+}
 
-  const changes = tracker.unsynced();
-
-  if (syncable && changes) {
-    console.log(`You have ${changes} unsynced change${changes == 1 ? '' : 's'}. Run 'punch sync' to synchronize.`);
+const getMessageFor = (file) => {
+  // Returns a random message from the given file.
+  // Assumes the file is a JSON file containing an array of strings in the resources/messages/ folder.
+  try {
+    const options = require('./resources/messages/' + file + '.json');
+    const i = Math.round(Math.random() * options.length - 1);
+    console.log(options, i);
+    return options[i];
+  } catch (err) {
+    return "BLORK";
   }
 }
 
@@ -137,10 +143,6 @@ const handleSync = () => {
   if (autoSync && !flags.NO_SYNC) {
     const syncer = Syncer(config, flags);
     syncer.sync();
-    tracker.resetSync();
-  } else {
-    tracker.incrementSync();
-    warnIfUnsynced();
   }
 }
 
@@ -153,13 +155,14 @@ command('in <project>',
 
   const { project } = args;
 
-  if (tracker.hasActive()) {
-    console.log(`You're already punched in on ${getLabelFor(project)}! Punch out first.`);
+  const current = getPunchedIn();
+
+  if (current.length > 0) {
+    console.log(`You're already punched in on ${getLabelFor(current[0].project)}! Punch out first.`);
   } else {
     const file = Punchfile.readOrCreate(getFileFor(Date.now()));
     file.punchIn(project);
     file.save();
-    tracker.setActive(project);
 
     const time = moment().format('h:mm');
     console.log(`Punched in on ${getLabelFor(project)} at ${time}.`);
@@ -172,29 +175,22 @@ command('out [*comment]',
         'stop tracking time and record an optional description of tasks completed', (args) => {
 
   const { comment } = args;
-  const sqlish = SQLish(config, flags);
-  const current = sqlish.select()
-    .from('punches')
-    .where(p => !p.out)
-    .orderBy('in', 'desc')
-    .limit(1)
-    .run()[0];
+  const current = getPunchedIn()[0];
 
   if (current) {
     current._file.punchOut(current.project);
 
     const label = getLabelFor(current.project);
-    const time = datefmt.time(Date.now());
+    const time = format.time(Date.now());
     const duration = current.out - current.in;
     const pay = duration / 1000 / 60 / 60 * getRateFor(current.project);
 
     current.comments.push(comment);
     current._file.save();
-    tracker.clearActive();
 
-    let str = `Punched out on ${label} at ${time}. Worked for ${durationfmt(duration)}`;
+    let str = `Punched out on ${label} at ${time}. Worked for ${format.duration(duration)}`;
     if (pay > 0) {
-       str += ` and earned ${currencyfmt(pay)}`;
+       str += ` and earned ${format.currency(pay)}`;
     }
 
     console.log(str + '.');
@@ -260,49 +256,6 @@ command('comment [*comment]',
   }
 });
 
-
-command('rewind [*amount]',
-        'subtract payable time from a project to account for breaks and interruptions', (args) => {
-
-  const sqlish = SQLish(config, flags);
-  const timeParse = require('./utils/timeparse');
-  const latest = sqlish.select()
-    .from('punches')
-    .orderBy('in', 'desc')
-    .limit(1)
-    .run()[0];
-
-  const time = timeParse(args.amount);
-
-  if (latest.out) {
-    let str = `You're not punched in. Do you want to rewind your last punch on ${getLabelFor(latest.project)}?`;
-
-    if (confirm(str)) {
-      console.log('BLAH');
-    }
-  } else {
-    let length = Date.now() - latest.in;
-    let lengthText = durationfmt(length);
-    let subText = '-' + durationfmt(time).padStart(lengthText.length + 1);
-    let line = '_'.padStart(lengthText.length + 2, '_');
-    let result = durationfmt(length - time).padStart(lengthText.length + 2);
-
-    let str = `Subtract ${durationfmt(time, { long: true })} from current session?`;
-    str += '\n\n';
-    str += lengthText.padStart(lengthText.length + 2) + '\n';
-    str += subText += '\n';
-    str += line + '\n';
-    str += result + '\n\n';
-
-    if (confirm(str)) {
-      console.log('asdf');
-    }
-  }
-
-  console.log(durationfmt());
-
-});
-
 command('create <project> <timeIn> <timeOut> [*comment]',
         'create a punch', (args) => {
 
@@ -324,7 +277,7 @@ command('create <project> <timeIn> <timeOut> [*comment]',
   const duration = punchOut - punchIn;
   let pay;
   if (proj && proj.hourlyRate) {
-    pay = currencyfmt(duration / 3600000 * proj.hourlyRate);
+    pay = format.currency(duration / 3600000 * proj.hourlyRate);
   } else {
     pay = 'N/A';
   }
@@ -334,7 +287,7 @@ command('create <project> <timeIn> <timeOut> [*comment]',
   str += `   Project: ${getLabelFor(project)}\n`;
   str += `   Time In: ${punchIn.format('dddd, MMM Do YYYY [@] h:mma')}\n`;
   str += `  Time Out: ${punchOut.format('dddd, MMM Do YYYY [@] h:mma')}\n`;
-  str += `  Duration: ${durationfmt(duration)}\n`;
+  str += `  Duration: ${format.duration(duration)}\n`;
   str += `       Pay: ${pay}\n`;
 
   if (comment) {
@@ -365,54 +318,39 @@ command('purge <project>',
 
   const { project } = args;
   const label = getLabelFor(project);
-  const files = Punchfile.all();
+  const punches = SQLish(config, flags)
+    .select()
+    .from('punches')
+    .where(p => p.project === project)
+    .run();
 
-  const modified = [];
-  let punchCount = 0;
-  let totalTime = 0;
+  if (punches.length > 0) {
+    const totalTime = punches.reduce((sum, p) =>
+      sum + ((p.out || Date.now()) - p.in), 0);
 
-  // Find and modify Punchfile objects with matching punches.
-  files.forEach(f => {
-    let modded = false;
-
-    // Filter out punches that match the given project alias.
-    // MANY SIDE EFFECTS. SUCH FUNCTIONAL. WOW.
-    f.punches = f.punches.filter(p => {
-      if (p.project === project) {
-        console.log(p);
-        modded = true;
-        punchCount += 1;
-        totalTime += (p.out || Date.now()) - p.in - p.rewind;
-        return false;
-      } else {
-        return true;
-      }
-    });
-
-    if (modded) {
-      modified.push(f);
-    }
-  });
-
-  if (punchCount > 0) {
     // Confirm and commit changes to files.
-    const confirmString = `Purging ${label} would delete ${punchCount} punch${punchCount == 1 ? '' : 'es'} totalling ${durationfmt(totalTime)}. Do you really want to continue?`;
+    const confirmString = `Purging ${label} would delete ${punches.length} punch${punches.length == 1 ? '' : 'es'} totalling ${format.duration(totalTime)}.`;
 
-    if (confirm(confirmString)) {
+    console.log(confirmString);
 
-      console.log('Committing changes...');
-      modified.forEach(f => {
-        f.save();
-      });
+    let response;
 
-      tracker.incrementSync(modified.length);
+    while (response !== label) {
+      response = readline.question(`Type in '${label}' if you're REALLY sure, or 'n' to cancel: `).toLowerCase().trim();
 
-      console.log(`Purged ${label}.`);
-
-      handleSync();
+      if (response === label) {
+        // Delete
+        punches.forEach(punch => {
+          punch._file.punches = punch._file.punches.filter(p => p !== punch);
+          punch._file.save();
+        });
+        console.log(`Purged ${punches.length} punches.`);
+      } else if (response === 'n') {
+        return false;
+      }
     }
   } else {
-    console.log(`Project ${label} has no punches.`);
+    console.log(`${label} has no punches.`);
   }
 
 });
@@ -420,21 +358,21 @@ command('purge <project>',
 command('now',
         'show the status of the current session', () => {
 
-  const active = tracker.getActive();
+  const active = getPunchedIn()[0];
 
   if (active) {
-    const duration = Date.now() - active.timestamp;
+    const duration = Date.now() - active.in;
     const rate = getRateFor(active.project);
     const pay = duration / 1000 / 60 / 60 * getRateFor(active.project);
-    const punchedIn = datefmt.time(active.timestamp);
+    const punchedIn = format.time(active.timestamp);
 
-    let str = `You punched in on ${getLabelFor(active.project)} at ${punchedIn} (${durationfmt(duration)} ago)`;
+    let str = `You've been working on ${getLabelFor(active.project)} since ${punchedIn} (${format.duration(duration)} ago).`;
 
     if (rate) {
-      str += ` and have earned ${currencyfmt(pay)}`;
+      str += ` Earned ${format.currency(pay)}.`;
     }
 
-    console.log(str + '.');
+    console.log(str);
   } else {
     console.log('No current session.');
   }
@@ -444,7 +382,7 @@ command('now',
 command ('watch',
          'continue running to show automatically updated stats of your current session', () => {
 
-  const active = tracker.getActive();
+  const active = getPunchedIn()[0];
 
   if (active) {
     const project = config.projects.find(p => p.alias === active.project);
@@ -452,14 +390,14 @@ command ('watch',
     const rate = project && project.hourlyRate ? project.hourlyRate : 0;
 
     const update = () => {
-      let time = Date.now() - active.timestamp;
+      let time = Date.now() - active.in;
       let pay = (time / 3600000) * rate;
-      let duration = durationfmt(time);
+      let duration = format.duration(time);
 
       let str = `\nYou've been working on ${label} for ${duration}`;
 
       if (pay && pay > 0) {
-        str += ` (${currencyfmt(pay)})\n`;
+        str += ` (${format.currency(pay)})\n`;
       }
 
       logUpdate(str + '.');
@@ -482,10 +420,64 @@ command('project <name>',
 command('projects [names...]',
         'show statistics for all projects in your config file', (args) => {
 
-  const puncher = Puncher(config, flags);
-  const projects = puncher.getProjectSummaries(args.names);
+  let { names } = args;
 
-  projects.forEach(p => console.log(print.projectSummary(summaryfmt(p))));
+  if (!names) {
+    names = config.projects.map(p => p.alias);
+  }
+
+  // TODO: Factor out Puncher
+  // const puncher = Puncher(config, flags);
+  // const projects = puncher.getProjectSummaries(args.names);
+
+  const allPunches = SQLish(config, flags)
+    .select()
+    .from('punches')
+    .orderBy('in', 'asc')
+    .run();
+
+  const summaries = [];
+
+  for (let i = 0; i < names.length; i++) {
+    const project = names[i];
+
+    const punches = allPunches
+        .filter(p => p.project === project);
+
+    let firstPunch = punches[0];
+    let latestPunch = punches[punches.length - 1];
+
+    const projectData = config.projects.find(p => p.alias === project);
+    const fullName = projectData
+      ? projectData.name
+      : project;
+    const totalTime = punches.reduce(
+      (sum, punch) =>
+        sum + ((punch.out || Date.now()) - punch.in - (punch.rewind || 0)),
+      0);
+    const totalHours = (totalTime / 3600000);
+    const totalPay = projectData && projectData.hourlyRate
+      ? totalHours * projectData.hourlyRate
+      : 0;
+    const hourlyRate = projectData && projectData.hourlyRate
+      ? projectData.hourlyRate
+      : 0;
+
+    summaries.push({
+      fullName,
+      totalTime,
+      totalHours,
+      totalPay,
+      hourlyRate,
+      firstPunch,
+      latestPunch,
+      totalPunches: punches.length,
+    });
+  }
+
+  summaries
+    .sort((a, b) => a.fullName > b.fullName) // Sort alphabetically
+    .forEach(s => console.log(print.projectSummary(summaryfmt(s))));
 });
 
 command('log [*when]',
@@ -554,8 +546,10 @@ command('month',
 command('invoice <project> <startDate> <endDate> <outputFile>',
         'automatically generate an invoice using punch data', (args) => {
 
-  if (tracker.hasActive() && tracker.getActive().project === args.project) {
-    return console.log(`You're currently punched in on ${getLabelFor(tracker.getActive().project)}. Punch out before creating an invoice.`);
+  const active = getPunchedIn()[0]
+
+  if (active && active.project === args.project) {
+    return console.log(`You're currently punched in on ${getLabelFor(active.project)}. Punch out before creating an invoice.`);
   }
 
   let { project, startDate, endDate, outputFile } = args;
@@ -566,9 +560,16 @@ command('invoice <project> <startDate> <endDate> <outputFile>',
     return;
   }
 
+  if (!projectData.hourlyRate) {
+    let message = "Can't invoice for nothing!";
+
+    console.log(`${getLabelFor(project)} has no hourlyRate set. ${getMessageFor('no_hourly_rate')}`);
+    return;
+  }
+
   project = projectData.name;
-  startDate = moment(startDate, 'MM-DD-YYYY');
-  endDate = moment(endDate, 'MM-DD-YYYY');
+  startDate = moment(startDate, 'MM-DD-YYYY').startOf('day');
+  endDate = moment(endDate, 'MM-DD-YYYY').endOf('day');
 
   let format;
   let ext = path.extname(outputFile);
@@ -625,12 +626,11 @@ command('invoice <project> <startDate> <endDate> <outputFile>',
   }
 });
 
-command('sync [providers...]',
-        'synchronize with any providers you have configured', () => {
+command('sync',
+        'synchronize with any providers in your config file', () => {
 
   const syncer = Syncer(config, flags);
   syncer.sync();
-  tracker.resetSync();
 });
 
 command('config [editor]',
@@ -646,18 +646,6 @@ command('config [editor]',
   const configPath = config.configPath;
 
   const child = spawn(editor, [configPath], { stdio: 'inherit' });
-
-  // child.on('exit', (e, code) => {
-  //   console.log('Config edited.');
-  // });
 });
 
-if (flags.BENCHMARK) {
-  console.log(`Commands parsed at ${Date.now() - startTime}ms`);
-}
-
 run(process.argv.slice(2).filter(a => a[0] !== '-'));
-
-if (flags.BENCHMARK) {
-  console.log(`Program run in ${Date.now() - startTime}ms`);
-}

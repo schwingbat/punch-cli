@@ -35,9 +35,9 @@ const labelTable = (items) => {
 function reportHeader(text, stats) {
   let str = '\n';
 
-  str += '▋  ' + chalk.bold(text) + '\n';
+  str += /*'▋  ' + */' ' + chalk.bold(text) + '\n';
   if (stats) {
-    str += '▋  ' + slashList(stats);
+    str += /*'▋  ' + */' ' + slashList(stats);
   }
 
   return str;
@@ -46,7 +46,7 @@ function reportHeader(text, stats) {
 function projectHeader(text, stats) {
   let str = '\n';
 
-  str += chalk.bold.yellow('▋  ' + text) + '';
+  str += chalk.bold.yellow(/*'▋  ' + */ ' ' + text) + '';
   if (stats) {
     str += ' ' + slashList(stats, true) + '\n';
   }
@@ -58,7 +58,7 @@ function daySessions(sessions) {
   let str = '';
 
   sessions.forEach(session => {
-    str += '      ';
+    str += '     ';
 
     if (session.timeSpan.slice(session.timeSpan.length - 3).toLowerCase() === 'now') {
       str += chalk.green.bold.italic(session.timeSpan);
@@ -72,7 +72,7 @@ function daySessions(sessions) {
         if (!c) continue;
 
         if (i > 0) {
-          str += '\n                         ' + chalk.grey(' » ') + c;
+          str += '\n                        ' + chalk.grey(' » ') + c;
         } else {
           str += chalk.grey(' » ') + c;
         }
@@ -88,7 +88,7 @@ function daySessions(sessions) {
 function projectDay({ date, stats, sessions }) {
   let str = '';
 
-  str += chalk.grey('   ▶  ') + chalk.white.bold(date.format('MMM Do, dddd'));
+  str += chalk.grey('   ▶ ') + chalk.white.bold(date.format('MMM Do, dddd'));
   if (stats) {
     str += ' ' + slashList(stats, true) + '\n';
   }
@@ -100,8 +100,12 @@ function projectDay({ date, stats, sessions }) {
 
 function projectSummary({ name, pay, time, rate, stats }) {
   let str = '';
+  const statList = [time];
 
-  str += projectHeader(name) + ' ' + slashList([pay, time, rate], true) + '\n\n';
+  if (pay) statList.push(pay);
+  if (rate) statList.push(rate);
+
+  str += projectHeader(name) + ' ' + slashList(statList, true) + '\n\n';
 
   if (stats) {
     str += labelTable(stats);

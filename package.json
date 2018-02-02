@@ -1,11 +1,11 @@
 {
   "name": "@schwingbat/punch",
-  "version": "1.5.0",
+  "version": "1.9.0",
   "description": "A CLI time tracker that syncs across all your computers.",
   "main": "index.js",
   "bin": "./punch.js",
   "scripts": {
-    "test": "ava"
+    "test": "jest"
   },
   "keywords": [],
   "author": "Tony McCoy <tony@ratwizard.io>",
@@ -15,14 +15,12 @@
     "chalk": "^2.3.0",
     "electron": "^1.7.11",
     "format-currency": "^1.0.0",
-    "fs-extra": "^5.0.0",
     "handlebars": "^4.0.11",
     "html5-to-pdf": "^2.2.9",
     "log-update": "^2.3.0",
     "moment": "^2.20.1",
-    "readline-sync": "^1.4.7"
+    "readline-sync": "^1.4.7",
+    "time-require": "^0.1.2"
   },
-  "devDependencies": {
-    "ava": "^0.23.0"
-  }
+  "devDependencies": {}
 }

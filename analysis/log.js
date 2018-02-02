@@ -1,8 +1,8 @@
-const printDay = require('./log-day');
-const printWeek = require('./log-week');
-const printMonth = require('./log-month');
-
 module.exports = function Reporter(config, flags) {
+  const printDay = require('./log-day');
+  const printWeek = require('./log-week');
+  const printMonth = require('./log-month');
+
   const sqlish = require('../files/sqlish')(config);
 
   return {

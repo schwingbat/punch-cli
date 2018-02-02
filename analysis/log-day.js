@@ -1,11 +1,10 @@
-const datefmt = require('../formatting/time');
-const currencyfmt = require('../formatting/currency');
-const moment = require('moment');
-const chalk = require('chalk');
-const durationfmt = require('../formatting/duration');
-const { reportHeader, projectHeader, daySessions } = require('./printing');
-
 module.exports = function(config, punches, date, project) {
+  const format = require('../utils/format');
+  const moment = require('moment');
+  const chalk = require('chalk');
+
+  const { reportHeader, projectHeader, daySessions } = require('./printing');
+
   date = moment(date);
 
   if (punches.length === 0) {
@@ -27,12 +26,12 @@ module.exports = function(config, punches, date, project) {
 
     projects[punch.project].time += end - punch.in;
     projects[punch.project].sessions.push({
-      start: datefmt.time(punch.in),
-      end: punch.out ? datefmt.time(punch.out) : "Now",
+      start: format.time(punch.in),
+      end: punch.out ? format.time(punch.out) : "Now",
       startStamp: punch.in,
       time: end - punch.in,
       comments: punch.comments || [punch.comment],
-      duration: durationfmt(end - punch.in),
+      duration: format.duration(end - punch.in),
     });
   });
 
@@ -48,7 +47,7 @@ module.exports = function(config, punches, date, project) {
 
   console.log(reportHeader(
     'Work for ' + date.format('MMMM Do YYYY'),
-    [durationfmt(dayTime), dayPay ? currencyfmt(dayPay) : null]
+    [format.duration(dayTime), dayPay ? format.currency(dayPay) : null]
   ));
 
   const projArr = [];
@@ -87,11 +86,11 @@ module.exports = function(config, punches, date, project) {
   }).forEach(project => {
     // console.log(project);
     let pay;
-    if (project.totalPay) pay = currencyfmt(project.totalPay);
+    if (project.totalPay) pay = format.currency(project.totalPay);
 
     console.log(projectHeader(
       project.fullName,
-      [durationfmt(project.billableTime), pay]
+      [format.duration(project.billableTime), pay]
     ));
 
     const sessions = project.sessions.sort((a, b) => {

@@ -1,36 +1,34 @@
-const moment = require('moment');
-const durationfmt = require('./duration');
-const timefmt = require('./time');
-const currencyfmt = require('./currency');
-
 module.exports = function(project) {
   // Turn the detailed object into an array of formatted stats.
+
+  const format = require('../utils/format');
+  const moment = require('moment');
+  const chalk = require('chalk');
 
   const {
     fullName,
     totalTime,
     totalPay,
     hourlyRate,
-    totalDays,
     totalPunches,
-    longestPunch,
-    shortestPunch,
     firstPunch,
     latestPunch,
   } = project;
 
+  let lastActive = latestPunch.out
+    ? moment(latestPunch.out).fromNow()
+    : chalk.bold.green('Now');
+
   return {
     name: fullName,
-    pay: currencyfmt(totalPay),
-    time: durationfmt(totalTime),
-    rate: currencyfmt(hourlyRate) + '/hr',
+    pay: totalPay ? format.currency(totalPay) : null,
+    time: format.duration(totalTime),
+    rate: hourlyRate ? format.currency(hourlyRate) + '/hr' : null,
     stats: [
       { label: 'Punches', value: totalPunches },
-      { label: 'Avg. time', value: durationfmt(totalTime / totalDays) },
       { label: 'Started', value: moment(firstPunch.in).format('MMM Do, YYYY') },
-      { label: 'Last active', value: moment(latestPunch.out || Date.now()).fromNow() },
-      // { label: 'Shortest', value: durationfmt(shortestPunch.duration) + ' on ' + moment(shortestPunch.in).format('MMMM Do, YYYY') },
-      // { label: 'Longest', value: durationfmt(longestPunch.duration) + ' on ' + moment(longestPunch.in).format('MMMM Do, YYYY') },
+      { label: 'Last active', value: lastActive },
+      // { label: 'Average time per day', value: moment(firstPunch.in). }
     ]
   };
 };
