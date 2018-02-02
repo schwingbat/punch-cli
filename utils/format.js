@@ -1,4 +1,23 @@
-module.exports = function(ms, opts = {}) {
+// Formatter for all the things
+
+const formatCurrency = require('format-currency');
+const moment = require('moment');
+
+/*================*\
+||     Money      ||
+\*================*/
+
+const currencyOptions = { format: '%s%v', symbol: '$' };
+
+exports.currency = function currency(value, options = {}) {
+  return formatCurrency(value, Object.assign({}, currencyOptions, options));
+}
+
+/*================*\
+||      Time      ||
+\*================*/
+
+exports.duration = function duration(ms, opts = {}) {
   let out = [];
   let seconds = ms / 1000;
   let minutes = seconds / 60;
@@ -29,3 +48,7 @@ module.exports = function(ms, opts = {}) {
 
   return out.join(' ');
 }
+
+exports.date = time => moment(time).format('MMM Do YYYY');
+exports.time = time => moment(time).format('h[:]mm A');
+exports.dateTime = time => moment(time).format('MMM Do YYYY h[:]mm A');

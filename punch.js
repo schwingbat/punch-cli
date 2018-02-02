@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 
-const flags = require('./flags');
+const flags = {
+  VERBOSE: false,
+  BENCHMARK: false,
+  NO_SYNC: false
+}
 
 // Process command line args into params/flags
 
@@ -37,7 +41,6 @@ const chalk = require('chalk');
 const logUpdate = require('log-update');
 
 const config = require('./files/config')();
-const tracker = require('./files/tracker')(config);
 const Syncer = require('./sync/syncer');
 const Invoicer = require('./invoicing/invoicer');
 const Logger = require('./analysis/log');
@@ -45,15 +48,13 @@ const Punchfile = require('./files/punchfile')(config);
 const SQLish = require('./files/sqlish');
 
 // Formatting
-const datefmt = require('./formatting/time');
-const durationfmt = require('./formatting/duration');
-const currencyfmt = require('./formatting/currency');
+const format = require('./utils/format');
 const summaryfmt = require('./formatting/projsummary');
 
 // Utils
-const resolvePath = require('./utils/resolvepath');
 const CLI = require('./utils/cli.js');
 const package = require('./package.json');
+const resolvePath = require('./utils/resolve-path');
 
 const print = require('./analysis/printing');
 
@@ -122,17 +123,6 @@ const getMessageFor = (file) => {
   }
 }
 
-const warnIfUnsynced = () => {
-  const syncable = config.sync.autoSync == false
-                || Object.keys(config.sync.backends).length > 0;
-
-  const changes = tracker.unsynced();
-
-  if (syncable && changes) {
-    console.log(`You have ${changes} unsynced change${changes == 1 ? '' : 's'}. Run 'punch sync' to synchronize.`);
-  }
-}
-
 const confirm = question => {
   let response;
 
@@ -153,10 +143,6 @@ const handleSync = () => {
   if (autoSync && !flags.NO_SYNC) {
     const syncer = Syncer(config, flags);
     syncer.sync();
-    tracker.resetSync();
-  } else {
-    tracker.incrementSync();
-    warnIfUnsynced();
   }
 }
 
@@ -195,16 +181,16 @@ command('out [*comment]',
     current._file.punchOut(current.project);
 
     const label = getLabelFor(current.project);
-    const time = datefmt.time(Date.now());
+    const time = format.time(Date.now());
     const duration = current.out - current.in;
     const pay = duration / 1000 / 60 / 60 * getRateFor(current.project);
 
     current.comments.push(comment);
     current._file.save();
 
-    let str = `Punched out on ${label} at ${time}. Worked for ${durationfmt(duration)}`;
+    let str = `Punched out on ${label} at ${time}. Worked for ${format.duration(duration)}`;
     if (pay > 0) {
-       str += ` and earned ${currencyfmt(pay)}`;
+       str += ` and earned ${format.currency(pay)}`;
     }
 
     console.log(str + '.');
@@ -291,7 +277,7 @@ command('create <project> <timeIn> <timeOut> [*comment]',
   const duration = punchOut - punchIn;
   let pay;
   if (proj && proj.hourlyRate) {
-    pay = currencyfmt(duration / 3600000 * proj.hourlyRate);
+    pay = format.currency(duration / 3600000 * proj.hourlyRate);
   } else {
     pay = 'N/A';
   }
@@ -301,7 +287,7 @@ command('create <project> <timeIn> <timeOut> [*comment]',
   str += `   Project: ${getLabelFor(project)}\n`;
   str += `   Time In: ${punchIn.format('dddd, MMM Do YYYY [@] h:mma')}\n`;
   str += `  Time Out: ${punchOut.format('dddd, MMM Do YYYY [@] h:mma')}\n`;
-  str += `  Duration: ${durationfmt(duration)}\n`;
+  str += `  Duration: ${format.duration(duration)}\n`;
   str += `       Pay: ${pay}\n`;
 
   if (comment) {
@@ -332,54 +318,39 @@ command('purge <project>',
 
   const { project } = args;
   const label = getLabelFor(project);
-  const files = Punchfile.all();
+  const punches = SQLish(config, flags)
+    .select()
+    .from('punches')
+    .where(p => p.project === project)
+    .run();
 
-  const modified = [];
-  let punchCount = 0;
-  let totalTime = 0;
+  if (punches.length > 0) {
+    const totalTime = punches.reduce((sum, p) =>
+      sum + ((p.out || Date.now()) - p.in), 0);
 
-  // Find and modify Punchfile objects with matching punches.
-  files.forEach(f => {
-    let modded = false;
-
-    // Filter out punches that match the given project alias.
-    // MANY SIDE EFFECTS. SUCH FUNCTIONAL. WOW.
-    f.punches = f.punches.filter(p => {
-      if (p.project === project) {
-        console.log(p);
-        modded = true;
-        punchCount += 1;
-        totalTime += (p.out || Date.now()) - p.in - p.rewind;
-        return false;
-      } else {
-        return true;
-      }
-    });
-
-    if (modded) {
-      modified.push(f);
-    }
-  });
-
-  if (punchCount > 0) {
     // Confirm and commit changes to files.
-    const confirmString = `Purging ${label} would delete ${punchCount} punch${punchCount == 1 ? '' : 'es'} totalling ${durationfmt(totalTime)}. Type in "${label}" to continue: `;
+    const confirmString = `Purging ${label} would delete ${punches.length} punch${punches.length == 1 ? '' : 'es'} totalling ${format.duration(totalTime)}.`;
 
-    if (confirm(confirmString)) {
-      if (confirm(`Are you really REALLY sure about this?`))
-      console.log('Committing changes...');
-      modified.forEach(f => {
-        f.save();
-      });
+    console.log(confirmString);
 
-      tracker.incrementSync(modified.length);
+    let response;
 
-      console.log(`Purged ${label}.`);
+    while (response !== label) {
+      response = readline.question(`Type in '${label}' if you're REALLY sure, or 'n' to cancel: `).toLowerCase().trim();
 
-      handleSync();
+      if (response === label) {
+        // Delete
+        punches.forEach(punch => {
+          punch._file.punches = punch._file.punches.filter(p => p !== punch);
+          punch._file.save();
+        });
+        console.log(`Purged ${punches.length} punches.`);
+      } else if (response === 'n') {
+        return false;
+      }
     }
   } else {
-    console.log(`Project ${label} has no punches.`);
+    console.log(`${label} has no punches.`);
   }
 
 });
@@ -393,12 +364,12 @@ command('now',
     const duration = Date.now() - active.in;
     const rate = getRateFor(active.project);
     const pay = duration / 1000 / 60 / 60 * getRateFor(active.project);
-    const punchedIn = datefmt.time(active.timestamp);
+    const punchedIn = format.time(active.timestamp);
 
-    let str = `You've been working on ${getLabelFor(active.project)} since ${punchedIn} (${durationfmt(duration)} ago).`;
+    let str = `You've been working on ${getLabelFor(active.project)} since ${punchedIn} (${format.duration(duration)} ago).`;
 
     if (rate) {
-      str += ` Earned ${currencyfmt(pay)}.`;
+      str += ` Earned ${format.currency(pay)}.`;
     }
 
     console.log(str);
@@ -421,12 +392,12 @@ command ('watch',
     const update = () => {
       let time = Date.now() - active.in;
       let pay = (time / 3600000) * rate;
-      let duration = durationfmt(time);
+      let duration = format.duration(time);
 
       let str = `\nYou've been working on ${label} for ${duration}`;
 
       if (pay && pay > 0) {
-        str += ` (${currencyfmt(pay)})\n`;
+        str += ` (${format.currency(pay)})\n`;
       }
 
       logUpdate(str + '.');
@@ -655,12 +626,11 @@ command('invoice <project> <startDate> <endDate> <outputFile>',
   }
 });
 
-command('sync [providers...]',
-        'synchronize with any providers you have configured', () => {
+command('sync',
+        'synchronize with any providers in your config file', () => {
 
   const syncer = Syncer(config, flags);
   syncer.sync();
-  tracker.resetSync();
 });
 
 command('config [editor]',

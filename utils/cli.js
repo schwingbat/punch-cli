@@ -1,68 +1,68 @@
 const chalk = require('chalk');
 
-function parseOldCmdString(str) {
-  let i = 0;
-  let end = str.length;
-  const argMap = [];
+// function parseOldCmdString(str) {
+//   let i = 0;
+//   let end = str.length;
+//   const argMap = [];
 
-  let buffer = '';
-  let inArg = false;
-  let inSplat = false;
+//   let buffer = '';
+//   let inArg = false;
+//   let inSplat = false;
 
-  const addArg = () => {
-    const obj = {};
-    if (buffer[buffer.length - 1] === '?') {
-      obj.name = buffer.slice(0, buffer.length - 1);
-      obj.optional = true;
-    } else {
-      obj.name = buffer;
-      obj.optional = false;
-    }
+//   const addArg = () => {
+//     const obj = {};
+//     if (buffer[buffer.length - 1] === '?') {
+//       obj.name = buffer.slice(0, buffer.length - 1);
+//       obj.optional = true;
+//     } else {
+//       obj.name = buffer;
+//       obj.optional = false;
+//     }
 
-    if (inSplat) {
-      obj.splat = true;
-    }
+//     if (inSplat) {
+//       obj.splat = true;
+//     }
 
-    argMap.push(obj);
-    buffer = '';
+//     argMap.push(obj);
+//     buffer = '';
 
-    inArg = false;
-    inSplat = false;
-  };
+//     inArg = false;
+//     inSplat = false;
+//   };
 
-  while (i < end) {
-    switch (str[i]) {
-    case ':':
-      inArg = true;
-      break;
-    case '*':
-      inArg = true;
-      inSplat = true;
-      break;
-    case ' ':
-      if (inArg) {
-        addArg();
-      }
-      break;
-    default:
-      if (inArg) {
-        buffer += str[i];
-      }
-      break;
-    }
+//   while (i < end) {
+//     switch (str[i]) {
+//     case ':':
+//       inArg = true;
+//       break;
+//     case '*':
+//       inArg = true;
+//       inSplat = true;
+//       break;
+//     case ' ':
+//       if (inArg) {
+//         addArg();
+//       }
+//       break;
+//     default:
+//       if (inArg) {
+//         buffer += str[i];
+//       }
+//       break;
+//     }
 
-    i += 1;
-  }
+//     i += 1;
+//   }
 
 
-  if (buffer.length > 0) {
-    if (inArg) {
-      addArg();
-    }
-  }
+//   if (buffer.length > 0) {
+//     if (inArg) {
+//       addArg();
+//     }
+//   }
 
-  return argMap;
-}
+//   return argMap;
+// }
 
 function parseSignature(str) {
   let i = 0;

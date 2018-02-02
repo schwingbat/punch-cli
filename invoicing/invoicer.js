@@ -1,7 +1,7 @@
 module.exports = function(config) {
-  const durationfmt = require('../formatting/duration');
   const moment = require('moment');
   const chalk = require('chalk');
+  const format = require('../utils/format');
   const Loader = require('../utils/loader');
 
   function roundToMinute(ms) {
@@ -33,15 +33,15 @@ module.exports = function(config) {
   formats.html = require('./html.js');
 
   return {
-    async create(data, format) {
-      if (!format) {
+    async create(data, fmt) {
+      if (!fmt) {
         return console.log(`No format specified for invoicer.create()`);
-      } else if (!formats[format.toLowerCase()]) {
-        return console.log(`Format ${format} not supported (yet?)`);
+      } else if (!formats[fmt.toLowerCase()]) {
+        return console.log(`Format ${fmt} not supported (yet?)`);
       }
 
       const loader = Loader({
-        text: `Generating ${format} invoice...`,
+        text: `Generating ${fmt} invoice...`,
         animation: 'braille'
       });
 
@@ -80,7 +80,7 @@ module.exports = function(config) {
       for (const day in days) {
         const time = days[day].time;
         days[day].pay = '$' + encomma(((time / 3600000) * data.project.hourlyRate).toFixed(2));
-        days[day].time = durationfmt(roundToMinute(time));
+        days[day].time = format.duration(roundToMinute(time));
         dayArray.push(days[day]);
       }
 
@@ -109,13 +109,13 @@ module.exports = function(config) {
         user: data.user,
         client,
         project: data.project,
-        time: durationfmt(msToNearestMinute),
+        time: format.duration(msToNearestMinute),
         days: dayArray,
         pay: '$' + encomma(totalPay.toFixed(2)),
         comments,
       };
 
-      const result = await formats[format.toLowerCase()](invoice, data.output.path);
+      const result = await formats[fmt.toLowerCase()](invoice, data.output.path);
 
       loader.stop(chalk.green('✔️') + ` Done!`);
 
