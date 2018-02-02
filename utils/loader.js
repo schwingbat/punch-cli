@@ -1,6 +1,3 @@
-const chalk = require('chalk');
-const logUpdate = require('log-update');
-
 const loaders = {
   braille: ['⣾', '⣽', '⣻', '⢿', '⡿', '⣟', '⣯', '⣷'],
   spinner: ['|', '/', '-', '\\'],
@@ -18,6 +15,9 @@ const loaders = {
 };
 
 module.exports = function({ text, animation = 'braille', stopText, fps = 12 }) {
+  const chalk = require('chalk');
+  const logUpdate = require('log-update');
+
   let interval;
   let frames = loaders[animation];
   let i = 0;

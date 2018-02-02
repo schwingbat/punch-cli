@@ -1,0 +1,73 @@
+#############################
+##          User           ##
+#############################
+
+## Your info, as it appears on an invoice, goes here.
+
+user:
+  name: Your Name
+  address:
+    street: 123 Some St.
+    city: Anytown
+    state: WA
+    zip: '12345'
+
+#############################
+##         Clients         ##
+#############################
+
+## This is a list of client info. Projects can be tied to a client,
+## in which case the client's information will be used for invoicing.
+## You can put this information directly in a project's 'client' field,
+## or you can put it here and link to it using its @name if you have
+## more than one project with a given client and wish to keep their
+## information in one place.
+
+clients:
+  client-name:
+    name: Client Name
+    company: Example, Inc.
+    address:
+      street: 123 Other St.
+      city: Nowheresville
+      state: IL
+      zip: '55555'
+
+#############################
+##         Projects        ##
+#############################
+
+## These are all the projects you can punch in for.
+## You can still punch in even if a project has no project entry,
+## but you'll need to add an entry here first if you if you want
+## to track money earned and generate invoices.
+
+## To punch in for my-project, you would type 'punch in my-project'
+## You can have as many projects as you want and you can name them
+## however you please.
+
+projects:
+  my-project:
+    name: My First Project
+    hourlyRate: 25.00
+    client: '@client-name'
+
+#############################
+##      Sync Settings      ##
+#############################
+
+## Create an Amazon S3 bucket, generate some credentials and paste them here.
+## Once configured, you can run 'punch sync' to sync with your S3 bucket.
+## If you use the same bucket across all your computers, you'll always have
+## an up to date punch log wherever you are.
+
+## Turn on autoSync to automatically sync whenever you punch in or out.
+
+sync:
+  autoSync: false
+  backends:
+#    s3:
+#      bucket: your-bucket-name
+#      credentials:
+#        accessKeyId: XXXXXXXXXXXXXXXXXXXXX
+#        secretAccessKey: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX

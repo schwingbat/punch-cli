@@ -1,23 +1,27 @@
-const fs = require('fs');
-const path = require('path');
-const chalk = require('chalk');
-const logUpdate = require('log-update');
-const Loader = require('../utils/loader');
-const { write } = process.stdout;
-
 module.exports = function(config, flags) {
+  const fs = require('fs');
+  const path = require('path');
+  const chalk = require('chalk');
+  const logUpdate = require('log-update');
+  const Loader = require('../utils/loader');
+  const { write } = process.stdout;
+
   const { VERBOSE } = flags;
   const backends = {};
 
   const { punchPath, configPath } = config;
 
-  for (const name in config.sync.backends) {
-    const modulePath = path.join(__dirname, `${name}.backend.js`);
-
-    if (fs.existsSync(modulePath)) {
-      backends[name] = require(modulePath)(config.sync.backends[name], flags);
+  backends.load = function(name) {
+    if (!config.sync.backends[name]) {
+      console.log(`Backend ${name} is not configured in config.sync.backends.`);
     } else {
-      console.log(`Config specifies a "${name}" backend config, but Punch doesn't have a module for it.`);
+      let conf = config.sync.backends[name];
+      let module;
+      try {
+        return require(`./${name.toLowerCase()}.backend.js`)(config.sync.backends[name], flags);
+      } catch (err) {
+        console.log(`Backend ${name} is not (yet) supported by Punch.`, err);
+      }
     }
   }
 
@@ -125,23 +129,28 @@ module.exports = function(config, flags) {
 
       loader.start();
 
-      for (const name in backends) {
-        backends[name]
-          .getManifest()
-          .then(diff)
-          .then(readFiles)
-          .then(backends[name].upload)
-          .then(backends[name].download)
-          .then(writeFiles)
-          .then(updateStamps)
-          .then(r => {
-            const count = r.downloads.length + r.uploads.length;
-            if (VERBOSE) {
-              console.log(` Synced ${count} file${count === 1 ? '' : 's'} in ${Date.now() - start}ms.`);
-            } else {
+      for (const name in config.sync.backends) {
+        const service = backends.load(name);
+        if (service) {
+          service
+            .getManifest()
+            .then(diff)
+            .then(readFiles)
+            .then(service.upload)
+            .then(service.download)
+            .then(writeFiles)
+            .then(updateStamps)
+            .then(r => {
+              const count = r.downloads.length + r.uploads.length;
+              if (VERBOSE) {
+                console.log(` Synced ${count} file${count === 1 ? '' : 's'} in ${Date.now() - start}ms.`);
+              }
               loader.stop(chalk.green('✔️') + ' Synced!');
-            }
-          });
+            })
+            .catch(err => {
+              console.error('There was a problem syncing', err);
+            });
+        }
       }
 
       return Promise.all(syncers);
