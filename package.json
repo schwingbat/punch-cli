@@ -5,7 +5,7 @@
   "main": "index.js",
   "bin": "./punch.js",
   "scripts": {
-    "test": "ava"
+    "test": "jest"
   },
   "keywords": [],
   "author": "Tony McCoy <tony@ratwizard.io>",
@@ -20,8 +20,5 @@
     "moment": "^2.19.1",
     "readline-sync": "^1.4.7",
     "time-require": "^0.1.2"
-  },
-  "devDependencies": {
-    "ava": "^0.23.0"
   }
 }

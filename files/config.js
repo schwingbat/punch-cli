@@ -34,6 +34,7 @@ module.exports = function(options = {}, flags = {}) {
     });
 
   } catch (err) {
+    // TODO: Use default settings
     console.error(err);
     throw new Error('No readable config file: create a punchconfig.json file in your punch directory and try again.');
   }

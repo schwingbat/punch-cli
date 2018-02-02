@@ -1,9 +1,5 @@
 #!/usr/bin/env node
 
-// require('time-require');
-
-const startTime = Date.now();
-
 const flags = require('./flags');
 
 // Process command line args into params/flags
@@ -18,6 +14,7 @@ process.argv.slice(2).forEach(arg => {
     case '-b':
     case '--benchmark':
       flags.BENCHMARK = true;
+      require('time-require');
       break;
     case '-ns':
     case '--nosync':
@@ -32,20 +29,14 @@ if (flags.VERBOSE) {
   console.log({ params: process.argv.slice(2), flags });
 }
 
-if (flags.BENCHMARK) {
-  console.log(`Args parsed at ${Date.now() - startTime}ms`);
-}
-
 // Dependencies
 const path = require('path');
 const moment = require('moment');
 const readline = require('readline-sync');
 const chalk = require('chalk');
-
-if (flags.BENCHMARK) console.log(`External deps loaded at ${Date.now() - startTime}ms`);
+const logUpdate = require('log-update');
 
 const config = require('./files/config')();
-if (flags.BENCHMARK) console.log(`Config file loaded at ${Date.now() - startTime}ms`);
 const tracker = require('./files/tracker')(config);
 const Syncer = require('./sync/syncer');
 const Invoicer = require('./invoicing/invoicer');
@@ -73,14 +64,17 @@ const { command, run, invoke } = CLI({
   version: package.version,
 });
 
-if (flags.BENCHMARK) console.log(`All modules required at ${Date.now() - startTime}ms`);
-
 /*=========================*\
 ||          Utils          ||
 \*=========================*/
 
+const getProject = name => {
+  return config.projects.find(p => p.alias === name);
+  // return config.projects[name];
+}
+
 const getLabelFor = name => {
-  const project = config.projects.find(p => p.alias === name);
+  const project = getProject(name);
   if (project) {
     return project.name;
   } else {
@@ -89,7 +83,7 @@ const getLabelFor = name => {
 };
 
 const getRateFor = name => {
-  const project = config.projects.find(p => p.alias === name);
+  const project = getProject(name);
   if (project) {
     return project.hourlyRate;
   } else {
@@ -276,49 +270,6 @@ command('comment [*comment]',
   }
 });
 
-
-command('rewind [*amount]',
-        'subtract payable time from a project to account for breaks and interruptions', (args) => {
-
-  const sqlish = SQLish(config, flags);
-  const timeParse = require('./utils/timeparse');
-  const latest = sqlish.select()
-    .from('punches')
-    .orderBy('in', 'desc')
-    .limit(1)
-    .run()[0];
-
-  const time = timeParse(args.amount);
-
-  if (latest.out) {
-    let str = `You're not punched in. Do you want to rewind your last punch on ${getLabelFor(latest.project)}?`;
-
-    if (confirm(str)) {
-      console.log('BLAH');
-    }
-  } else {
-    let length = Date.now() - latest.in;
-    let lengthText = durationfmt(length);
-    let subText = '-' + durationfmt(time).padStart(lengthText.length + 1);
-    let line = '_'.padStart(lengthText.length + 2, '_');
-    let result = durationfmt(length - time).padStart(lengthText.length + 2);
-
-    let str = `Subtract ${durationfmt(time, { long: true })} from current session?`;
-    str += '\n\n';
-    str += lengthText.padStart(lengthText.length + 2) + '\n';
-    str += subText += '\n';
-    str += line + '\n';
-    str += result + '\n\n';
-
-    if (confirm(str)) {
-      console.log('asdf');
-    }
-  }
-
-  console.log(durationfmt());
-
-});
-
 command('create <project> <timeIn> <timeOut> [*comment]',
         'create a punch', (args) => {
 
@@ -412,10 +363,10 @@ command('purge <project>',
 
   if (punchCount > 0) {
     // Confirm and commit changes to files.
-    const confirmString = `Purging ${label} would delete ${punchCount} punch${punchCount == 1 ? '' : 'es'} totalling ${durationfmt(totalTime)}. Do you really want to continue?`;
+    const confirmString = `Purging ${label} would delete ${punchCount} punch${punchCount == 1 ? '' : 'es'} totalling ${durationfmt(totalTime)}. Type in "${label}" to continue: `;
 
     if (confirm(confirmString)) {
-
+      if (confirm(`Are you really REALLY sure about this?`))
       console.log('Committing changes...');
       modified.forEach(f => {
         f.save();
@@ -439,18 +390,18 @@ command('now',
   const active = getPunchedIn()[0];
 
   if (active) {
-    const duration = Date.now() - active.timestamp;
+    const duration = Date.now() - active.in;
     const rate = getRateFor(active.project);
     const pay = duration / 1000 / 60 / 60 * getRateFor(active.project);
     const punchedIn = datefmt.time(active.timestamp);
 
-    let str = `You punched in on ${getLabelFor(active.project)} at ${punchedIn} (${durationfmt(duration)} ago)`;
+    let str = `You've been working on ${getLabelFor(active.project)} since ${punchedIn} (${durationfmt(duration)} ago).`;
 
     if (rate) {
-      str += ` and have earned ${currencyfmt(pay)}`;
+      str += ` Earned ${currencyfmt(pay)}.`;
     }
 
-    console.log(str + '.');
+    console.log(str);
   } else {
     console.log('No current session.');
   }
@@ -468,7 +419,7 @@ command ('watch',
     const rate = project && project.hourlyRate ? project.hourlyRate : 0;
 
     const update = () => {
-      let time = Date.now() - active.timestamp;
+      let time = Date.now() - active.in;
       let pay = (time / 3600000) * rate;
       let duration = durationfmt(time);
 
@@ -498,7 +449,11 @@ command('project <name>',
 command('projects [names...]',
         'show statistics for all projects in your config file', (args) => {
 
-  const { names } = args;
+  let { names } = args;
+
+  if (!names) {
+    names = config.projects.map(p => p.alias);
+  }
 
   // TODO: Factor out Puncher
   // const puncher = Puncher(config, flags);
@@ -549,7 +504,9 @@ command('projects [names...]',
     });
   }
 
-  summaries.forEach(s => console.log(print.projectSummary(summaryfmt(s))));
+  summaries
+    .sort((a, b) => a.fullName > b.fullName) // Sort alphabetically
+    .forEach(s => console.log(print.projectSummary(summaryfmt(s))));
 });
 
 command('log [*when]',
@@ -719,18 +676,6 @@ command('config [editor]',
   const configPath = config.configPath;
 
   const child = spawn(editor, [configPath], { stdio: 'inherit' });
-
-  // child.on('exit', (e, code) => {
-  //   console.log('Config edited.');
-  // });
 });
 
-if (flags.BENCHMARK) {
-  console.log(`Commands parsed at ${Date.now() - startTime}ms`);
-}
-
 run(process.argv.slice(2).filter(a => a[0] !== '-'));
-
-if (flags.BENCHMARK) {
-  console.log(`Program run in ${Date.now() - startTime}ms`);
-}
