@@ -11,10 +11,7 @@ module.exports = function(project) {
     totalTime,
     totalPay,
     hourlyRate,
-    totalDays,
     totalPunches,
-    longestPunch,
-    shortestPunch,
     firstPunch,
     latestPunch,
   } = project;
@@ -26,11 +23,9 @@ module.exports = function(project) {
     rate: currencyfmt(hourlyRate) + '/hr',
     stats: [
       { label: 'Punches', value: totalPunches },
-      { label: 'Avg. time', value: durationfmt(totalTime / totalDays) },
       { label: 'Started', value: moment(firstPunch.in).format('MMM Do, YYYY') },
       { label: 'Last active', value: moment(latestPunch.out || Date.now()).fromNow() },
-      // { label: 'Shortest', value: durationfmt(shortestPunch.duration) + ' on ' + moment(shortestPunch.in).format('MMMM Do, YYYY') },
-      // { label: 'Longest', value: durationfmt(longestPunch.duration) + ' on ' + moment(longestPunch.in).format('MMMM Do, YYYY') },
+      // { label: 'Average time per day', value: moment(firstPunch.in). }
     ]
   };
 };

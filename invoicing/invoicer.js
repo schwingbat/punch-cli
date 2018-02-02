@@ -61,6 +61,7 @@ module.exports = function(config) {
         const key = date.date();
         if (!days[key]) days[key] = {
           date: date.format('MM/DD/YYYY'),
+          _date: date,
           time: 0,
           comments: []
         };
@@ -83,7 +84,13 @@ module.exports = function(config) {
         dayArray.push(days[day]);
       }
 
-      dayArray = dayArray.sort();
+      // Sort in ascending order and strip out the _date object.
+      dayArray = dayArray.sort((a, b) => a._date.isBefore(b._date) ? -1 : 1).map(day => ({
+        date: day.date,
+        time: day.time,
+        pay: day.pay,
+        comments: day.comments,
+      }));
 
       let msToNearestMinute = roundToMinute(totalTime);
       let totalHours = totalTime / 3600000;
