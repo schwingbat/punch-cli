@@ -1,3 +1,7 @@
+const capitalize = (str) => {
+  return str[0].toUpperCase() + str.slice(1);
+}
+
 module.exports = function(config, flags) {
   const fs = require('fs');
   const path = require('path');
@@ -49,19 +53,15 @@ module.exports = function(config, flags) {
         } catch (err) {
           downloads.push(file);
         }
-
-        done += 1;
-        if (done === total) {
-          // Check for files locally (not in manifest)
-          fs.readdirSync(punchPath).forEach(file => {
-            if (!manifest[file]) {
-              uploads.push(file);
-            }
-          });
-          if (VERBOSE) console.log(`Finished diffing ${total} files.`);
-          return resolve({ uploads, downloads, manifest });
-        }
       }
+
+      fs.readdirSync(punchPath).forEach(file => {
+        if (!manifest[file]) {
+          uploads.push(file);
+        }
+      });
+      if (VERBOSE) console.log(`Finished diffing ${total} files.`);
+      return resolve({ uploads, downloads, manifest });
     });
   }
 
@@ -98,7 +98,9 @@ module.exports = function(config, flags) {
   async function updateStamps(results) {
     const { uploads, postManifest } = results;
 
-    if (uploads.length > 0) {
+    if (results._dummy) return results;
+
+    if (uploads && uploads.length > 0) {
       if (VERBOSE) console.log('Updating timestamps on uploaded files...');
       uploads.forEach(file => {
         if (postManifest[file]) {
@@ -117,43 +119,63 @@ module.exports = function(config, flags) {
     return results;
   }
 
+  async function doSync(backend, next) {
+    const service = backends.load(backend);
+    const loader = new Loader({
+      text: `[${capitalize(backend)}] Syncing...`,
+      animation: 'braille',
+    });
+    loader.start();
+
+    if (service) {
+      service
+        .getManifest()
+        .then(diff)
+        .then(readFiles)
+        .then(service.upload)
+        .then(service.download)
+        .then(writeFiles)
+        .then(updateStamps)
+        .then(r => {
+          const up = r.uploads.length;
+          const down = r.downloads.length;
+
+          let counts = '';
+          if (up > 0) counts += ` ${chalk.magenta('⬈')} ${up} up`;
+          if (down > 0) counts += ` ${chalk.cyan('⬊')} ${down} down`;
+          if (counts === '') counts = ` ${chalk.green('⊙')} no changes`;
+
+          loader.stop(`${chalk.green('⸭')} Synced with ${capitalize(backend)}! ${counts}`);
+          next();
+        })
+        .catch(err => {
+          console.error(`${chalk.red('⁙')} Sync with ${capitalize(backend)} failed!`, err);
+          next();
+        });
+    } else {
+      console.log(`No sync service by the name ${backend}`);
+      next();
+    }
+  }
+
   return {
     sync() {
       const syncers = [];
       const start = Date.now();
 
-      const loader = new Loader({
-        text: 'Syncing...',
-        animation: 'braille',
-      });
+      const backends = Object.keys(config.sync.backends);
+      let current = 0;
 
-      loader.start();
-
-      for (const name in config.sync.backends) {
-        const service = backends.load(name);
-        if (service) {
-          service
-            .getManifest()
-            .then(diff)
-            .then(readFiles)
-            .then(service.upload)
-            .then(service.download)
-            .then(writeFiles)
-            .then(updateStamps)
-            .then(r => {
-              const count = r.downloads.length + r.uploads.length;
-              if (VERBOSE) {
-                console.log(` Synced ${count} file${count === 1 ? '' : 's'} in ${Date.now() - start}ms.`);
-              }
-              loader.stop(chalk.green('✔️') + ' Synced!');
-            })
-            .catch(err => {
-              console.error('There was a problem syncing', err);
-            });
+      const next = () => {
+        if (backends[current]) {
+          doSync(backends[current], next.bind(this));
+          current += 1;
+        } else {
+          return Promise.all(syncers);
         }
       }
 
-      return Promise.all(syncers);
+      next();
     }
   }
 }

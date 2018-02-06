@@ -26,6 +26,7 @@ module.exports = function({ text, animation = 'braille', stopText, fps = 12 }) {
     start() {
       if (!interval) {
         i = 0;
+        console.log();
         interval = setInterval(() => {
           logUpdate(chalk.yellow(frames[i]) + ' ' + text);
           i = (i + 1) % frames.length;
