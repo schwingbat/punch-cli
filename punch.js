@@ -8,10 +8,16 @@ const flags = {
 
 // Process command line args into params/flags
 
-process.argv.slice(2).forEach(arg => {
+const ARGS = process.argv.slice(2);
+
+for (let i = 0; i < ARGS.length; i++) {
+  const arg = ARGS[i];
+
   if (arg[0] === '-') {
     switch (arg.toLowerCase()) {
     case '-v':
+      console.log('punch v' + require('./package.json').version);
+      return;
     case '--verbose':
       flags.VERBOSE = true;
       break;
@@ -27,7 +33,7 @@ process.argv.slice(2).forEach(arg => {
       break;
     }
   }
-});
+}
 
 if (flags.VERBOSE) {
   console.log({ params: process.argv.slice(2), flags });
