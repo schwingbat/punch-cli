@@ -8,103 +8,105 @@ const flags = {
 
 // Process command line args into params/flags
 
-const ARGS = process.argv.slice(2);
+const ARGS = process.argv.slice(2)
 
 for (let i = 0; i < ARGS.length; i++) {
-  const arg = ARGS[i];
+  const arg = ARGS[i]
 
   if (arg[0] === '-') {
     switch (arg.toLowerCase()) {
     case '-v':
-      console.log('punch v' + require('./package.json').version);
-      return;
+      console.log('punch v' + require('./package.json').version)
+      return
     case '--verbose':
-      flags.VERBOSE = true;
-      break;
+      flags.VERBOSE = true
+      break
     case '-b':
     case '--benchmark':
-      flags.BENCHMARK = true;
-      require('time-require');
-      break;
+      flags.BENCHMARK = true
+      require('time-require')
+      break
     case '-ns':
     case '--nosync':
     case '--no-sync':
-      flags.NO_SYNC = true;
-      break;
+      flags.NO_SYNC = true
+      break
     }
   }
 }
 
 if (flags.VERBOSE) {
-  console.log({ params: process.argv.slice(2), flags });
+  console.log({ params: process.argv.slice(2), flags })
 }
 
 // Dependencies
-const path = require('path');
-const moment = require('moment');
-const readline = require('readline-sync');
-const chalk = require('chalk');
-const logUpdate = require('log-update');
+const path = require('path')
+const moment = require('moment')
+const readline = require('readline-sync')
+const chalk = require('chalk')
+const logUpdate = require('log-update')
 
-const config = require('./files/config')();
-const Syncer = require('./sync/syncer');
-const Invoicer = require('./invoicing/invoicer');
-const Logger = require('./analysis/log');
-const Punchfile = require('./files/punchfile')(config);
-const SQLish = require('./files/sqlish');
+global.appRoot = path.resolve(__dirname)
+
+const config = require('./files/config')()
+const Syncer = require('./sync/syncer')
+const Invoicer = require('./invoicing/invoicer')
+const Logger = require('./analysis/log')
+const Punchfile = require('./files/punchfile')(config)
+const SQLish = require('./files/sqlish')
 
 // Formatting
-const format = require('./utils/format');
-const summaryfmt = require('./formatting/projsummary');
+const format = require('./utils/format')
+const summaryfmt = require('./formatting/projsummary')
 
 // Utils
-const CLI = require('./utils/cli.js');
-const package = require('./package.json');
-const resolvePath = require('./utils/resolve-path');
+const CLI = require('./utils/cli.js')
+const package = require('./package.json')
+const resolvePath = require('./utils/resolve-path')
 
-const print = require('./analysis/printing');
+const print = require('./analysis/printing')
 
-const { autoSync } = config.sync;
+const { autoSync } = config.sync
 
 const { command, run, invoke } = CLI({
   name: 'punch',
   version: package.version,
-});
+})
 
 /*=========================*\
 ||          Utils          ||
 \*=========================*/
 
 const getProject = name => {
-  return config.projects.find(p => p.alias === name);
+  return config.projects.find(p => p.alias === name)
   // return config.projects[name];
 }
 
 const getLabelFor = name => {
-  const project = getProject(name);
+  const project = getProject(name)
   if (project) {
-    return project.name;
+    return project.name
   } else {
-    return name;
+    return name
   }
 };
 
 const getRateFor = name => {
-  const project = getProject(name);
+  const project = getProject(name)
   if (project) {
-    return project.hourlyRate;
+    return project.hourlyRate
   } else {
-    return 0;
+    return 0
   }
 }
 
 const getFileFor = date => {
-  date = new Date(date);
-  const y = date.getFullYear();
-  const m = date.getMonth() + 1;
-  const d = date.getDate();
+  date = new Date(date)
+  const y = date.getFullYear()
+  const m = date.getMonth() + 1
+  const d = date.getDate()
 
-  return path.join(config.punchPath, `punch_${y}_${m}_${d}.json`);
+  return path.join(config.punchPath, `punch_${y}_${m}_${d}.json`)
 }
 
 const getPunchedIn = (sqlish = SQLish(config, flags)) => {
@@ -389,6 +391,10 @@ command ('watch',
          'continue running to show automatically updated stats of your current session', () => {
 
   const active = getPunchedIn()[0];
+  const clock = require('./utils/big-clock')({
+    style: 'clockBlock',
+    letterSpacing: 1,
+  })
 
   if (active) {
     const project = config.projects.find(p => p.alias === active.project);
@@ -400,13 +406,14 @@ command ('watch',
       let pay = (time / 3600000) * rate;
       let duration = format.duration(time);
 
-      let str = `\nYou've been working on ${label} for ${duration}`;
+      let working = `Working on ${label}`
+      let money = format.currency(pay)
+      let numbers = clock.display(format.clock(time))
+      let numbersLength = numbers.split('\n')[0].length
 
-      if (pay && pay > 0) {
-        str += ` (${format.currency(pay)})\n`;
-      }
+      let topLine = working.padEnd(numbersLength - money.length, ' ') + money
 
-      logUpdate(str + '.');
+      logUpdate('\n' + topLine + '\n' + numbers);
     }
 
     update();
