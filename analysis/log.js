@@ -12,6 +12,8 @@ module.exports = function Reporter(config, flags) {
           let match = true;
           if (project && p.project !== project) match = false;
 
+          if (p.out === null) return true;
+
           return p.in.getFullYear() === date.getFullYear()
               && p.in.getMonth() === date.getMonth()
               && p.in.getDate() === date.getDate()

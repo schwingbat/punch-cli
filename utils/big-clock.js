@@ -1,5 +1,6 @@
 module.exports = function({ style, letterSpacing }) {
   const path = require('path')
+  const chalk = require('chalk')
   let clock
 
   style = style || 'block-clock'
@@ -9,6 +10,15 @@ module.exports = function({ style, letterSpacing }) {
     clock = require(path.join(appRoot, 'resources', 'clock-styles', style + '.json'))
   } catch (err) {
     throw new Error('Failed to load clock style: ' + style)
+  }
+
+  spaceChar = clock.spaceCharacter || '\s'
+  // spaceChar = chalk.grey(spaceChar)
+
+  for (const char in clock.characters) {
+    clock.characters[char].lines = clock.characters[char].lines.map(line => {
+      return line.replace(/\s/g, spaceChar)
+    })
   }
 
   // Validate
@@ -48,12 +58,14 @@ module.exports = function({ style, letterSpacing }) {
       let remaining = height
 
       while (remaining > 0) {
+        output += spaceChar
         chars.forEach((char, i) => {
           output += char.lines[height - remaining]
           if (i + 1 !== chars.length) {
-            output += ''.padEnd(letterSpacing)
+            output += spaceChar
           }
         })
+        output += spaceChar
         output += '\n'
         remaining--
       }

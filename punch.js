@@ -392,7 +392,7 @@ command ('watch',
 
   const active = getPunchedIn()[0];
   const clock = require('./utils/big-clock')({
-    style: 'clockBlock',
+    style: 'clockBlockDots',
     letterSpacing: 1,
   })
 
