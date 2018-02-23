@@ -8,7 +8,7 @@ module.exports = function(config, punches, date, project) {
   date = moment(date);
 
   if (punches.length === 0) {
-    return console.log('\n' + chalk.bold.white('▋  No sessions for ' + date.format('MMMM Do YYYY')) + '\n');
+    return console.log('\n' + chalk.bold.white('No sessions for ' + date.format('MMMM Do YYYY')));
   }
 
   let projects = {};

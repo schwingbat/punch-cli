@@ -1,60 +1,70 @@
+const areSameDay = (one, two) => {
+  return one.getFullYear() === two.getFullYear()
+      && one.getMonth() === two.getMonth()
+      && one.getDate() === two.getDate()
+}
+
 module.exports = function Reporter(config, flags) {
   const printDay = require('./log-day');
   const printWeek = require('./log-week');
   const printMonth = require('./log-month');
+  const moment = require('moment')
 
-  const sqlish = require('../files/sqlish')(config);
+  const sqlish = require('../files/sqlish')(config)
 
   return {
-    forDay(date = new Date(), project) {
-      const punches = sqlish.select()
+    forDay(today = new Date(), project) {
+      const punches = sqlish
+        .select()
+        .from('punches')
         .where(p => {
           let match = true;
           if (project && p.project !== project) match = false;
 
-          if (p.out === null) return true;
+          if (match) {
+            if (p.out == null || (areSameDay(p.in, today) || areSameDay(p.out, today))) {
+              return true
+            }
+          }
 
-          return p.in.getFullYear() === date.getFullYear()
-              && p.in.getMonth() === date.getMonth()
-              && p.in.getDate() === date.getDate()
-              && match;
+          return false
         })
         .run();
 
-      printDay(config, punches, date, project);
+      printDay(config, punches, today, project);
     },
-    forWeek(date = new Date(), project) {
+    forWeek(today = new Date(), project) {
       console.log('Weekly logs are not implemented yet.');
     },
-    forMonth(date = new Date(), project) {
+    forMonth(today = new Date(), project) {
       const punches = sqlish.select()
         .where(p => {
           let match = true;
           if (project && p.project !== project) match = false;
 
-          return p.in.getFullYear() === date.getFullYear()
-              && p.in.getMonth() === date.getMonth()
+          return p.in.getFullYear() === today.getFullYear()
+              && p.in.getMonth() === today.getMonth()
               && match;
         })
         .run();
 
-      printMonth(config, punches, date, project);
+      printMonth(config, punches, today, project);
     },
-    forYear(date = new Date(), project) {
+    forYear(today = new Date(), project) {
       console.log('Yearly logs are not implemented yet.');
     }
   }
 
-  function reportForMonth(date = new Date(), project) {
+  function reportForMonth(today = new Date(), project) {
     const punches = [];
-    const month = date.getMonth() + 1;
+    const month = today.getMonth() + 1;
     const files = fs.readdirSync(punchPath).filter(file => {
       const [p, y, m, d] = file.split('_');
       return m == month; // double equals because m is a string.
     });
 
     if (files.length === 0) {
-      return console.log(`No punches recorded for ${moment(date).format('MMMM YYYY')}.`);
+      return console.log(`No punches recorded for ${moment(today).format('MMMM YYYY')}.`);
     }
 
     files.forEach(file => {
@@ -62,10 +72,10 @@ module.exports = function Reporter(config, flags) {
       if (f) punches.push(...f.punches);
     });
 
-    return monthReport(config, punches, date, project);
+    return monthReport(config, punches, today, project);
   }
 
-  function reportForYear(date, project) {
+  function reportForYear(today, project) {
     console.log('Yearly reports are not implemented yet.');
   }
 }
