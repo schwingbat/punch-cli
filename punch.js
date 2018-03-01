@@ -77,27 +77,16 @@ const { command, run, invoke } = CLI({
 ||          Utils          ||
 \*=========================*/
 
-const getProject = name => {
-  return config.projects.find(p => p.alias === name)
-  // return config.projects[name];
+const getLabelFor = name => {
+  return config.projects[name]
+    ? config.projects[name].name
+    : name
 }
 
-const getLabelFor = name => {
-  const project = getProject(name)
-  if (project) {
-    return project.name
-  } else {
-    return name
-  }
-};
-
 const getRateFor = name => {
-  const project = getProject(name)
-  if (project) {
-    return project.hourlyRate
-  } else {
-    return 0
-  }
+  return config.projects[name]
+    ? config.projects[name].hourlyRate
+    : 0
 }
 
 const getFileFor = date => {
@@ -281,7 +270,7 @@ command('create <project> <timeIn> <timeOut> [*comment]',
     return console.log('Please enter dates formatted as \'mm-dd-yyyy@hours:minutesAM\'');
   }
 
-  const proj = config.projects.find(p => p.alias === project);
+  const proj = config.projects[project];
   const duration = punchOut - punchIn;
   let pay;
   if (proj && proj.hourlyRate) {
@@ -397,7 +386,7 @@ command ('watch',
   })
 
   if (active) {
-    const project = config.projects.find(p => p.alias === active.project);
+    const project = config.projects[active.project];
     const label = project && project.name ? project.name : active.project;
     const rate = project && project.hourlyRate ? project.hourlyRate : 0;
 
@@ -436,7 +425,7 @@ command('projects [names...]',
   let { names } = args;
 
   if (!names) {
-    names = config.projects.map(p => p.alias);
+    names = Object.keys(config.projects)
   }
 
   // TODO: Factor out Puncher
@@ -460,7 +449,7 @@ command('projects [names...]',
     let firstPunch = punches[0];
     let latestPunch = punches[punches.length - 1];
 
-    const projectData = config.projects.find(p => p.alias === project);
+    const projectData = config.projects[project];
     const fullName = projectData
       ? projectData.name
       : project;
@@ -566,7 +555,7 @@ command('invoice <project> <startDate> <endDate> <outputFile>',
   }
 
   let { project, startDate, endDate, outputFile } = args;
-  const projectData = config.projects.find(p => p.alias === project);
+  const projectData = config.projects[project];
   if (!projectData) {
     console.log(`Can't invoice for ${chalk.red(project)} because your config file contains no information for that project.`);
     console.log(`You can run ${chalk.cyan('punch config')} to open your config file to add the project info.`);
@@ -580,7 +569,6 @@ command('invoice <project> <startDate> <endDate> <outputFile>',
     return;
   }
 
-  project = projectData.name;
   startDate = moment(startDate, 'MM-DD-YYYY').startOf('day');
   endDate = moment(endDate, 'MM-DD-YYYY').endOf('day');
 
@@ -603,7 +591,7 @@ command('invoice <project> <startDate> <endDate> <outputFile>',
   let str = '\n';
 
   str += print.labelTable([
-    { label: 'Project', value: projectData.name || alias },
+    { label: 'Project', value: projectData.name || project },
     { label: 'Start Date', value: startDate.format('dddd, MMM Do YYYY') },
     { label: 'End Date', value: endDate.format('dddd, MMM Do YYYY') },
     { label: 'Invoice Format', value: format },
@@ -619,7 +607,7 @@ command('invoice <project> <startDate> <endDate> <outputFile>',
 
     const punches = sqlish.select()
       .from('punches')
-      .where(p => p.project === projectData.alias
+      .where(p => p.project === project
                && p.in >= startDate.valueOf()
                && p.in <= endDate.valueOf())
       .run();
@@ -634,6 +622,8 @@ command('invoice <project> <startDate> <endDate> <outputFile>',
         path: resolvePath(outputFile),
       }
     };
+
+    console.log(data)
 
     invoicer.create(data, format);
   }

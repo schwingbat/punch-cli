@@ -22,7 +22,7 @@ module.exports = function Reporter(config, flags) {
           if (project && p.project !== project) match = false;
 
           if (match) {
-            if (p.out == null || (areSameDay(p.in, today) || areSameDay(p.out, today))) {
+            if (p.out == null || areSameDay(p.in, today)) {
               return true
             }
           }
@@ -30,7 +30,7 @@ module.exports = function Reporter(config, flags) {
           return false
         })
         .run();
-
+        
       printDay(config, punches, today, project);
     },
     forWeek(today = new Date(), project) {

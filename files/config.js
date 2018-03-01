@@ -1,47 +1,71 @@
 module.exports = function(options = {}, flags = {}) {
-  const fs = require('fs');
-  const path = require('path');
+  const fs = require('fs')
+  const path = require('path')
+  const punchDir = options.punchDir || path.join(require('os').homedir(), '.punch')
 
-  let startedAt = Date.now();
-
-  let punchDir;
-  if (options && options.punchDir) {
-    punchDir = options.punchDir
-  } else {
-    punchDir = path.join(require('os').homedir(), '.punch');
-  }
-
-  let file;
+  let startedAt = Date.now()
+  let file
 
   try {
-    file = JSON.parse(fs.readFileSync(path.join(punchDir, 'punchconfig.json'), 'utf8'));
+    file = require(path.join(punchDir, 'punchconfig.json'))
+    const { projects, clients } = file
 
-    // Map projects to an array
-    const projects = [];
-    for (const p in file.projects) {
-      file.projects[p].alias = p;
-      projects.push(file.projects[p]);
+    projects.find = function(criteria) {
+      if (typeof criteria === 'string') {
+        // Look up by alias
+        return this[criteria]
+      } else if (typeof criteria === 'function') {
+        // Look up with function
+        for (const alias in this) {
+          if (alias === criteria) {
+            return this[alias]
+          }
+        }
+      } else {
+        throw Error(`Find takes either a project alias as a string or a function`)
+      }
     }
-    file.projects = projects;
 
-    // Check validity of @client references
-    file.projects.forEach(project => {
-      if (typeof project.client === 'string' && project.client[0] === '@') {
-        if (!file.clients[project.client.slice(1)]) {
-          throw new Error(`Project '${project.name}' has a reference to a client object that doesn't exist in the 'clients' list (${project.client})`);
+    // Populate @client references
+    for (const alias in projects) {
+      const { client, name } = projects[alias]
+
+      if (typeof client === 'string' && client[0] === '@') {
+        const clientName = client.slice(1)
+
+        if (clients[clientName]) {
+          // Transpose the client data straight into the project object.
+          projects[alias].client = clients[clientName]
+        } else {
+          throw Error(`Project '${name}' references '${client}', but no client with that name exists.`)
         }
       }
-    });
+    }
 
   } catch (err) {
     // TODO: Use default settings
     console.error(err);
-    throw new Error('No readable config file: create a punchconfig.json file in your punch directory and try again.');
+    throw Error('No readable config file: create a punchconfig.json file in your punch directory and try again.');
   }
 
   file.configPath = path.join(punchDir, 'punchconfig.json');
   file.trackerPath = path.join(punchDir, 'tracker.json');
   file.punchPath = path.join(punchDir, 'punches');
+
+  if (file.display && file.display && file.display.time) {
+    const format = file.display.time.format
+    const leadingZeroes = file.display.time.leadingZeroes || false
+
+    if (format == 24) {
+      file.timeFormat = leadingZeroes ? 'HH:mm' : 'H:mm'
+    } else if (format == 12) {
+      file.timeFormat = leadingZeroes ? 'hh:mma' : 'h:mma'
+    } else {
+      throw Error(`config.display.hourFormat must be either 12 or 24. Got: ${format}`)
+    }
+  } else {
+    file.timeFormat = 'hh:mma'
+  }
 
   if (options && options.overrides) {
     const o = options.overrides;

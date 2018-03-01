@@ -33,7 +33,7 @@ module.exports = function(config, punches, date, project) {
   let dayPay = 0;
   let paidTime = 0;
   for (const name in projects) {
-    const proj = config.projects.find(p => p.alias === name);
+    const proj = config.projects[name];
     dayTime += projects[name].time;
     if (proj && proj.hourlyRate) {
       dayPay += projects[name].time / 1000 / 60 / 60 * proj.hourlyRate;
@@ -49,7 +49,7 @@ module.exports = function(config, punches, date, project) {
   const projArr = [];
 
   for (const name in projects) {
-    const proj = config.projects.find(p => p.alias === name);
+    const proj = config.projects[name];
 
     let pay;
     if (proj && proj.hourlyRate) {
@@ -94,6 +94,7 @@ module.exports = function(config, punches, date, project) {
           : null
       ]
     ));
+    console.log()
 
     // Sort sessions by day
     let sessionsByDay = {};
@@ -129,4 +130,22 @@ module.exports = function(config, punches, date, project) {
       }));
     }
   });
+
+  projArr.forEach(project => {
+    console.log(projectHeader(
+      project.fullName,
+      [
+        format.duration(project.billableTime),
+        format.currency(project.totalPay),
+        project.hourlyRate
+          ? format.currency(project.hourlyRate) + '/hr'
+          : null
+      ]
+    ));
+  })
+
+  console.log(reportHeader(
+    'Work for ' + moment(date).format('MMMM YYYY'),
+    [format.duration(dayTime), format.currency(dayPay)]
+  ));
 }

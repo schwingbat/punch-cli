@@ -52,6 +52,8 @@ module.exports = function(config) {
 
       const days = {};
 
+      // console.log(data)
+
       data.punches.forEach(punch => {
         const date = moment(punch.in);
         const time = punch.out - punch.in - punch.rewind;
@@ -96,24 +98,20 @@ module.exports = function(config) {
       let totalHours = totalTime / 3600000;
       let totalPay = totalHours * data.project.hourlyRate;
 
-      let client;
-
-      if (typeof data.project.client === 'string' && data.project.client[0] === '@') {
-        client = config.clients[data.project.client.slice(1)];
-      }
-
       const invoice = {
         start: data.startDate.format('MM/DD/YYYY'),
         end: data.endDate.format('MM/DD/YYYY'),
         today: moment().format('MM/DD/YYYY'),
         user: data.user,
-        client,
+        client: data.project.client,
         project: data.project,
         time: format.duration(msToNearestMinute),
         days: dayArray,
         pay: '$' + encomma(totalPay.toFixed(2)),
         comments,
       };
+
+      console.log(invoice)
 
       const result = await formats[fmt.toLowerCase()](invoice, data.output.path);
 

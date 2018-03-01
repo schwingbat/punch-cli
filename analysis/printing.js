@@ -3,7 +3,9 @@
   different headers and entries for reports.
 */
 
-const chalk = require('chalk');
+const chalk = require('chalk')
+const moment = require('moment')
+const format = require('../utils/format')
 
 const slashList = (things, parens) => {
   let slashed = things.filter(t => t).join(chalk.grey(' / '));
@@ -44,11 +46,11 @@ function reportHeader(text, stats) {
 };
 
 function projectHeader(text, stats) {
-  let str = '\n';
+  let str = '';
 
-  str += chalk.bold.yellow(/*'▋  ' + */ ' ' + text) + '';
+  str += chalk.bold.yellow(/*'▋  ' + */ ' ' + text.padEnd(16));
   if (stats) {
-    str += ' ' + slashList(stats, true) + '\n';
+    str += ' ' + slashList(stats.filter(s => s).map(s => s.toString().padStart(12)), true);
   }
 
   return str;
@@ -85,6 +87,96 @@ function daySessions(sessions) {
   return str;
 }
 
+function dayPunches(punches, projects, config) {
+  let str = ''
+
+  let timeIndent = 0
+
+  for (let i = 0; i < punches.length; i++) {
+    const punch = punches[i]
+    const start = moment(punch.in).format(config.timeFormat).padStart(7)
+    const end = (punch.current ? 'Now' : moment(punch.out).format(config.timeFormat)).padStart(7)
+    const timeSpan = `${start} - ${end}`
+    const duration = punch.out.diff(punch.in, 'hours', true).toFixed(1) + 'h'
+    const pay = projects[punch.project].rate * punch.out.diff(punch.in, 'hours', true)
+    const timeLength = start.length + end.length + 4
+
+    // str += '     ';
+
+    if (punch.current) {
+      str += chalk.green.bold.italic(timeSpan);
+    } else {
+      str += chalk.cyan.bold.italic(timeSpan);
+    }
+
+    str += chalk.yellow(` » ${projects[punch.project].name || punch.project}`)
+
+    str += '\n '
+
+    const durPay = slashList([duration, format.currency(pay)], true)
+    timeIndent = Math.max(durPay.length + 1, timeIndent)
+
+    str += ` ${durPay}`.padEnd(timeIndent)
+
+    // str += '\n    '
+
+    if (punch.comments.length > 0) {
+      for (let i = 0; i < punch.comments.length; i++) {
+        const c = punch.comments[i];
+        if (!c) continue;
+
+        if (i > 0) {
+          str += '\n'.padEnd(timeLength) + chalk.grey(' » ') + c;
+        } else {
+          str += chalk.grey(' » ') + c;
+        }
+      }
+    }
+
+    str += '\n';
+  }
+
+  return str;
+}
+
+function dayProjectSummaries(projects) {
+  let str = ''
+
+  // console.log(projects)
+
+  let total = {
+    hours: 0,
+    pay: 0,
+    sessions: 0,
+  }
+
+  for (const name in projects) {
+    const project = projects[name]
+    const hours = project.time / 1000 / 60 / 60
+
+    total.hours += hours
+    total.pay += project.pay
+    total.sessions += project.sessions
+
+    str += chalk.yellow.bold(project.name) + ' '
+    str += slashList([
+      hours.toFixed(1) + 'h',
+      format.currency(project.pay),
+      project.sessions + ' punches'
+    ], true)
+    str += '\n'
+  }
+
+  str += '\n' + chalk.bold.cyan('TOTAL') + ' '
+  str += slashList([
+    total.hours.toFixed(1) + 'h',
+    format.currency(total.pay),
+    total.sessions + ' punches'
+  ], true)
+
+  return str
+}
+
 function projectDay({ date, stats, sessions }) {
   let str = '';
 
@@ -119,6 +211,8 @@ module.exports = {
   labelTable,
   reportHeader,
   daySessions,
+  dayPunches,
+  dayProjectSummaries,
   projectHeader,
   projectDay,
   projectSummary,
