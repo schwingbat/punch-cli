@@ -1,4 +1,4 @@
-module.exports = function(config, punches, date, project) {
+module.exports = function({ config, punches, date, summary, project }) {
   const format = require('../utils/format')
   const moment = require('moment')
   const chalk = require('chalk')
@@ -36,35 +36,7 @@ module.exports = function(config, punches, date, project) {
       }
     })
 
-  let projects = punches.reduce((projects, punch) => {
-    if (!projects[punch.project]) {
-      projects[punch.project] = {
-        time: 0,
-        sessions: 0,
-        pay: 0,
-        rate: 0
-      }
-    }
-
-    projects[punch.project].time += punch.out - punch.in
-    projects[punch.project].sessions += 1
-    projects[punch.project].name = config.projects[punch.project].name
-
-    return projects
-  }, {})
-
-  for (const name in projects) {
-    const info = config.projects[name]
-    const project = projects[name]
-
-    if (info && info.hourlyRate) {
-      project.rate = info.hourlyRate
-      project.pay += project.time / 1000 / 60 / 60 * info.hourlyRate
-    }
-  }
-
-
   console.log()
-  console.log(dayPunches(punches, projects, config))
-  // console.log(dayProjectSummaries(projects, config))
+  console.log(dayPunches(punches, summary, config))
+  console.log(dayProjectSummaries(summary, config))
 }

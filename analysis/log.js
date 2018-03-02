@@ -4,6 +4,47 @@ const areSameDay = (one, two) => {
       && one.getDate() === two.getDate()
 }
 
+function summarize(punches, config) {
+  const projects = {}
+
+  const sum = {
+    punches: 0,
+    pay: 0,
+    time: 0
+  }
+
+  for (let i = 0; i < punches.length; i++) {
+    const punch = punches[i]
+    const name = punch.project
+    const project = config.projects[name]
+    const now = Date.now()
+    let rate
+
+    if (punch.rate) {
+      rate = punch.rate
+    } else if (project && project.hourlyRate) {
+      rate = project.hourlyRate / 60 / 60 / 1000
+    } else {
+      rate = 0
+    }
+
+    if (!project[name]) {
+      projects[name] = {
+        name: project ? project.name : name,
+        punches: 0,
+        pay: 0,
+        time: 0
+      }
+    }
+
+    projects[name].punches += 1
+    projects[name].pay += ((punch.out || now) - punch.in) * rate
+    projects[name].time += (punch.out || now) - punch.in
+  }
+
+  return projects
+}
+
 module.exports = function Reporter(config, flags) {
   const printDay = require('./log-day');
   const printWeek = require('./log-week');
@@ -30,8 +71,14 @@ module.exports = function Reporter(config, flags) {
           return false
         })
         .run();
-        
-      printDay(config, punches, today, project);
+
+      printDay({
+        config,
+        punches,
+        today,
+        project,
+        summary: summarize(punches, config)
+      })
     },
     forWeek(today = new Date(), project) {
       console.log('Weekly logs are not implemented yet.');

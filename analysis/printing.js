@@ -190,8 +190,9 @@ function dayProjectSummaries(projects) {
 
   let total = {
     hours: 0,
+    time: 0,
     pay: 0,
-    sessions: 0,
+    punches: 0,
   }
 
   const tableItems = []
@@ -200,14 +201,15 @@ function dayProjectSummaries(projects) {
     const project = projects[name]
     const hours = project.time / 1000 / 60 / 60
     total.hours += hours
+    total.time += project.time
     total.pay += project.pay
-    total.sessions += project.sessions
+    total.punches += project.punches
 
     tableItems.push([
       chalk.yellow(project.name),
       format.duration(project.time),
       format.currency(project.pay),
-      project.sessions + ' punch' + (project.sessions === 1 ? '' : 'es')
+      project.punches + ' punch' + (project.punches === 1 ? '' : 'es')
     ])
   }
 
@@ -215,9 +217,9 @@ function dayProjectSummaries(projects) {
 
   str += '\n' + chalk.bold.cyan('TOTAL') + ' '
   str += delimitedList([
-    total.hours.toFixed(1) + 'h',
+    format.duration(total.time),
     format.currency(total.pay),
-    total.sessions + ' punches'
+    total.punches + ' punch' + (total.punches === 1 ? '' : 'es')
   ], ' / ', ['(', ')'])
 
   return str
