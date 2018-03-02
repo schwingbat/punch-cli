@@ -7,50 +7,94 @@ const chalk = require('chalk')
 const moment = require('moment')
 const format = require('../utils/format')
 
-const slashList = (things, parens) => {
-  let slashed = things.filter(t => t).join(chalk.grey(' / '));
-  return parens
-    ? chalk.grey('(') + slashed + chalk.grey(')')
-    : slashed;
-};
+function table(opts) {
+  const { header, rows } = opts
+  const padding = ''.padEnd(opts.padding || 3)
+  const columnCount = rows[0].length
+  const colWidths = []
+
+  for (let i = 0; i < columnCount; i++) {
+    let max = 0
+
+    for (let r = 0; r < rows.length; r++) {
+      const { length } = rows[r][i].toString()
+      if (length > max) {
+        max = length
+      }
+    }
+
+    if (header) {
+      const { length } = header[i].toString()
+      if (length > max) {
+        max = length
+      }
+    }
+
+    colWidths[i] = max
+  }
+
+  let head
+  if (header) {
+    head = header.map((h, i) => {
+      console.log(i, h, colWidths[i])
+      return chalk.bold(h.toString().padEnd(colWidths[i], '.'))
+    }).join(padding)  
+  }
+  
+  const body = rows.map(row => {
+    return row.map((column, i) => {
+      return column.toString().padEnd(colWidths[i])
+    }).join(padding)
+  }).join('\n')
+
+  return head ? (head + '\n') : '' + body
+}
+
+function delimitedList(items, inners = ' / ', outers) {
+  let joined = items.filter(i => i).join(chalk.grey(inners))
+  if (outers) {
+    joined = chalk.grey(outers[0]) + joined + chalk.grey(outers[1])
+  }
+  return joined
+}
 
 const labelTable = (items) => {
-  let str = '';
+  let str = ''
   let length = items.reduce(
       (longest, item) =>
         item.label && item.label.length > longest
           ? item.label.length
           : longest,
-        0);
+        0)
 
   items.forEach(({ label, value }) => {
     if (!label) {
       str += '   ' + value + '\n';
     } else {
-      str += `   ${(label + ':').padStart(length + 2)} ${value}\n`;
+      str += `   ${(label + ':').padStart(length + 2)} ${value}\n`
     }
-  });
+  })
 
-  return str;
-};
+  return str
+}
 
 function reportHeader(text, stats) {
   let str = '\n';
 
-  str += /*'▋  ' + */' ' + chalk.bold(text) + '\n';
+  str += /*'▋  ' + */' ' + chalk.bold(text) + '\n'
   if (stats) {
-    str += /*'▋  ' + */' ' + slashList(stats);
+    str += /*'▋  ' + */' ' + delimitedList(stats)
   }
 
-  return str;
-};
+  return str
+}
 
 function projectHeader(text, stats) {
   let str = '';
 
-  str += chalk.bold.yellow(/*'▋  ' + */ ' ' + text.padEnd(16));
+  str += chalk.bold.yellow(/*'▋  ' + */ ' ' + text);
   if (stats) {
-    str += ' ' + slashList(stats.filter(s => s).map(s => s.toString().padStart(12)), true);
+    str += ' ' + delimitedList(stats.filter(s => s).map(s => s.toString()), true);
   }
 
   return str;
@@ -97,7 +141,7 @@ function dayPunches(punches, projects, config) {
     const start = moment(punch.in).format(config.timeFormat).padStart(7)
     const end = (punch.current ? 'Now' : moment(punch.out).format(config.timeFormat)).padStart(7)
     const timeSpan = `${start} - ${end}`
-    const duration = punch.out.diff(punch.in, 'hours', true).toFixed(1) + 'h'
+    const duration = format.duration(punch.out.diff(punch.in))
     const pay = projects[punch.project].rate * punch.out.diff(punch.in, 'hours', true)
     const timeLength = start.length + end.length + 4
 
@@ -113,7 +157,7 @@ function dayPunches(punches, projects, config) {
 
     str += '\n '
 
-    const durPay = slashList([duration, format.currency(pay)], true)
+    const durPay = delimitedList([duration, format.currency(pay)], ' / ', ['(', ')'])
     timeIndent = Math.max(durPay.length + 1, timeIndent)
 
     str += ` ${durPay}`.padEnd(timeIndent)
@@ -150,29 +194,31 @@ function dayProjectSummaries(projects) {
     sessions: 0,
   }
 
+  const tableItems = []
+
   for (const name in projects) {
     const project = projects[name]
     const hours = project.time / 1000 / 60 / 60
-
     total.hours += hours
     total.pay += project.pay
     total.sessions += project.sessions
 
-    str += chalk.yellow.bold(project.name) + ' '
-    str += slashList([
-      hours.toFixed(1) + 'h',
+    tableItems.push([
+      chalk.yellow(project.name),
+      format.duration(project.time),
       format.currency(project.pay),
-      project.sessions + ' punches'
-    ], true)
-    str += '\n'
+      project.sessions + ' punch' + (project.sessions === 1 ? '' : 'es')
+    ])
   }
 
+  console.log(table({ rows: tableItems }))
+
   str += '\n' + chalk.bold.cyan('TOTAL') + ' '
-  str += slashList([
+  str += delimitedList([
     total.hours.toFixed(1) + 'h',
     format.currency(total.pay),
     total.sessions + ' punches'
-  ], true)
+  ], ' / ', ['(', ')'])
 
   return str
 }
@@ -182,7 +228,7 @@ function projectDay({ date, stats, sessions }) {
 
   str += chalk.grey('   ▶ ') + chalk.white.bold(date.format('MMM Do, dddd'));
   if (stats) {
-    str += ' ' + slashList(stats, true) + '\n';
+    str += ' ' + delimitedList(stats, ' / ', ['(', ')']) + '\n';
   }
 
   str += daySessions(sessions);
@@ -207,7 +253,8 @@ function projectSummary({ name, pay, time, rate, stats }) {
 };
 
 module.exports = {
-  slashList,
+  table,
+  delimitedList,
   labelTable,
   reportHeader,
   daySessions,
