@@ -115,6 +115,10 @@ function dayPunches(punches, projects, config) {
 
         if (c) {
           str += format.text('   ⸭ ', ['grey']) + c
+
+          if (punch.comments[i + 1]) {
+            str += '\n'
+          }
         }
       }
       str += '\n'
