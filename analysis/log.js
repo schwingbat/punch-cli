@@ -63,7 +63,7 @@ module.exports = function Reporter(config, flags) {
           if (project && p.project !== project) match = false;
 
           if (match) {
-            if (p.out == null || areSameDay(p.in, today)) {
+            if ((areSameDay(new Date(), today) && p.out == null) || areSameDay(p.in, today)) {
               return true
             }
           }
