@@ -48,7 +48,7 @@ const logUpdate = require('log-update')
 
 global.appRoot = path.resolve(__dirname)
 
-const config = require('./files/config')()
+const config = require('./files/config')
 const Syncer = require('./sync/syncer')
 const Invoicer = require('./invoicing/invoicer')
 const Logger = require('./analysis/log')
