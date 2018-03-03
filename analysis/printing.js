@@ -3,15 +3,14 @@
   different headers and entries for reports.
 */
 
-const chalk = require('chalk')
 const moment = require('moment')
 const format = require('../utils/format')
 const table = require('../printing/table')
 
 function delimitedList(items, inners = ' / ', outers) {
-  let joined = items.filter(i => i).join(chalk.grey(inners))
+  let joined = items.filter(i => i).join(format.text(inners, ['grey']))
   if (outers) {
-    joined = chalk.grey(outers[0]) + joined + chalk.grey(outers[1])
+    joined = format.text(outers[0], ['grey']) + joined + format.text(outers[1], ['grey'])
   }
   return joined
 }
@@ -39,7 +38,7 @@ const labelTable = (items) => {
 function reportHeader(text, stats) {
   let str = '\n';
 
-  str += /*'▋  ' + */' ' + chalk.bold(text) + '\n'
+  str += /*'▋  ' + */' ' + format.text(text, ['bold']) + '\n'
   if (stats) {
     str += /*'▋  ' + */' ' + delimitedList(stats)
   }
@@ -48,14 +47,14 @@ function reportHeader(text, stats) {
 }
 
 function projectHeader(text, stats) {
-  let str = '';
+  let str = ''
 
-  str += chalk.bold.yellow(/*'▋  ' + */ ' ' + text);
+  str += format.text(' ' + text, ['bold', 'yellow'])
   if (stats) {
-    str += ' ' + delimitedList(stats.filter(s => s).map(s => s.toString()), true);
+    str += ' ' + delimitedList(stats.filter(s => s).map(s => s.toString()), ' / ', ['(', ')'])
   }
 
-  return str;
+  return str
 };
 
 function daySessions(sessions) {
@@ -65,9 +64,9 @@ function daySessions(sessions) {
     str += '     ';
 
     if (session.timeSpan.slice(session.timeSpan.length - 3).toLowerCase() === 'now') {
-      str += chalk.green.bold.italic(session.timeSpan);
+      str += format.text(session.timeSpan, ['green', 'bold'])
     } else {
-      str += chalk.cyan.bold.italic(session.timeSpan);
+      str += format.text(session.timeSpan, ['cyan'])
     }
 
     if (session.comments.length > 0) {
@@ -76,9 +75,9 @@ function daySessions(sessions) {
         if (!c) continue;
 
         if (i > 0) {
-          str += '\n                        ' + chalk.grey(' » ') + c;
+          str += '\n                        ' + format.text(' » ', ['grey']) + c;
         } else {
-          str += chalk.grey(' » ') + c;
+          str += format.text(' » ', ['grey']) + c;
         }
       }
     }
@@ -102,12 +101,12 @@ function dayPunches(punches, projects, config) {
     const timeSpan = `${start} - ${end}`
 
     if (punch.current) {
-      str += chalk.green.bold(timeSpan)
+      str += format.text(timeSpan, ['green', 'bold'])
     } else {
-      str += chalk.cyan(timeSpan)
+      str += format.text(timeSpan, ['cyan'])
     }
 
-    str += chalk.yellow(` [${projects[punch.project].name || punch.project}]`)
+    str += format.text(` [${projects[punch.project].name || punch.project}]`, ['yellow'])
     str += '\n'
 
     if (punch.comments.length > 0) {
@@ -115,7 +114,7 @@ function dayPunches(punches, projects, config) {
         const c = punch.comments[i]
 
         if (c) {
-          str += chalk.grey('   ⸭ ') + c
+          str += format.text('   ⸭ ', ['grey']) + c
         }
       }
       str += '\n'
@@ -148,7 +147,7 @@ function summaryTable(projects) {
     total.punches += project.punches
 
     tableItems.push([
-      chalk.yellow(project.name),
+      format.text(project.name, ['yellow']),
       format.duration(project.time),
       format.currency(project.pay),
       project.punches + ' punch' + (project.punches === 1 ? '' : 'es')
@@ -157,7 +156,7 @@ function summaryTable(projects) {
 
   console.log(table({ rows: tableItems }))
 
-  str += '\n' + chalk.bold.cyan('TOTAL') + ' '
+  str += '\n' + format.text('TOTAL', ['bold', 'cyan']) + ' '
   str += delimitedList([
     format.duration(total.time),
     format.currency(total.pay),
@@ -170,7 +169,7 @@ function summaryTable(projects) {
 function projectDay({ date, stats, sessions }) {
   let str = '';
 
-  str += chalk.grey('   ▶ ') + chalk.white.bold(date.format('MMM Do, dddd'));
+  str += format.text('   ⸭ ', ['grey']) + format.text(date.format('MMM Do, dddd'), ['white', 'bold']);
   if (stats) {
     str += ' ' + delimitedList(stats, ' / ', ['(', ')']) + '\n';
   }
