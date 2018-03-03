@@ -3,10 +3,35 @@ module.exports = (function() {
   const punchDir = path.join(require('os').homedir(), '.punch')
   const configPath = path.join(punchDir, 'punchconfig.json')
 
-  let startedAt = Date.now()
   let config = {
-    projects: {},
-    clients: {},
+    user: {
+      name: 'Your Name',
+      address: {
+        street: '999 Boulevard Ct.',
+        city: 'Citytown',
+        state: 'NJ',
+        zip: '54637'
+      }
+    },
+    projects: {
+      example: {
+        name: 'An Example Project',
+        description: 'A project that exists to show you how config files work.',
+        hourlyRate: 50.00,
+        client: '@somebody'
+      }
+    },
+    clients: {
+      somebody: {
+        name: 'Some Body',
+        address: {
+          street: '123 Street Ave',
+          city: 'Townsville',
+          state: 'MN',
+          zip: '99998'
+        }
+      }
+    },
     sync: {
       autoSync: false,
       backends: {}
@@ -21,7 +46,9 @@ module.exports = (function() {
     Object.assign(config, require(configPath))
   } catch (err) {
     const format = require('../utils/format')
-    console.log(format.text('WARNING: No config file found at ' + punchPath, ['yellow']))
+    const fs = require('fs')
+    console.log(format.text('WARNING: No config file found at ' + configPath + '. Saving default configuration.', ['yellow']))
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2))
   }
 
   // Match @client references to their client objects

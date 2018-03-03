@@ -28,7 +28,7 @@ function summarize(punches, config) {
       rate = 0
     }
 
-    if (!project[name]) {
+    if (!projects[name]) {
       projects[name] = {
         name: project ? project.name : name,
         punches: 0,
