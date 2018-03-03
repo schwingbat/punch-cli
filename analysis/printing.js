@@ -6,49 +6,7 @@
 const chalk = require('chalk')
 const moment = require('moment')
 const format = require('../utils/format')
-
-function table(opts) {
-  const { header, rows } = opts
-  const padding = ''.padEnd(opts.padding || 3)
-  const columnCount = rows[0].length
-  const colWidths = []
-
-  for (let i = 0; i < columnCount; i++) {
-    let max = 0
-
-    for (let r = 0; r < rows.length; r++) {
-      const { length } = rows[r][i].toString()
-      if (length > max) {
-        max = length
-      }
-    }
-
-    if (header) {
-      const { length } = header[i].toString()
-      if (length > max) {
-        max = length
-      }
-    }
-
-    colWidths[i] = max
-  }
-
-  let head
-  if (header) {
-    head = header.map((h, i) => {
-      console.log(i, h, colWidths[i])
-      return chalk.bold(h.toString().padEnd(colWidths[i], '.'))
-    }).join(padding)  
-  }
-  
-  const body = rows.map(row => {
-    return row.map((column, i) => {
-      return column.toString().padEnd(colWidths[i])
-    }).join(padding)
-  }).join('\n')
-
-  return head ? (head + '\n') : '' + body
-}
+const table = require('../printing/table')
 
 function delimitedList(items, inners = ' / ', outers) {
   let joined = items.filter(i => i).join(chalk.grey(inners))
@@ -133,57 +91,41 @@ function daySessions(sessions) {
 
 function dayPunches(punches, projects, config) {
   let str = ''
-
-  let timeIndent = 0
+  // const nameLength = punches.reduce((max, punch) => {
+  //   return Math.max(projects[punch.project].name.length, max)
+  // }, 0)
 
   for (let i = 0; i < punches.length; i++) {
     const punch = punches[i]
     const start = moment(punch.in).format(config.timeFormat).padStart(7)
     const end = (punch.current ? 'Now' : moment(punch.out).format(config.timeFormat)).padStart(7)
     const timeSpan = `${start} - ${end}`
-    const duration = format.duration(punch.out.diff(punch.in))
-    const pay = projects[punch.project].rate * punch.out.diff(punch.in, 'hours', true)
-    const timeLength = start.length + end.length + 4
-
-    // str += '     ';
 
     if (punch.current) {
-      str += chalk.green.bold.italic(timeSpan);
+      str += chalk.green.bold(timeSpan)
     } else {
-      str += chalk.cyan.bold.italic(timeSpan);
+      str += chalk.cyan(timeSpan)
     }
 
-    str += chalk.yellow(` » ${projects[punch.project].name || punch.project}`)
-
-    str += '\n '
-
-    const durPay = delimitedList([duration, format.currency(pay)], ' / ', ['(', ')'])
-    timeIndent = Math.max(durPay.length + 1, timeIndent)
-
-    str += ` ${durPay}`.padEnd(timeIndent)
-
-    // str += '\n    '
+    str += chalk.yellow(` [${projects[punch.project].name || punch.project}]`)
+    str += '\n'
 
     if (punch.comments.length > 0) {
       for (let i = 0; i < punch.comments.length; i++) {
-        const c = punch.comments[i];
-        if (!c) continue;
+        const c = punch.comments[i]
 
-        if (i > 0) {
-          str += '\n'.padEnd(timeLength) + chalk.grey(' » ') + c;
-        } else {
-          str += chalk.grey(' » ') + c;
+        if (c) {
+          str += chalk.grey('   ⸭ ') + c
         }
       }
+      str += '\n'
     }
-
-    str += '\n';
   }
 
   return str;
 }
 
-function dayProjectSummaries(projects) {
+function summaryTable(projects) {
   let str = ''
 
   // console.log(projects)
@@ -261,7 +203,7 @@ module.exports = {
   reportHeader,
   daySessions,
   dayPunches,
-  dayProjectSummaries,
+  summaryTable,
   projectHeader,
   projectDay,
   projectSummary,

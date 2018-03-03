@@ -3,13 +3,14 @@ module.exports = function({ config, punches, date, summary, project }) {
   const moment = require('moment')
   const chalk = require('chalk')
 
-  const { dayPunches, dayProjectSummaries } = require('./printing')
+  const { dayPunches, summaryTable } = require('./printing')
 
   /*
     Show punches chronologically in this format:
       11:45am - 5:52pm [BidPro Admin] >> some comment here
                                       >> other comment here
        6:12pm - 8:15pm [SCC Graphics] >> finished poster
+       8:20pm - 1:27am [BidPro]       >> some comment here
   */
 
   date = moment(date)
@@ -38,5 +39,5 @@ module.exports = function({ config, punches, date, summary, project }) {
 
   console.log()
   console.log(dayPunches(punches, summary, config))
-  console.log(dayProjectSummaries(summary, config))
+  console.log(summaryTable(summary))
 }

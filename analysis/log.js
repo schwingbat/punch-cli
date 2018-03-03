@@ -86,16 +86,22 @@ module.exports = function Reporter(config, flags) {
     forMonth(today = new Date(), project) {
       const punches = sqlish.select()
         .where(p => {
-          let match = true;
-          if (project && p.project !== project) match = false;
+          let match = true
+          if (project && p.project !== project) match = false
 
           return p.in.getFullYear() === today.getFullYear()
               && p.in.getMonth() === today.getMonth()
-              && match;
+              && match
         })
-        .run();
+        .run()
 
-      printMonth(config, punches, today, project);
+      printMonth({
+        config,
+        punches,
+        today,
+        project,
+        summary: summarize(punches, config)
+      })
     },
     forYear(today = new Date(), project) {
       console.log('Yearly logs are not implemented yet.');

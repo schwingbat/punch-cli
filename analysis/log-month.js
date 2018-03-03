@@ -1,13 +1,19 @@
-module.exports = function(config, punches, date, project) {
-  const format = require('../utils/format');
-  const moment = require('moment');
-  const chalk = require('chalk');
-  const { reportHeader, projectHeader, projectDay, table, delimitedList } = require('./printing');
+module.exports = function({ config, punches, date, summary, project }) {
+  const format = require('../utils/format')
+  const moment = require('moment')
+  const chalk = require('chalk')
+  const {
+    reportHeader,
+    projectHeader,
+    projectDay,
+    summaryTable,
+    delimitedList
+  } = require('./printing')
 
-  let projects = {};
-  const projName = project;
+  let projects = {}
+  const projName = project
   punches.forEach(punch => {
-    if (project && punch.project !== project) return;
+    if (project && punch.project !== project) return
 
     if (!projects[punch.project]) projects[punch.project] = {
       name: punch.project,
@@ -16,7 +22,7 @@ module.exports = function(config, punches, date, project) {
       sessions: [],
     }
 
-    let end = punch.out || Date.now();
+    let end = punch.out || Date.now()
 
     projects[punch.project].time += end - punch.in;
     projects[punch.project].sessions.push({
@@ -131,46 +137,30 @@ module.exports = function(config, punches, date, project) {
     }
   });
 
-  const projectTable = table({
-    rows: projArr.map(p => [
-      chalk.yellow(p.fullName),
-      format.duration(p.billableTime),
-      format.currency(p.totalPay),
-      p.hourlyRate
-        ? format.currency(p.hourlyRate) + '/hr'
-        : 'N/A'
-    ])
-  })
+  console.log(summaryTable(summary))
 
-  console.log(projectTable)
-
-  console.log(
-    '\n' + chalk.bold.cyan(moment(date).format('MMMM YYYY')),
-    delimitedList(
-      [
-        format.duration(dayTime),
-        format.currency(dayPay)
-      ],
-      ' / ',
-      ['(', ')']
-    )
-  )
-
-  // projArr.forEach(project => {
-  //   console.log(projectHeader(
-  //     project.fullName,
-  //     [
-  //       format.duration(project.billableTime),
-  //       format.currency(project.totalPay),
-  //       project.hourlyRate
-  //         ? format.currency(project.hourlyRate) + '/hr'
-  //         : null
-  //     ]
-  //   ));
+  // const projectTable = table({
+  //   rows: projArr.map(p => [
+  //     chalk.yellow(p.fullName),
+  //     format.duration(p.billableTime),
+  //     format.currency(p.totalPay),
+  //     p.hourlyRate
+  //       ? format.currency(p.hourlyRate) + '/hr'
+  //       : 'N/A'
+  //   ])
   // })
 
-  // console.log(reportHeader(
-  //   'Work for ' + moment(date).format('MMMM YYYY'),
-  //   [format.duration(dayTime), format.currency(dayPay)]
-  // ));
+  // console.log(projectTable)
+
+  // console.log(
+  //   '\n' + chalk.bold.cyan(moment(date).format('MMMM YYYY')),
+  //   delimitedList(
+  //     [
+  //       format.duration(dayTime),
+  //       format.currency(dayPay)
+  //     ],
+  //     ' / ',
+  //     ['(', ')']
+  //   )
+  // )
 }
