@@ -40,4 +40,5 @@ module.exports = function({ config, punches, date, summary, project }) {
   console.log()
   console.log(dayPunches(punches, summary, config))
   console.log(summaryTable(summary))
+  console.log()
 }
