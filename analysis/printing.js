@@ -128,10 +128,21 @@ function dayPunches(punches, projects, config) {
   return str;
 }
 
+/* Takes an object like so:
+{
+  punch: {
+    name: "Punch",
+    time: 91902831,
+    pay: 89.00,
+    punches: 2
+  },
+  dash: {
+    ...
+  }
+}
+*/
 function summaryTable(projects) {
   let str = ''
-
-  // console.log(projects)
 
   let total = {
     hours: 0,
@@ -140,10 +151,23 @@ function summaryTable(projects) {
     punches: 0,
   }
 
-  const tableItems = []
+  let projectArray = []
 
   for (const name in projects) {
-    const project = projects[name]
+    projects['key'] = name
+    projectArray.push(projects[name])
+  }
+
+  projectArray.sort((a, b) => {
+    // Sort by time spent
+    a.time > b.time ? 1 : -1
+  })
+
+  const tableItems = []
+
+  for (let i = 0; i < projectArray.length; i++) {
+    const name = projectArray[i].key
+    const project = projectArray[i]
     const hours = project.time / 1000 / 60 / 60
     total.hours += hours
     total.time += project.time
