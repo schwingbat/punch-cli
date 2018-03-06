@@ -99,6 +99,8 @@ function dayPunches(punches, projects, config) {
     const start = moment(punch.in).format(config.timeFormat).padStart(7)
     const end = (punch.current ? 'Now' : moment(punch.out).format(config.timeFormat)).padStart(7)
     const timeSpan = `${start} - ${end}`
+    const project = projects.find(p => p.alias === punch.project)
+    const projectName = project ? project.name : punch.project
 
     if (punch.current) {
       str += format.text(timeSpan, ['green', 'bold'])
@@ -106,7 +108,7 @@ function dayPunches(punches, projects, config) {
       str += format.text(timeSpan, ['cyan'])
     }
 
-    str += format.text(` [${projects[punch.project].name || punch.project}]`, ['yellow'])
+    str += format.text(` [${projectName}]`, ['yellow'])
     str += '\n'
 
     if (punch.comments.length > 0) {
@@ -128,17 +130,18 @@ function dayPunches(punches, projects, config) {
   return str;
 }
 
-/* Takes an object like so:
+/* Takes an array like so:
 {
-  punch: {
+  punch: [{
+    alias: "punch",
     name: "Punch",
     time: 91902831,
     pay: 89.00,
     punches: 2
-  },
-  dash: {
+  }, {
+    alias: "dash"
     ...
-  }
+  }]
 }
 */
 function summaryTable(projects) {
@@ -151,23 +154,10 @@ function summaryTable(projects) {
     punches: 0,
   }
 
-  let projectArray = []
-
-  for (const name in projects) {
-    projects['key'] = name
-    projectArray.push(projects[name])
-  }
-
-  projectArray.sort((a, b) => {
-    // Sort by time spent
-    a.time > b.time ? 1 : -1
-  })
-
   const tableItems = []
 
-  for (let i = 0; i < projectArray.length; i++) {
-    const name = projectArray[i].key
-    const project = projectArray[i]
+  for (let i = 0; i < projects.length; i++) {
+    const project = projects[i]
     const hours = project.time / 1000 / 60 / 60
     total.hours += hours
     total.time += project.time

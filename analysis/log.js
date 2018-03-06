@@ -42,13 +42,23 @@ function summarize(punches, config) {
     projects[name].time += (punch.out || now) - punch.in
   }
 
-  return projects
+  const projectArray = []
+
+  for (const alias in projects) {
+    projectArray.push({
+      alias,
+      ...projects[alias]
+    })
+  }
+
+  // Descending in order of time spent.
+  return projectArray.sort((a, b) => b.time - a.time)
 }
 
 module.exports = function Reporter(config, flags) {
-  const printDay = require('./log-day');
-  const printWeek = require('./log-week');
-  const printMonth = require('./log-month');
+  const printDay = require('./log-day')
+  const printWeek = require('./log-week')
+  const printMonth = require('./log-month')
   const moment = require('moment')
 
   const sqlish = require('../files/sqlish')(config)
@@ -81,7 +91,7 @@ module.exports = function Reporter(config, flags) {
       })
     },
     forWeek(today = new Date(), project) {
-      console.log('Weekly logs are not implemented yet.');
+      console.log('Weekly logs are not implemented yet.')
     },
     forMonth(today = new Date(), project) {
       const punches = sqlish.select()
@@ -104,7 +114,7 @@ module.exports = function Reporter(config, flags) {
       })
     },
     forYear(today = new Date(), project) {
-      console.log('Yearly logs are not implemented yet.');
+      console.log('Yearly logs are not implemented yet.')
     }
   }
 
@@ -114,21 +124,21 @@ module.exports = function Reporter(config, flags) {
     const files = fs.readdirSync(punchPath).filter(file => {
       const [p, y, m, d] = file.split('_');
       return m == month; // double equals because m is a string.
-    });
+    })
 
     if (files.length === 0) {
-      return console.log(`No punches recorded for ${moment(today).format('MMMM YYYY')}.`);
+      return console.log(`No punches recorded for ${moment(today).format('MMMM YYYY')}.`)
     }
 
     files.forEach(file => {
-      const f = Punchfile.read(path.join(punchPath, file));
-      if (f) punches.push(...f.punches);
-    });
+      const f = Punchfile.read(path.join(punchPath, file))
+      if (f) punches.push(...f.punches)
+    })
 
-    return monthReport(config, punches, today, project);
+    return monthReport(config, punches, today, project)
   }
 
   function reportForYear(today, project) {
-    console.log('Yearly reports are not implemented yet.');
+    console.log('Yearly reports are not implemented yet.')
   }
 }
