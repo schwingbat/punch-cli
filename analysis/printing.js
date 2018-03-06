@@ -204,7 +204,7 @@ function projectSummary({ name, pay, time, rate, stats }) {
   if (pay) statList.push(pay);
   if (rate) statList.push(rate);
 
-  str += projectHeader(name) + ' ' + slashList(statList, true) + '\n\n';
+  str += projectHeader(name) + ' ' + delimitedList(statList, ' / ', ['(', ')']) + '\n\n';
 
   if (stats) {
     str += labelTable(stats);
