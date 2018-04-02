@@ -17,120 +17,156 @@
 */
 
 module.exports = function SQLish(config, flags) {
-  const Punchfile = require('./punchfile')(config);
-  const api = {};
+  const Punchfile = require("./punchfile")(config)
+  const api = {}
 
   const defaults = {
-    collection: 'punches',
+    collection: "punches",
     fields: null,
     condition: null,
-    order: 'ascending',
+    order: "ascending",
     limit: null
-  };
+  }
 
-  let options = {};
+  let options = {}
 
-  function loadCollection() {
-    const c = options.collection || defaults.collection;
-
-    let collection = [];
+  function loadCollection(c = defaults.collection, matcher, limit) {
+    let collection = []
 
     switch (c) {
-    case 'punches':
-      Punchfile.all().forEach(file => {
-        collection.push(...file.punches);
-      });
-      break;
-    case 'punchfiles':
-      collection.push(...Punchfile.all());
-      break;
+    case "punches":
+      Punchfile.each((file, next) => {
+        file.punches.forEach(punch => {
+          if (matcher(punch)) {
+            collection.push(punch)
+          }
+        })
+        
+        if (!limit || collection.length < limit) {
+          next()
+        }
+      })
+      break
+    case "punchfiles":
+      Punchfile.each((file, next) => {
+        if (matcher(file)) {
+          collection.push(file)
+        }
+        
+        if (!limit || collection.length < limit) {
+          next()
+        }
+      })
+      break
     default:
-      throw new Error(`Collection ${c} is not supported (yet)`);
+      throw new Error(`Collection ${c} is not supported (yet)`)
     }
 
-    return collection;
+    if (limit) {
+      collection = collection.slice(0, limit)
+    }
+
+    return collection
+  }
+  
+  function buildMatcher(matchers = []) {
+    // Compose several functions to be run on an item
+    // to decide if it's a match with all conditions or not.
+    
+    const match = item => {
+      for (let i = 0; i < matchers.length; i++) {
+        if (!matchers[i](item)) {
+          return false
+        }
+      }
+      // If no conditions were false, assume true.
+      return true
+    }
+
+    match.add = function(func) {
+      matchers.push(func)
+    }
+
+    return match
   }
 
   api.select = function(...fields) {
-    if (fields.length === 0 || fields.length === 1 && fields[0] === '*') {
+    if (fields.length === 0 || fields.length === 1 && fields[0] === "*") {
       // Don't set fields
     } else {
-      options.fields = fields;
+      options.fields = fields
     }
 
-    options.action = 'select';
-    return this;
+    options.action = "select"
+    return this
   }
 
   api.from = function(collection) {
-    options.collection = collection.toLowerCase();
-    return this;
+    options.collection = collection.toLowerCase()
+    return this
   }
 
   api.where = function(func) {
-    options.condition = func;
-    return this;
+    options.condition = func
+    return this
   }
 
-  api.orderBy = function(field, dir = 'desc') {
-    if (typeof field === 'function') {
-      options.orderBy = field;
+  api.orderBy = function(field, dir = "desc") {
+    if (typeof field === "function") {
+      options.orderBy = field
     } else {
       options.orderBy = (a, b) => {
-        const val = a[field] > b[field] ? 1 : -1;
-        return dir === 'desc'
+        const val = a[field] > b[field] ? 1 : -1
+        return dir === "desc"
           ? val * -1
-          : val;
+          : val
       }
     }
 
-    return this;
+    return this
   }
 
   api.limit = function(limit) {
-    options.limit = limit;
-    return this;
+    options.limit = limit
+    return this
   }
 
   api.run = function() {
     // Execute the query.
-    let collection = loadCollection();
+    let matcher = buildMatcher()
 
     // Filter (where)
     if (options.condition) {
-      collection = collection.filter(p => p && options.condition(p));
+      matcher.add(item => item && options.condition(item))
     }
+
+    let collection = loadCollection(options.collection, matcher, options.limit)
 
     // Sort
     if (options.orderBy) {
-      collection = collection.sort(options.orderBy);
+      collection = collection.sort(options.orderBy)
     }
-
-    // Limit
-    if (options.limit) {
-      collection = collection.slice(0, options.limit);
-    }
-
+    
     // Select
     if (options.fields) {
       collection = collection.map(p => {
-        const obj = {};
+        const obj = {}
 
         options.fields.forEach(f => {
           if (p.hasOwnProperty(f)) {
-            obj[f] = p[f];
+            obj[f] = p[f]
           } else {
-            obj[f] = null;
+            obj[f] = null
           }
-        });
+        })
 
-        return obj;
-      });
+        return obj
+      })
     }
 
-    options = {}; // Reset options
-    return collection;
+    options = {} // Reset options
+    return collection
   }
 
-  return api;
+  return api
 }

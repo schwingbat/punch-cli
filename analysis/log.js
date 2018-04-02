@@ -4,6 +4,15 @@ const areSameDay = (one, two) => {
       && one.getDate() === two.getDate()
 }
 
+const areSameMonth = (one, two) => {
+  return one.getFullYear() === two.getFullYear()
+      && one.getMonth() === two.getMonth()
+}
+
+const areSameYear = (one, two) => {
+  return one.getFullYear() === two.getFullYear()
+}
+
 function summarize(punches, config) {
   const projects = {}
 
@@ -70,7 +79,9 @@ module.exports = function Reporter(config, flags) {
         .from('punches')
         .where(p => {
           let match = true;
-          if (project && p.project !== project) match = false;
+          if (project && p.project !== project) {
+            match = false
+          }
 
           if (match) {
             if ((areSameDay(new Date(), today) && p.out == null) || areSameDay(p.in, today)) {
@@ -94,16 +105,26 @@ module.exports = function Reporter(config, flags) {
       console.log('Weekly logs are not implemented yet.')
     },
     forMonth(today = new Date(), project) {
-      const punches = sqlish.select()
+      const punches = sqlish
+        .select()
+        .from('punches')
         .where(p => {
-          let match = true
-          if (project && p.project !== project) match = false
+          let match = true;
+          if (project && p.project !== project) {
+            match = false
+          }
 
-          return p.in.getFullYear() === today.getFullYear()
-              && p.in.getMonth() === today.getMonth()
-              && match
+          if (match) {
+            if ((areSameMonth(new Date(), today) && p.out == null) || areSameMonth(p.in, today)) {
+              return true
+            }
+          }
+
+          return false
         })
         .run()
+        
+      console.log(punches, project);
 
       printMonth({
         config,

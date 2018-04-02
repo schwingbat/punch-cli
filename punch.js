@@ -54,6 +54,7 @@ const Invoicer = require('./invoicing/invoicer')
 const Logger = require('./analysis/log')
 const Punchfile = require('./files/punchfile')(config)
 const SQLish = require('./files/sqlish')
+const Dir = require('./utils/dir')
 
 // Formatting
 const format = require('./utils/format')
@@ -100,11 +101,19 @@ const getFileFor = date => {
 
 const getPunchedIn = (sqlish = SQLish(config, flags)) => {
   // Get punches that are currently punched in (have a punch out timestamp of null)
-  return sqlish.select()
-               .from('punches')
-               .where(p => !p.out)
-               .orderBy('in', 'desc')
-               .run()
+
+  const dateString = fileName => {
+    const [y, m, d] = fileName.split(/[_\.]/g).slice(1, 4).map(n => n.padStart(4))
+    return `${y}_${m}_${d}`
+  }
+
+  const latest = Dir(config.punchPath).children().sort((a, b) => {
+    return dateString(a) < dateString(b) ? -1 : 1
+  }).reverse()[0]
+
+  const file = Punchfile.read(path.join(config.punchPath, latest))
+
+  return file.punches.find(p => p.out == null)
 }
 
 const getMessageFor = (file) => {
@@ -154,8 +163,8 @@ command('in <project>',
 
   const current = getPunchedIn()
 
-  if (current.length > 0) {
-    console.log(`You're already punched in on ${getLabelFor(current[0].project)}! Punch out first.`)
+  if (current) {
+    console.log(`You're already punched in on ${getLabelFor(current.project)}! Punch out first.`)
   } else {
     const file = Punchfile.readOrCreate(getFileFor(Date.now()))
     file.punchIn(project)
@@ -172,7 +181,7 @@ command('out [*comment]',
         'stop tracking time and record an optional description of tasks completed', (args) => {
 
   const { comment } = args
-  const current = getPunchedIn()[0]
+  const current = getPunchedIn()
 
   if (current) {
     current._file.punchOut(current.project)
@@ -355,7 +364,7 @@ command('purge <project>',
 command('now',
         'show the status of the current session', () => {
 
-  const active = getPunchedIn()[0]
+  const active = getPunchedIn()
 
   if (active) {
     const duration = Date.now() - active.in
@@ -376,10 +385,22 @@ command('now',
 
 })
 
+// command({
+//   signature: 'watch',
+//   flags: [
+//     ['--style=<value>', '-s=<value>', (ctx, value) => {
+//       ctx.clockStyle = value;
+//     }]
+//   ],
+//   run: () => {
+
+//   }
+// })
+
 command ('watch',
          'continue running to show automatically updated stats of your current session', () => {
 
-  const active = getPunchedIn()[0]
+  const active = getPunchedIn()
   const clock = require('./utils/big-clock')({
     style: 'clockBlockDots',
     letterSpacing: 1,
@@ -569,7 +590,7 @@ command('month',
 command('invoice <project> <startDate> <endDate> <outputFile>',
         'automatically generate an invoice using punch data', (args) => {
 
-  const active = getPunchedIn()[0]
+  const active = getPunchedIn()
 
   if (active && active.project === args.project) {
     return console.log(`You're currently punched in on ${getLabelFor(active.project)}. Punch out before creating an invoice.`)
@@ -706,6 +727,41 @@ command('timestamp <time>',
   const date = moment(args.time, 'MM/DD/YYYY@hh:mm:ssa')
   
   console.log(date.valueOf() + format.text(' << ', ['grey']) + date.format('MMM Do YYYY, hh:mm:ssa'))
+})
+
+command('migrate <to>',
+        'migrate any punchfiles with older schemas than the specified version to the specified version',
+        (args) => {
+
+  const version = parseInt(args.to)
+  const fs = require('fs')
+  const path = require('path')
+  const migrator = require('./utils/migrator')
+  const dir = fs.readdirSync(config.punchPath)
+
+  dir.forEach(fileName => {
+    const filePath = path.join(config.punchPath, fileName)
+    let file
+
+    try {
+      file = JSON.parse(fs.readFileSync(filePath, 'utf8'))
+    } catch (err) {
+      console.log('Failed to read file as JSON: ' + filePath)
+      return
+    }
+
+    const fileVersion = migrator.getPunchfileVersion(file)
+    const migrated = migrator.migrate(fileVersion, version, file)
+
+    migrated.updated = Date.now()
+
+    if (fileName === 'punch_2018_1_6.json') {
+      console.log(migrated)
+    }
+
+    fs.writeFileSync(filePath, JSON.stringify(migrated, null, 2))
+    console.log(`Converted ${fileName} from version ${fileVersion} to version ${Math.max(fileVersion, version)}`)
+  })
 })
 
 run(process.argv.slice(2).filter(a => a[0] !== '-'))

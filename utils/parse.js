@@ -23,3 +23,7 @@ exports.time = function time(time) {
 
   return ms;
 }
+
+exports.fuzzyTime = function fuzzyTime(time /* string */) {
+  
+}

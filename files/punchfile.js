@@ -1,40 +1,40 @@
 // Functions for reading and writing to punch files.
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs")
+const path = require("path")
 
 module.exports = function(config) {
 
   function Punchfile(props = {}) {
-    this.created = new Date(props.created || props.updated || new Date());
-    this.updated = new Date(props.updated || new Date());
-    this.punches = [];
+    this.created = new Date(props.created || props.updated || new Date())
+    this.updated = new Date(props.updated || new Date())
+    this.punches = []
 
     if (props.punches) {
       this.punches = props.punches.map(p => {
-        if (p.in) p.in = new Date(p.in);
-        if (p.out) p.out = new Date(p.out);
-        p._file = this;
-        return p;
-      });
+        if (p.in) p.in = new Date(p.in)
+        if (p.out) p.out = new Date(p.out)
+        p._file = this
+        return p
+      })
     }
 
-    const y = this.created.getFullYear();
-    const m = this.created.getMonth() + 1;
-    const d = this.created.getDate();
+    const y = this.created.getFullYear()
+    const m = this.created.getMonth() + 1
+    const d = this.created.getDate()
 
-    this.fileName = `punch_${y}_${m}_${d}`;
+    this.fileName = `punch_${y}_${m}_${d}`
   }
 
   Punchfile.prototype = {
     update() {
-      this.updated = new Date();
+      this.updated = new Date()
     },
     addPunch(punch) {
       // Adds a new punch, expecting a full set of data to be passed as an object.
 
       const comments = Array.isArray(punch.comments)
         ? punch.comments
-        : [punch.comments];
+        : [punch.comments]
 
       this.punches.push({
         project: punch.project,
@@ -42,9 +42,9 @@ module.exports = function(config) {
         out: new Date(punch.out),
         comments,
         rewind: punch.rewind || 0,
-      });
+      })
 
-      this.update();
+      this.update()
     },
     punchIn(project) {
       // Add a fresh punch punched in at the current time.
@@ -55,9 +55,9 @@ module.exports = function(config) {
         out: null,
         comments: [],
         rewind: 0
-      });
+      })
 
-      this.update();
+      this.update()
     },
     punchOut(project) {
       // Find most recent punch in with matching project name.
@@ -65,23 +65,23 @@ module.exports = function(config) {
       const punch = this.punches
         .filter(p => !p.out || p.project !== project)
         .sort((a, b) => a.in < b.in)
-        [0];
+        [0]
 
       if (punch) {
-        punch.out = new Date();
-        this.update();
+        punch.out = new Date()
+        this.update()
       } else {
-        throw new Error('No punches with that project name are currently missing a punch out');
+        throw new Error("No punches with that project name are currently missing a punch out")
       }
     },
     mostRecentPunch(project) {
-      let punches = this.punches.map(p => p);
+      let punches = this.punches.map(p => p)
 
       if (project) {
-        punches = punches.filter(p => p.project === project);
+        punches = punches.filter(p => p.project === project)
       }
 
-      return punches.sort((a, b) => a.in > b.in).pop();
+      return punches.sort((a, b) => a.in > b.in).pop()
     },
     toJSON(pretty = false) {
       const obj = {
@@ -94,65 +94,87 @@ module.exports = function(config) {
             out: p.out ? p.out.getTime() : null,
             rewind: p.rewind || 0,
             comments: p.comment ? [p.comment] : p.comments.filter(c => c),
-          };
+          }
         }),
-      };
+      }
 
       if (pretty) {
-        return JSON.stringify(obj, null, 2);
+        return JSON.stringify(obj, null, 2)
       } else {
-        return JSON.stringify(obj);
+        return JSON.stringify(obj)
       }
     },
     save() {
-      this.update();
-      const outPath = path.join(config.punchPath, `${this.fileName}.json`);
-      return fs.writeFileSync(outPath, this.toJSON(true));
+      this.update()
+      const outPath = path.join(config.punchPath, `${this.fileName}.json`)
+      return fs.writeFileSync(outPath, this.toJSON(true))
     }
   }
 
   Punchfile.read = function(filePath) {
     // Reads a file and returns a new Punchfile object using the result.
-    const p = path.resolve(filePath);
+    const p = path.resolve(filePath)
 
     try {
-      const file = fs.readFileSync(p);
-      const data = JSON.parse(file);
-      return new Punchfile(data);
+      const file = fs.readFileSync(p)
+      const data = JSON.parse(file)
+      return new Punchfile(data)
     } catch (err) {
-      throw new Error(`Failed to read file: ${err.message}`);
+      throw new Error(`Failed to read file from ${filePath}: ${err.message}`)
     }
   }
 
   Punchfile.readOrCreate = function(filePath) {
     try {
-      return this.read(filePath);
+      return this.read(filePath)
     } catch (err) {
-      return new Punchfile();
+      return new Punchfile()
     }
   }
 
   Punchfile.mostRecent = function() {
-    const files = fs.readdirSync(config.punchPath).sort();
+    const files = fs.readdirSync(config.punchPath).sort()
 
-    return this.read(path.join(config.punchPath, files[files.length - 1]));
+    return this.read(path.join(config.punchPath, files[files.length - 1]))
   }
 
   Punchfile.forDate = function(date) {
-    const y = date.getFullYear();
-    const m = date.getMonth() + 1;
-    const d = date.getDate();
+    const y = date.getFullYear()
+    const m = date.getMonth() + 1
+    const d = date.getDate()
 
-    const fileName = `punch_${y}_${m}_${d}.json`;
+    const fileName = `punch_${y}_${m}_${d}.json`
 
-    return this.readOrCreate(path.join(config.punchPath, fileName));
+    return this.readOrCreate(path.join(config.punchPath, fileName))
   }
 
   Punchfile.all = function() {
-    // Loads all punch files into an array and return it.
-    const files = fs.readdirSync(path.join(config.punchPath));
-    return files.map(f => this.read(path.join(config.punchPath, f)));
+    // Loads all punch files into an array and returns it.
+    const files = fs.readdirSync(config.punchPath)
+      .filter(f => path.extname(f).toLowerCase() === ".json")
+      .map(f => path.join(config.punchPath, f))
+    
+    return files.map(this.read)
+  }
+  
+  Punchfile.each = function(func) {
+    // Runs a given function on each punchfile, continuing by calling the next() function.
+    // Similar to Punchfile.all, but only loads one punchfile at a time.
+    const files = fs.readdirSync(config.punchPath)
+      .filter(f => path.extname(f).toLowerCase() === ".json")
+      .map(f => path.join(config.punchPath, f))
+    let index = -1
+    
+    const next = () => {
+      index += 1
+      if (files[index]) {
+        const read = this.read(files[index])
+        func(read, next)
+      }
+    }    
+    
+    next()
   }
 
-  return Punchfile;
+  return Punchfile
 }
