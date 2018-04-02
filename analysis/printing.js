@@ -3,20 +3,20 @@
   different headers and entries for reports.
 */
 
-const moment = require('moment')
-const format = require('../utils/format')
-const table = require('../printing/table')
+const moment = require("moment")
+const format = require("../utils/format")
+const table = require("../printing/table")
 
-function delimitedList(items, inners = ' / ', outers) {
-  let joined = items.filter(i => i).join(format.text(inners, ['grey']))
+function delimitedList(items, inners = " / ", outers) {
+  let joined = items.filter(i => i).join(format.text(inners, ["grey"]))
   if (outers) {
-    joined = format.text(outers[0], ['grey']) + joined + format.text(outers[1], ['grey'])
+    joined = format.text(outers[0], ["grey"]) + joined + format.text(outers[1], ["grey"])
   }
   return joined
 }
 
 const labelTable = (items) => {
-  let str = ''
+  let str = ""
   let length = items.reduce(
       (longest, item) =>
         item.label && item.label.length > longest
@@ -26,9 +26,9 @@ const labelTable = (items) => {
 
   items.forEach(({ label, value }) => {
     if (!label) {
-      str += '   ' + value + '\n';
+      str += "   " + value + "\n";
     } else {
-      str += `   ${(label + ':').padStart(length + 2)} ${value}\n`
+      str += `   ${(label + ":").padStart(length + 2)} ${value}\n`
     }
   })
 
@@ -36,60 +36,60 @@ const labelTable = (items) => {
 }
 
 function reportHeader(text, stats) {
-  let str = '\n';
+  let str = "\n";
 
-  str += /*'▋  ' + */' ' + format.text(text, ['bold']) + '\n'
+  str += /*'▋  ' + */" " + format.text(text, ["bold"]) + "\n"
   if (stats) {
-    str += /*'▋  ' + */' ' + delimitedList(stats)
+    str += /*'▋  ' + */" " + delimitedList(stats)
   }
 
   return str
 }
 
 function projectHeader(text, stats) {
-  let str = ''
+  let str = ""
 
-  str += format.text(' ' + text, ['bold', 'yellow'])
+  str += format.text(" " + text, ["bold", "yellow"])
   if (stats) {
-    str += ' ' + delimitedList(stats.filter(s => s).map(s => s.toString()), ' / ', ['(', ')'])
+    str += " " + delimitedList(stats.filter(s => s).map(s => s.toString()), " / ", ["(", ")"])
   }
 
   return str
 };
 
 function daySessions(sessions) {
-  let str = '';
+  let str = "";
 
   sessions.forEach(session => {
-    str += '     ';
+    str += "     ";
 
-    if (session.timeSpan.slice(session.timeSpan.length - 3).toLowerCase() === 'now') {
-      str += format.text(session.timeSpan, ['green', 'bold'])
+    if (session.timeSpan.slice(session.timeSpan.length - 3).toLowerCase() === "now") {
+      str += format.text(session.timeSpan, ["green", "bold"])
     } else {
-      str += format.text(session.timeSpan, ['cyan'])
+      str += format.text(session.timeSpan, ["cyan"])
     }
 
     if (session.comments.length > 0) {
       for (let i = 0; i < session.comments.length; i++) {
-        const c = session.comments[i];
-        if (!c) continue;
+        const c = session.comments[i]
+        if (!c) continue
 
         if (i > 0) {
-          str += '\n                        ' + format.text(' » ', ['grey']) + c;
+          str += "\n                        " + format.text(" » ", ["grey"]) + c
         } else {
-          str += format.text(' » ', ['grey']) + c;
+          str += format.text(" » ", ["grey"]) + c
         }
       }
     }
 
-    str += '\n';
-  });
+    str += "\n";
+  })
 
-  return str;
+  return str
 }
 
 function dayPunches(punches, projects, config) {
-  let str = ''
+  let str = ""
   // const nameLength = punches.reduce((max, punch) => {
   //   return Math.max(projects[punch.project].name.length, max)
   // }, 0)
@@ -97,37 +97,37 @@ function dayPunches(punches, projects, config) {
   for (let i = 0; i < punches.length; i++) {
     const punch = punches[i]
     const start = moment(punch.in).format(config.timeFormat).padStart(7)
-    const end = (punch.current ? 'Now' : moment(punch.out).format(config.timeFormat)).padStart(7)
+    const end = (punch.current ? "Now" : moment(punch.out).format(config.timeFormat)).padStart(7)
     const timeSpan = `${start} - ${end}`
     const project = projects.find(p => p.alias === punch.project)
     const projectName = project ? project.name : punch.project
 
     if (punch.current) {
-      str += format.text(timeSpan, ['green', 'bold'])
+      str += format.text(timeSpan, ["green", "bold"])
     } else {
-      str += format.text(timeSpan, ['cyan'])
+      str += format.text(timeSpan, ["cyan"])
     }
 
-    str += format.text(` [${projectName}]`, ['yellow'])
-    str += '\n'
+    str += format.text(` [${projectName}]`, ["yellow"])
+    str += "\n"
 
     if (punch.comments.length > 0) {
       for (let i = 0; i < punch.comments.length; i++) {
         const c = punch.comments[i]
 
         if (c) {
-          str += format.text('   ⸭ ', ['grey']) + c
+          str += format.text("   ⸭ ", ["grey"]) + c
 
           if (punch.comments[i + 1]) {
-            str += '\n'
+            str += "\n"
           }
         }
       }
-      str += '\n'
+      str += "\n"
     }
   }
 
-  return str;
+  return str
 }
 
 /* Takes an array like so:
@@ -145,7 +145,7 @@ function dayPunches(punches, projects, config) {
 }
 */
 function summaryTable(projects) {
-  let str = ''
+  let str = ""
 
   let total = {
     hours: 0,
@@ -165,52 +165,54 @@ function summaryTable(projects) {
     total.punches += project.punches
 
     tableItems.push([
-      format.text(project.name, ['yellow']),
+      format.text(project.name, ["yellow"]),
       format.duration(project.time),
       format.currency(project.pay),
-      project.punches + ' punch' + (project.punches === 1 ? '' : 'es')
+      project.punches + " punch" + (project.punches === 1 ? "" : "es")
     ])
   }
 
-  console.log(table({ rows: tableItems }))
+  if (tableItems.length > 0) {
+    console.log(table({ rows: tableItems }))
+  }
 
-  str += '\n' + format.text('TOTAL', ['bold', 'cyan']) + ' '
+  str += "\n" + format.text("TOTAL", ["bold", "cyan"]) + " "
   str += delimitedList([
     format.duration(total.time),
     format.currency(total.pay),
-    total.punches + ' punch' + (total.punches === 1 ? '' : 'es')
-  ], ' / ', ['(', ')'])
+    total.punches + " punch" + (total.punches === 1 ? "" : "es")
+  ], " / ", ["(", ")"])
 
   return str
 }
 
 function projectDay({ date, stats, sessions }) {
-  let str = '';
+  let str = "";
 
-  str += format.text('   ⸭ ', ['grey']) + format.text(date.format('MMM Do, dddd'), ['white', 'bold']);
+  str += format.text("   ⸭ ", ["grey"]) + format.text(date.format("MMM Do, dddd"), ["white", "bold"])
   if (stats) {
-    str += ' ' + delimitedList(stats, ' / ', ['(', ')']) + '\n';
+    str += " " + delimitedList(stats, " / ", ["(", ")"]) + "\n";
   }
 
-  str += daySessions(sessions);
+  str += daySessions(sessions)
 
-  return str;
+  return str
 };
 
 function projectSummary({ name, pay, time, rate, stats }) {
-  let str = '';
-  const statList = [time];
+  let str = "";
+  const statList = [time]
 
-  if (pay) statList.push(pay);
-  if (rate) statList.push(rate);
+  if (pay) statList.push(pay)
+  if (rate) statList.push(rate)
 
-  str += projectHeader(name) + ' ' + delimitedList(statList, ' / ', ['(', ')']) + '\n\n';
+  str += projectHeader(name) + " " + delimitedList(statList, " / ", ["(", ")"]) + "\n\n";
 
   if (stats) {
-    str += labelTable(stats);
+    str += labelTable(stats)
   }
 
-  return str;
+  return str
 };
 
 module.exports = {
@@ -224,4 +226,4 @@ module.exports = {
   projectHeader,
   projectDay,
   projectSummary,
-};
+}

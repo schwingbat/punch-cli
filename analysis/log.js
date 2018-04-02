@@ -123,8 +123,6 @@ module.exports = function Reporter(config, flags) {
           return false
         })
         .run()
-        
-      console.log(punches, project);
 
       printMonth({
         config,
