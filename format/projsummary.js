@@ -1,9 +1,10 @@
 module.exports = function(project) {
   // Turn the detailed object into an array of formatted stats.
 
-  const format = require('../utils/format');
-  const moment = require('moment');
-  const chalk = require('chalk');
+  const Duration = require('../time/duration')
+  const format = require('./format')
+  const moment = require('moment')
+  const chalk = require('chalk')
 
   const {
     fullName,
@@ -12,17 +13,17 @@ module.exports = function(project) {
     hourlyRate,
     totalPunches,
     firstPunch,
-    latestPunch,
-  } = project;
+    latestPunch
+  } = project
 
   let lastActive = latestPunch.out
     ? moment(latestPunch.out).fromNow()
-    : chalk.bold.green('Now');
+    : chalk.bold.green('Now')
 
   return {
     name: fullName,
     pay: totalPay ? format.currency(totalPay) : null,
-    time: format.duration(totalTime),
+    time: new Duration(totalTime).toString(),
     rate: hourlyRate ? format.currency(hourlyRate) + '/hr' : null,
     stats: [
       { label: 'Punches', value: totalPunches },
@@ -30,5 +31,5 @@ module.exports = function(project) {
       { label: 'Last active', value: lastActive },
       // { label: 'Average time per day', value: moment(firstPunch.in). }
     ]
-  };
-};
+  }
+}

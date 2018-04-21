@@ -1,13 +1,15 @@
-const SQLish = require("./sqlish")
+const SQLish = require('./sqlish')
 
-const testConfig = () => ({
+// const testConfig = () => ({
 
-})
+// })
 
-const testFlags = () => ({
+// const testFlags = () => ({
 
-})
+// })
 
-describe("SQLish", () => {
-  
+describe('SQLish', () => {
+  it('is true', () => {
+    expect(true).toBe(true)
+  })
 })

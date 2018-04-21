@@ -8,6 +8,6 @@
   },
   "rules": {
       "semi": ["warn", "never"],
-      "quotes": ["warn", "double"]
+      "quotes": ["warn", "single"]
   }
 }

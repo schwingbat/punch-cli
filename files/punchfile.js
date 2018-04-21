@@ -1,6 +1,7 @@
 // Functions for reading and writing to punch files.
-const fs = require("fs")
-const path = require("path")
+const fs = require('fs')
+const path = require('path')
+const SQLish = require('./sqlish')
 
 module.exports = function(config) {
 
@@ -64,14 +65,13 @@ module.exports = function(config) {
 
       const punch = this.punches
         .filter(p => !p.out || p.project !== project)
-        .sort((a, b) => a.in < b.in)
-        [0]
+        .sort((a, b) => a.in < b.in)[0]
 
       if (punch) {
         punch.out = new Date()
         this.update()
       } else {
-        throw new Error("No punches with that project name are currently missing a punch out")
+        throw new Error('No punches with that project name are currently missing a punch out')
       }
     },
     mostRecentPunch(project) {
@@ -133,12 +133,19 @@ module.exports = function(config) {
   }
 
   Punchfile.mostRecent = function() {
-    const files = fs.readdirSync(config.punchPath).sort()
+    const dateString = fileName => {
+      const [y, m, d] = fileName.split(/[_\.]/g).slice(1, 4).map(n => n.padStart(4))
+      return `${y}_${m}_${d}`
+    }
 
-    return this.read(path.join(config.punchPath, files[files.length - 1]))
+    const latest = fs.readdirSync(config.punchPath).sort((a, b) => {
+      return dateString(a) < dateString(b) ? -1 : 1
+    }).pop()
+
+    return Punchfile.read(path.join(config.punchPath, latest))
   }
 
-  Punchfile.forDate = function(date) {
+  Punchfile.forDate = function(date = new Date()) {
     const y = date.getFullYear()
     const m = date.getMonth() + 1
     const d = date.getDate()
@@ -151,17 +158,17 @@ module.exports = function(config) {
   Punchfile.all = function() {
     // Loads all punch files into an array and returns it.
     const files = fs.readdirSync(config.punchPath)
-      .filter(f => path.extname(f).toLowerCase() === ".json")
+      .filter(f => path.extname(f).toLowerCase() === '.json')
       .map(f => path.join(config.punchPath, f))
-    
+
     return files.map(this.read)
   }
-  
+
   Punchfile.each = function(func) {
     // Runs a given function on each punchfile, continuing by calling the next() function.
     // Similar to Punchfile.all, but only loads one punchfile at a time.
     const files = fs.readdirSync(config.punchPath)
-      .filter(f => path.extname(f).toLowerCase() === ".json")
+      .filter(f => path.extname(f).toLowerCase() === '.json')
       .map(f => path.join(config.punchPath, f))
     let index = -1
     
@@ -174,6 +181,12 @@ module.exports = function(config) {
     }    
     
     next()
+  }
+
+  Punchfile.select = function(props) {
+    return SQLish(config, {})
+      .select(props)
+      .from('punchfiles')
   }
 
   return Punchfile

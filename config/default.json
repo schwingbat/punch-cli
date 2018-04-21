@@ -1,0 +1,23 @@
+{
+  "user": {
+    "name": "Your Name",
+    "company": "Alpaca Factory, LLC",
+    "address": {
+      "street": "999 Boulevard Ct.",
+      "city": "Citytown",
+      "state": "NJ",
+      "zip": "54637"
+    }
+  },
+  "projects": {},
+  "clients": {},
+  "sync": {
+    "autoSync": false,
+    "backends": {}
+  },
+  "dateFormat": "",
+  "timeFormat": "hh:mma",
+  "dateTimeFormat": "hh:mma",
+  "textColors": true,
+  "punchPath": "~/.punch/punches"
+}

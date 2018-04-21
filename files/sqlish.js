@@ -17,14 +17,14 @@
 */
 
 module.exports = function SQLish(config, flags) {
-  const Punchfile = require("./punchfile")(config)
+  const Punchfile = require('./punchfile')(config)
   const api = {}
 
   const defaults = {
-    collection: "punches",
+    collection: 'punches',
     fields: null,
     condition: null,
-    order: "ascending",
+    order: 'ascending',
     limit: null
   }
 
@@ -34,7 +34,7 @@ module.exports = function SQLish(config, flags) {
     let collection = []
 
     switch (c) {
-    case "punches":
+    case 'punches':
       Punchfile.each((file, next) => {
         file.punches.forEach(punch => {
           if (matcher(punch)) {
@@ -47,7 +47,7 @@ module.exports = function SQLish(config, flags) {
         }
       })
       break
-    case "punchfiles":
+    case 'punchfiles':
       Punchfile.each((file, next) => {
         if (matcher(file)) {
           collection.push(file)
@@ -91,13 +91,13 @@ module.exports = function SQLish(config, flags) {
   }
 
   api.select = function(...fields) {
-    if (fields.length === 0 || fields.length === 1 && fields[0] === "*") {
+    if (fields.length === 0 || fields.length === 1 && fields[0] === '*') {
       // Don't set fields
     } else {
       options.fields = fields
     }
 
-    options.action = "select"
+    options.action = 'select'
     return this
   }
 
@@ -111,13 +111,13 @@ module.exports = function SQLish(config, flags) {
     return this
   }
 
-  api.orderBy = function(field, dir = "desc") {
-    if (typeof field === "function") {
+  api.orderBy = function(field, dir = 'desc') {
+    if (typeof field === 'function') {
       options.orderBy = field
     } else {
       options.orderBy = (a, b) => {
         const val = a[field] > b[field] ? 1 : -1
-        return dir === "desc"
+        return dir === 'desc'
           ? val * -1
           : val
       }

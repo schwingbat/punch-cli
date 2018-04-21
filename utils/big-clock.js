@@ -31,7 +31,7 @@ module.exports = function({ style, letterSpacing }) {
 
       if (lines.length !== height) {
         errors.push(`Character ${char} has a height of ${height}, but has ${lines.length} lines.`)
-        continue;
+        continue
       }
 
       lines.forEach((line, i) => {
@@ -46,7 +46,7 @@ module.exports = function({ style, letterSpacing }) {
 
   const errors = validate(clock.characters)
   if (errors.length > 0) {
-    console.error(errors);
+    console.error(errors)
   }
 
   return {

@@ -1,7 +1,8 @@
-module.exports = function({ config, punches, date, summary, project }) {
-  const format = require('../utils/format')
+module.exports = function ({ config, punches, date, summary, project }) {
+  const Duration = require('../time/duration')
   const moment = require('moment')
   const chalk = require('chalk')
+  const { ascendingBy } = require('../utils/sort-factories')
 
   const { dayPunches, summaryTable } = require('./printing')
 
@@ -21,7 +22,7 @@ module.exports = function({ config, punches, date, summary, project }) {
 
   punches = punches
     .filter(punch => !project || punch.project !== project)
-    .sort((a, b) => a.in < b.in ? -1 : 1)
+    .sort(ascendingBy('in'))
     .map(punch => {
       const punchIn = moment(punch.in)
       const punchOut = moment(punch.out || Date.now())
@@ -33,7 +34,7 @@ module.exports = function({ config, punches, date, summary, project }) {
         out: punchOut,
         time: punchOut - punchIn,
         comments: punch.comments || [punch.comment],
-        duration: format.duration(punchOut - punchIn),
+        duration: new Duration(punchOut - punchIn).toString(),
       }
     })
 

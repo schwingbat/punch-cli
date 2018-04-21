@@ -1,7 +1,10 @@
-module.exports = function({ config, punches, date, summary, project }) {
-  const format = require('../utils/format')
+module.exports = function ({ config, punches, date, summary, project }) {
   const moment = require('moment')
   const chalk = require('chalk')
+  const Duration = require('../time/duration')
+  const currency = require('../format/currency')
+  const format = require('../format/format')
+
   const {
     reportHeader,
     projectHeader,
@@ -15,11 +18,13 @@ module.exports = function({ config, punches, date, summary, project }) {
   punches.forEach(punch => {
     if (project && punch.project !== project) return
 
-    if (!projects[punch.project]) projects[punch.project] = {
-      name: punch.project,
-      time: 0,
-      rewind: 0,
-      sessions: [],
+    if (!projects[punch.project]) {
+      projects[punch.project] = {
+        name: punch.project,
+        time: 0,
+        rewind: 0,
+        sessions: []
+      }
     }
 
     let end = punch.out || Date.now()
@@ -31,13 +36,13 @@ module.exports = function({ config, punches, date, summary, project }) {
       startStamp: punch.in,
       time: end - punch.in,
       comments: punch.comments || [punch.comment],
-      duration: format.duration(end - punch.in),
-    });
-  });
+      duration: new Duration(end - punch.in).toString(),
+    })
+  })
 
-  let dayTime = 0;
-  let dayPay = 0;
-  let paidTime = 0;
+  let dayTime = 0
+  let dayPay = 0
+  let paidTime = 0
   for (const name in projects) {
     const proj = config.projects[name];
     dayTime += projects[name].time;
@@ -46,11 +51,6 @@ module.exports = function({ config, punches, date, summary, project }) {
       paidTime += projects[name].time;
     }
   }
-
-  // console.log(reportHeader(
-  //   'Work for ' + moment(date).format('MMMM YYYY'),
-  //   [format.duration(dayTime), format.currency(dayPay)]
-  // ));
 
   const projArr = [];
 
@@ -88,15 +88,15 @@ module.exports = function({ config, punches, date, summary, project }) {
     // return +(a.totalPay > b.totalPay);
   }).forEach(project => {
     let pay;
-    if (project.totalPay) pay = format.currency(project.totalPay);
+    if (project.totalPay) pay = currency(project.totalPay);
 
     console.log(projectHeader(
       project.fullName,
       [
-        format.duration(project.billableTime),
+        new Duration(project.billableTime).toString(),
         pay,
         project.hourlyRate
-          ? format.currency(project.hourlyRate) + '/hr'
+          ? currency(project.hourlyRate) + '/hr'
           : null
       ]
     ));
@@ -127,9 +127,9 @@ module.exports = function({ config, punches, date, summary, project }) {
       console.log(projectDay({
         date: moment(sessionsByDay[day][0].startStamp),
         stats: [
-          format.duration(sum.time),
+          new Duration(sum.time).toString(),
           sum.pay
-            ? format.currency(sum.pay)
+            ? currency(sum.pay)
             : null
           ],
         sessions: sum.sessions

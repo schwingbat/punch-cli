@@ -1,0 +1,10 @@
+{
+  "user": {},
+  "clients": {},
+  "projects": {},
+  "sync": {
+    "autoSync": false,
+    "providers": {}
+  },
+  "punchPath": "~/test"
+}

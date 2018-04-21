@@ -1,11 +1,11 @@
 // Migrate punchfiles from one format to another.
 
-const schemas = require('./migrator-schemas.js')
-const fs = require('fs')
-const path = require('path')
-const config = require('../files/config')
+// const schemas = require('./migrator-schemas.js')
+// const fs = require('fs')
+// const path = require('path')
+const config = require('../config')
 
-function V1toV2(obj) {
+function V1toV2 (obj) {
   // Add created
   let newCreated
 
@@ -28,7 +28,7 @@ function V1toV2(obj) {
   }
 }
 
-function V2toV3(obj) {
+function V2toV3 (obj) {
   return {
     version: 3,
     created: obj.created,
@@ -41,25 +41,29 @@ function V2toV3(obj) {
         rate: config.projects[punch.project]
           ? config.projects[punch.project].hourlyRate || 0.0
           : 0.0,
-        comments: punch.comments.filter(c => typeof c === 'string')
+        comments: punch.comments
+          .filter(c => typeof c === 'string')
+          .map(c => ({
+            timestamp: punch.out || Date.now(),
+            comment: c
+          }))
       }
     })
   }
 }
 
-function pass(obj) {
+function pass (obj) {
   return obj
 }
 
 // Make sure the objects conform to the version they say they are.
 
-function conformToV1(obj) {
+function conformToV1 (obj) {
   return obj
 }
 
-function conformToV2(obj) {
-  // Make sure punche comments don't have nulls
-
+function conformToV2 (obj) {
+  // Make sure punch comments don't have nulls
   obj.punches = obj.punches.map(punch => {
     punch.comments = punch.comments.filter(c => c != null)
     return punch
@@ -68,7 +72,7 @@ function conformToV2(obj) {
   return obj
 }
 
-function conformToV3(obj) {
+function conformToV3 (obj) {
   return obj
 }
 
@@ -102,7 +106,7 @@ exports.getPunchfileVersion = function getPunchfileVersion(obj) {
   }
 }
 
-exports.migrate = function(from, to, file) {
+exports.migrate = function (from, to, file) {
   let migration = migrations.find(m => {
     let [versionFrom, versionTo] = m[0]
     return versionFrom === from && versionTo === to
