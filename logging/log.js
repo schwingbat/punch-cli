@@ -1,29 +1,8 @@
-const fs = require('fs')
 const Duration = require('../time/duration')
-
-const areSameDay = (one, two) => {
-  return one.getFullYear() === two.getFullYear()
-      && one.getMonth() === two.getMonth()
-      && one.getDate() === two.getDate()
-}
-
-const areSameMonth = (one, two) => {
-  return one.getFullYear() === two.getFullYear()
-      && one.getMonth() === two.getMonth()
-}
-
-const areSameYear = (one, two) => {
-  return one.getFullYear() === two.getFullYear()
-}
+const { descendingBy } = require('../utils/sort-factories')
 
 function summarize (punches, config) {
   const projects = {}
-
-  const sum = {
-    punches: 0,
-    pay: 0,
-    time: 0
-  }
 
   for (let i = 0; i < punches.length; i++) {
     const punch = punches[i]
@@ -35,7 +14,7 @@ function summarize (punches, config) {
     if (punch.rate) {
       rate = punch.rate
     } else if (project && project.hourlyRate) {
-      rate = project.hourlyRate / 60 / 60 / 1000
+      rate = project.hourlyRate
     } else {
       rate = 0
     }
@@ -45,13 +24,15 @@ function summarize (punches, config) {
         name: project ? project.name : name,
         punches: 0,
         pay: 0,
-        time: 0
+        time: new Duration()
       }
     }
 
+    const duration = new Duration((punch.out || now) - punch.in)
+
     projects[name].punches += 1
-    projects[name].pay += ((punch.out || now) - punch.in) * rate
-    projects[name].time += (punch.out || now) - punch.in
+    projects[name].pay += duration.totalHours() * rate
+    projects[name].time.plus(duration)
   }
 
   const projectArray = []
@@ -63,33 +44,33 @@ function summarize (punches, config) {
     })
   }
 
-  // Descending in order of time spent.
-  return projectArray.sort((a, b) => b.time - a.time)
+  return projectArray.sort(descendingBy(t => t.time.totalMilliseconds()))
 }
 
 module.exports = function Reporter(config, flags) {
-  const printDay = require('./log-day')
-  const printWeek = require('./log-week')
-  const printMonth = require('./log-month')
-  const moment = require('moment')
+  const Punch = require('../punches/punch')(config)
 
-  const sqlish = require('../files/sqlish')(config)
+  const printDay = require('./log-day')
+  // const printWeek = require('./log-week')
+  const printMonth = require('./log-month')
 
   return {
     forTimeSpan (span, project) {
-      const punches = sqlish.select()
-        .from('punches')
-        .where(p => (!project || p.project === project) && p.in >= span.start && p.in <= span.end)
-        .run()
+      const punches = Punch.select(p => {
+        return (!project || p.project === project)
+            && p.in >= span.start
+            && p.in <= span.end
+      })
 
       let days = span.totalHours() / 24
+
       if (days > 31) {
         console.log('Yearly logs are not implemented yet.')
       } else if (days > 7) {
         printMonth({
           config,
           punches,
-          today: span.start,
+          date: span.start,
           project,
           summary: summarize(punches, config)
         })

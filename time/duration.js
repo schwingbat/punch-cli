@@ -1,6 +1,10 @@
 class Duration {
   constructor (ms = 0) {
-    this._ms = ms
+    if (ms instanceof Duration) {
+      this._ms = ms._ms
+    } else {
+      this._ms = ms
+    }
   }
 
   totalHours () {
@@ -28,11 +32,11 @@ class Duration {
   }
 
   seconds () {
-    return Math.trunc(this.totalSeconds()) - this.minutes() * 60
+    return Math.trunc(this.totalSeconds()) - (this.hours() * 3600) - (this.minutes() * 60)
   }
 
   milliseconds () {
-    return this._ms - this.seconds() * 60
+    return this._ms - (this.hours() * 3600000) - (this.minutes() * 60000) - (this.seconds() * 1000)
   }
 
   sumTimeObject (obj) {
@@ -59,7 +63,7 @@ class Duration {
 
   plus (obj) {
     if (obj instanceof Duration) {
-      this._ms += obj.ms
+      this._ms += obj._ms
     } else {
       this._ms += this.sumTimeObject(obj)
     }
@@ -67,7 +71,7 @@ class Duration {
 
   minus (obj) {
     if (obj instanceof Duration) {
-      this._ms -= obj.ms
+      this._ms -= obj._ms
     } else {
       this._ms -= this.sumTimeObject(obj)
     }
@@ -95,6 +99,10 @@ class Duration {
     }
 
     return out.reverse().join(' ')
+  }
+
+  toClockString () {
+    return this.hours() + ':' + this.minutes().toString().padStart(2, '0') + ':' + this.seconds().toString().padStart(2, '0')
   }
 }
 

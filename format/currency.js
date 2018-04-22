@@ -8,7 +8,7 @@ function encomma (amount, separator = ',') {
     const rev = whole.split('').reverse()
     for (let i = 0; i < rev.length; i++) {
       chars.push(rev[i])
-      if (i !== 0 && (i + 1) % 3 === 0) {
+      if (i !== 0 && i !== rev.length - 1 && (i + 1) % 3=== 0) {
         chars.push(separator)
       }
     }

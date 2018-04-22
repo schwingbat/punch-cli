@@ -1,19 +1,18 @@
-module.exports = function({ style, letterSpacing }) {
+module.exports = function ({ style, letterSpacing }) {
   const path = require('path')
-  const chalk = require('chalk')
+  // const chalk = require('chalk')
   let clock
 
   style = style || 'block-clock'
   letterSpacing = letterSpacing || 1
 
   try {
-    clock = require(path.join(appRoot, 'resources', 'clock-styles', style + '.json'))
+    clock = require(path.join(global.appRoot, 'resources', 'clock-styles', style + '.json'))
   } catch (err) {
     throw new Error('Failed to load clock style: ' + style)
   }
 
-  spaceChar = clock.spaceCharacter || '\s'
-  // spaceChar = chalk.grey(spaceChar)
+  const spaceChar = clock.spaceCharacter || ' '
 
   for (const char in clock.characters) {
     clock.characters[char].lines = clock.characters[char].lines.map(line => {
@@ -23,7 +22,7 @@ module.exports = function({ style, letterSpacing }) {
 
   // Validate
 
-  function validate(characters) {
+  function validate (characters) {
     const errors = []
 
     for (const char in characters) {
@@ -50,7 +49,7 @@ module.exports = function({ style, letterSpacing }) {
   }
 
   return {
-    display(string) {
+    display (string) {
       const chars = string.split('').map(c => clock.characters[c])
 
       let output = ''

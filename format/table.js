@@ -1,4 +1,4 @@
-module.exports = function table(opts) {
+module.exports = function table (opts) {
   const chalk = require('chalk')
 
   const { header, rows } = opts
@@ -30,12 +30,12 @@ module.exports = function table(opts) {
   if (header) {
     head = header.map((h, i) => {
       return chalk.bold(h.toString().padEnd(colWidths[i], '.'))
-    }).join(padding)  
+    }).join(padding)
   }
-  
+
   const body = rows.map(row => {
     return row.map((column, i) => {
-      return column.toString().padEnd(colWidths[i])
+      return column.toString().padStart(colWidths[i])
     }).join(padding)
   }).join('\n')
 

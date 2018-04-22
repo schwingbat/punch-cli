@@ -160,15 +160,15 @@ function summaryTable (projects) {
 
   for (let i = 0; i < projects.length; i++) {
     const project = projects[i]
-    const hours = project.time / 1000 / 60 / 60
-    total.hours += hours
+    const duration = project.time
+    total.hours += duration.totalHours()
     total.time += project.time
     total.pay += project.pay
     total.punches += project.punches
 
     tableItems.push([
       chalk.yellow(project.name),
-      new Duration(project.time).toString(),
+      project.time.toString(),
       currency(project.pay),
       project.punches + ' punch' + (project.punches === 1 ? '' : 'es')
     ])

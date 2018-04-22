@@ -1,8 +1,8 @@
-module.exports = function(project) {
+module.exports = function (project) {
   // Turn the detailed object into an array of formatted stats.
 
   const Duration = require('../time/duration')
-  const format = require('./format')
+  const currency = require('./currency')
   const moment = require('moment')
   const chalk = require('chalk')
 
@@ -22,9 +22,9 @@ module.exports = function(project) {
 
   return {
     name: fullName,
-    pay: totalPay ? format.currency(totalPay) : null,
+    pay: totalPay ? currency(totalPay) : null,
     time: new Duration(totalTime).toString(),
-    rate: hourlyRate ? format.currency(hourlyRate) + '/hr' : null,
+    rate: hourlyRate ? currency(hourlyRate) + '/hr' : null,
     stats: [
       { label: 'Punches', value: totalPunches },
       { label: 'Started', value: moment(firstPunch.in).format('MMM Do, YYYY') },

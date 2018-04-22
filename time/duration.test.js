@@ -1,7 +1,7 @@
 const Duration = require('./duration')
 
-const milliseconds = (hours, minutes, seconds) => {
-  return (seconds + (minutes * 60) + (hours * 60 * 60)) * 1000
+const milliseconds = (hours, minutes, seconds, ms = 0) => {
+  return ms + (seconds + (minutes * 60) + (hours * 60 * 60)) * 1000
 }
 
 describe('Duration', () => {
@@ -26,43 +26,50 @@ describe('Duration', () => {
 
   describe('totalMinutes', () => {
     it('returns the total time in minutes', () => {
-
+      const duration = new Duration(milliseconds(14, 30, 0))
+      expect(duration.totalMinutes()).toBe(870)
     })
   })
 
   describe('totalSeconds', () => {
     it('returns the total time in seconds', () => {
-
+      const duration = new Duration(milliseconds(0, 1, 15))
+      expect(duration.totalSeconds()).toBe(75)
     })
   })
 
   describe('totalMilliseconds', () => {
     it('returns the total time in milliseconds', () => {
-
+      const duration = new Duration(5919203)
+      expect(duration.totalMilliseconds()).toBe(5919203)
     })
   })
 
   describe('hours', () => {
     it('returns the hours component of the total time', () => {
-
+      const duration = new Duration(milliseconds(5, 32, 51))
+      expect(duration.hours()).toBe(5)
     })
   })
 
   describe('minutes', () => {
     it('returns the minutes component of the total time', () => {
-
+      const duration = new Duration(milliseconds(5, 32, 51))
+      expect(duration.minutes()).toBe(32)
     })
   })
 
   describe('seconds', () => {
     it('returns the seconds component of the total time', () => {
-
+      const duration = new Duration(milliseconds(5, 32, 51))
+      expect(duration.seconds()).toBe(51)
     })
   })
 
   describe('milliseconds', () => {
     it('returns the milliseconds component of the total time', () => {
-      
+      const duration = new Duration(milliseconds(5, 32, 51, 123))
+      expect(duration.milliseconds()).toBe(123)
     })
   })
 
@@ -120,6 +127,18 @@ describe('Duration', () => {
       let duration2 = new Duration(milliseconds(4, 0, 0))
       expect(duration.toString({ long: true })).toBe('2 hours 13 minutes 42 seconds')
       expect(duration2.toString({ long: true })).toBe('4 hours 0 minutes 0 seconds')
+    })
+  })
+
+  describe('toClockString', () => {
+    it('prints the correct time', () => {
+      let duration = new Duration(milliseconds(1, 16, 10))
+      expect(duration.toClockString()).toBe('1:16:10')
+    })
+
+    it('pads minutes and seconds to a length of 2', () => {
+      let duration = new Duration(milliseconds(1, 8, 1))
+      expect(duration.toClockString()).toBe('1:08:01')
     })
   })
 })

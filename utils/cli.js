@@ -90,9 +90,13 @@ function parseSignature (str) {
 function mapArgs (args, argMap) {
   // Using a command's argMap, map the args to their proper names.
 
-  const mapped = {
-    options: {} // TODO: Parse option flags and add them here
-  }
+  const mapped = {}
+
+  // TODO: Parse option flags and add values here
+  Object.defineProperty(mapped, 'options', {
+    value: {},
+    enumerable: false
+  })
 
   argMap.forEach((arg, i) => {
     if (args[i]) {

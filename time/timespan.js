@@ -106,7 +106,6 @@ TimeSpan.fuzzyParse = function (string) {
 
   if (parts[0] === 'yesterday') {
     let day = moment().subtract(1, 'day')
-    console.log(day)
     return new TimeSpan(day.startOf('day').valueOf(), day.endOf('day').valueOf())
   }
 

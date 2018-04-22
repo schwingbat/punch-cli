@@ -54,17 +54,17 @@ const config = require('./config')
 const Syncer = require('./sync/syncer')
 const Invoicer = require('./invoicing/invoicer')
 const Logger = require('./logging/log')
-const Punchfile = require('./files/punchfile')(config)
-const SQLish = require('./files/sqlish')
+const Punch = require('./punches/punch')(config)
 const TimeSpan = require('./time/timespan')
 const Duration = require('./time/duration')
 
-const { descendingBy } = require('./utils/sort-factories')
+const { ascendingBy,
+        descendingBy } = require('./utils/sort-factories')
 
 // Formatting
-const format = require('./format/format')
 const summaryfmt = require('./format/projsummary')
 const print = require('./logging/printing')
+const currency = require('./format/currency')
 
 // Utils
 const CLI = require('./utils/cli.js')
@@ -101,9 +101,6 @@ const getFileFor = date => {
 
   return path.join(config.punchPath, `punch_${y}_${m}_${d}.json`)
 }
-
-const currentSession = () =>
-  Punchfile.mostRecent().punches.find(p => p.out == null)
 
 const getMessageFor = (file) => {
   // Returns a random message from the given file.
@@ -149,19 +146,16 @@ command({
   signature: 'in <project>',
   description: 'start tracking time on a project',
   run: function(args) {
-    const { project } = args
-
-    const current = currentSession()
+    const current = Punch.current()
 
     if (current) {
       console.log(`You're already punched in on ${getLabelFor(current.project)}! Punch out first.`)
     } else {
-      const file = Punchfile.forDate(new Date())
-      file.punchIn(project)
-      file.save()
+      const punch = new Punch(args.project)
+      punch.save()
 
-      const time = moment().format('h:mm')
-      console.log(`Punched in on ${getLabelFor(project)} at ${time}.`)
+      const time = moment().format(config.timeFormat)
+      console.log(`Punched in on ${getLabelFor(args.project)} at ${time}.`)
 
       handleSync()
     }
@@ -172,23 +166,19 @@ command({
   signature: 'out [*comment]',
   description: 'stop tracking time and record an optional description of tasks completed', 
   run: function(args) {
-    const { comment } = args
-    const current = currentSession()
+    const current = Punch.current()
 
     if (current) {
-      current._file.punchOut(current.project)
+      current.punchOut(args.comment, { autosave: true })
 
       const label = getLabelFor(current.project)
-      const time = format.time(Date.now())
+      const time = moment().format(config.timeFormat)
       const duration = new Duration(current.out - current.in)
       const pay = duration.totalHours() * getRateFor(current.project)
 
-      current.comments.push(comment)
-      current._file.save()
-
       let str = `Punched out on ${label} at ${time}. Worked for ${duration}`
       if (pay > 0) {
-         str += ` and earned ${format.currency(pay)}`
+         str += ` and earned ${currency(pay)}`
       }
 
       console.log(str + '.')
@@ -201,25 +191,26 @@ command({
 })
 
 command({
-  signature: 'comment [*comment]',
+  signature: 'comment <*comment>',
   description: 'add a comment to remember what you worked on',
   run: function(args) {
-    const current = currentSession()
+    const current = Punch.current()
 
     if (!current) {
-      const mostRecent = Punchfile.mostRecent().punches.pop()
+      const latest = Punch.latest()
 
-      let label = getLabelFor(mostRecent.project)
-      let inTime = moment(mostRecent.in)
-      let outTime = moment(mostRecent.out)
-      let date = new Date().getDate()
+      let label = getLabelFor(latest.project)
+      let inTime = moment(latest.in)
+      let outTime = moment(latest.out)
+      let date = Date.now()
 
       let format = ''
 
       if (inTime.date() !== date || outTime.date() !== date) {
-        format += 'MMMM Do '
+        format = config.dateTimeFormat
+      } else {
+        format = config.timeFormat
       }
-      format += 'h:mma'
 
       inTime = inTime.format(format)
       outTime = outTime.format(format)
@@ -227,14 +218,14 @@ command({
       let str = `You're not punched in. Add to last punch on '${label}' (${inTime} - ${outTime})?`
 
       if (confirm(str)) {
-        mostRecent.comments.push(args.comment)
-        mostRecent._file.save()
+        latest.addComment(args.comment)
+        latest.save()
 
         handleSync()
       }
     } else {
-      current.comments.push(args.comment)
-      current._file.save()
+      current.addComment(args.comment)
+      current.save()
 
       console.log('Comment saved.')
       handleSync()
@@ -264,7 +255,7 @@ command({
     const duration = new Duration(punchOut - punchIn)
     let pay
     if (proj && proj.hourlyRate) {
-      pay = format.currency(duration.totalHours() * proj.hourlyRate)
+      pay = currency(duration.totalHours() * proj.hourlyRate)
     } else {
       pay = 'N/A'
     }
@@ -284,14 +275,8 @@ command({
     str += '\nCreate this punch?'
 
     if (confirm(str)) {
-      const file = Punchfile.forDate(punchIn.toDate())
-      file.addPunch({
-        project,
-        in: punchIn.toDate(),
-        out: punchOut.toDate(),
-        comments: comment,
-      })
-      file.save()
+      const punch = new Punch(project, punchIn.getTime(), punchOut.getTime(), [comment])
+      punch.save()
 
       console.log('Punch created!')
 
@@ -308,11 +293,7 @@ command({
   run: function(args) {
     const { project } = args
     const label = getLabelFor(project)
-    const punches = SQLish(config, flags)
-      .select()
-      .from('punches')
-      .where(p => p.project === project)
-      .run()
+    const punches = Punch.select(p => p.project === project)
 
     if (punches.length > 0) {
       const totalTime = punches.reduce((sum, p) =>
@@ -349,18 +330,18 @@ command({
   signature: 'now',
   description: 'show the status of the current session',
   run: function() {
-    const active = currentSession()
+    const active = Punch.current()
 
     if (active) {
       const duration = new Duration(Date.now() - active.in)
       const rate = getRateFor(active.project)
       const pay = duration.totalHours() * getRateFor(active.project)
-      const punchedIn = format.time(active.timestamp)
+      const punchedIn = moment(active.timestamp).format(config.timeFormat)
 
       let str = `You've been working on ${getLabelFor(active.project)} since ${punchedIn} (${duration} ago).`
 
       if (rate) {
-        str += ` Earned ${format.currency(pay)}.`
+        str += ` Earned ${currency(pay)}.`
       }
 
       console.log(str)
@@ -374,7 +355,7 @@ command ({
   signature: 'watch',
   description: 'continue running to show automatically updated stats of your current session',
   run: function() {
-    const active = currentSession()
+    const active = Punch.current()
     const clock = require('./utils/big-clock')({
       style: 'clockBlockDots',
       letterSpacing: 1,
@@ -390,8 +371,8 @@ command ({
         let pay = duration.totalHours() * rate
 
         let working = `Working on ${label}`
-        let money = format.currency(pay)
-        let numbers = clock.display(format.clock(duration.milliseconds))
+        let money = currency(pay)
+        let numbers = clock.display(duration.toClockString())
         let numbersLength = numbers.split('\n')[0].length
 
         let topLine = working.padEnd(numbersLength - money.length, ' ') + money
@@ -425,11 +406,7 @@ command({
       names = Object.keys(config.projects)
     }
 
-    const allPunches = SQLish(config, flags)
-      .select()
-      .from('punches')
-      .orderBy('in', 'asc')
-      .run()
+    const allPunches = Punch.all().sort(ascendingBy('in'))
 
     const summaries = []
 
@@ -438,6 +415,10 @@ command({
 
       const punches = allPunches
           .filter(p => p.project === project)
+
+      if (punches.length === 0) {
+        continue
+      }
 
       let firstPunch = punches[0]
       let latestPunch = punches[punches.length - 1]
@@ -532,7 +513,7 @@ command({
   signature: 'invoice <project> <startDate> <endDate> <outputFile>',
   description: 'automatically generate an invoice using punch data',
   run: function(args) {
-    const active = currentSession()
+    const active = Punch.current()
 
     if (active && active.project === args.project) {
       return console.log(`You're currently punched in on ${getLabelFor(active.project)}. Punch out before creating an invoice.`)
@@ -628,7 +609,7 @@ command({
     const editor = args.editor || process.env.EDITOR
 
     if (!editor) {
-      return console.log(format.text('No editor specified and no EDITOR variable available. Please specify an editor to use: punch config <editor>', ['red']))
+      return console.log(chalk.red('No editor specified and no EDITOR variable available. Please specify an editor to use: punch config <editor>'))
     }
 
     const spawn = require('child_process').spawn
@@ -650,7 +631,7 @@ command({
     const fs = require('fs')
 
     if (!editor) {
-      return console.log(format.text('No editor specified and no EDITOR variable available.\nPlease specify an editor to use: punch edit <date> <editor>', ['red']))
+      return console.log(chalk.red('No editor specified and no EDITOR variable available.\nPlease specify an editor to use: punch edit <date> <editor>'))
     }
 
     const y = date.year()
@@ -661,7 +642,7 @@ command({
     const file = path.join(config.punchPath, filename)
 
     if (!fs.existsSync(file)) {
-      console.warn(format.text('File doesn\'t exist.', ['red']))
+      console.warn(chalk.red('File doesn\'t exist.'))
     }
 
     const spawn = require('child_process').spawn
@@ -675,7 +656,7 @@ command({
   hidden: true,
   run: function(args) {
     const date = moment(args.time, 'MM/DD/YYYY@hh:mm:ssa')
-    console.log(date.valueOf() + format.text(' << ', ['grey']) + date.format('MMM Do YYYY, hh:mm:ssa'))
+    console.log(date.valueOf() + chalk.grey(' << ') + date.format('MMM Do YYYY, hh:mm:ssa'))
   }
 })
 
