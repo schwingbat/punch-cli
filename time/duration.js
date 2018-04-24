@@ -1,7 +1,7 @@
 class Duration {
   constructor (ms = 0) {
     if (ms instanceof Duration) {
-      this._ms = ms._ms
+      this._ms = ms._ms || 0
     } else {
       this._ms = ms
     }
@@ -63,39 +63,44 @@ class Duration {
 
   plus (obj) {
     if (obj instanceof Duration) {
-      this._ms += obj._ms
+      return new Duration(this._ms + obj._ms)
     } else {
-      this._ms += this.sumTimeObject(obj)
+      return new Duration(this._ms + this.sumTimeObject(obj))
     }
   }
 
   minus (obj) {
     if (obj instanceof Duration) {
-      this._ms -= obj._ms
+      return new Duration(this._ms - obj._ms)
     } else {
-      this._ms -= this.sumTimeObject(obj)
+      return new Duration(this._ms - this.sumTimeObject(obj))
     }
   }
 
   toString (opts = {}) {
     let out = []
-    let hours = Math.trunc(this._ms / 3600000)
-    let minutes = Math.trunc(this._ms / 60000)
-    let seconds = Math.trunc(this._ms / 1000)
-
-    seconds -= (minutes * 60) || (hours * 3600)
-    minutes -= hours * 60
+    let hours = this.hours()
+    let minutes = this.minutes()
+    let seconds = this.seconds()
 
     if (seconds > 0 || minutes > 0 || hours > 0) {
-      out.push(seconds + (opts.long ? ' seconds' : 's'))
+      let val = seconds
+      if (opts.padded) val = seconds.toString().padStart(2)
+      out.push(val + (opts.long ? ' seconds' : 's'))
     }
 
     if (minutes > 0 || hours > 0) {
-      out.push(minutes + (opts.long ? ' minutes' : 'm'))
+      let val = minutes
+      if (opts.padded) val = minutes.toString().padStart(2)
+      out.push(val + (opts.long ? ' minutes' : 'm'))
     }
 
     if (hours > 0) {
       out.push(hours + (opts.long ? ' hours' : 'h'))
+    }
+
+    if (seconds === 0 && minutes === 0 && hours === 0) {
+      out.push(this.totalMilliseconds() + (opts.long ? ' milliseconds' : 'ms'))
     }
 
     return out.reverse().join(' ')

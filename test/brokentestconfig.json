@@ -9,7 +9,7 @@
     "test": {
       "name": "Test Project",
       "hourlyRate": 75.00,
-      "client": "@TestCo"
+      "client": "@Nonexistent"
     }
   },
   "sync": {

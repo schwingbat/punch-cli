@@ -18,6 +18,17 @@ function encomma (amount, separator = ',') {
   }
 }
 
-module.exports = function (amount, symbol = '$', separator = ',') {
-  return symbol + encomma(amount.toFixed(2), separator)
+function currency (amount, options = {}) {
+  const value = encomma(amount.toFixed(2), options.separator)
+  if (options.appendSymbol) {
+    return value + (options.symbol || '$')
+  } else {
+    return (options.symbol || '$') + value
+  }
 }
+
+currency.cents = function (amount, options) {
+  return currency(amount / 100, options)
+}
+
+module.exports = currency

@@ -50,7 +50,7 @@ const readline = require('readline-sync')
 const chalk = require('chalk')
 const logUpdate = require('log-update')
 
-const config = require('./config')
+const config = require('./config')()
 const Syncer = require('./sync/syncer')
 const Invoicer = require('./invoicing/invoicer')
 const Logger = require('./logging/log')
@@ -68,7 +68,6 @@ const currency = require('./format/currency')
 
 // Utils
 const CLI = require('./utils/cli.js')
-const resolvePath = require('./utils/resolve-path')
 
 const { autoSync } = config.sync
 

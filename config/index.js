@@ -1,8 +1,13 @@
-module.exports = (function() {
+module.exports = function(configPath) {
   const fs = require('fs')
   const path = require('path')
   const home = require('os').homedir()
-  const configPath = process.env.PUNCH_CONFIG_PATH || path.join(home, '.punch', 'punchconfig.json')
+
+  if (!configPath) {
+    configPath = process.env.PUNCH_CONFIG_PATH || path.join(home, '.punch', 'punchconfig.json')
+  } else {
+    configPath = path.resolve(configPath)
+  }
 
   let config = require('./default.json')
 
@@ -41,4 +46,4 @@ module.exports = (function() {
   }
 
   return config
-})()
+}

@@ -32,7 +32,7 @@ function summarize (punches, config) {
 
     projects[name].punches += 1
     projects[name].pay += duration.totalHours() * rate
-    projects[name].time.plus(duration)
+    projects[name].time = projects[name].time.plus(duration)
   }
 
   const projectArray = []

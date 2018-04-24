@@ -1,30 +1,30 @@
 const capitalize = (str) => {
-  return str[0].toUpperCase() + str.slice(1);
+  return str[0].toUpperCase() + str.slice(1)
 }
 
 module.exports = function(config, flags) {
-  const fs = require('fs');
-  const path = require('path');
-  const chalk = require('chalk');
-  const logUpdate = require('log-update');
-  const Loader = require('../utils/loader');
-  const { write } = process.stdout;
+  const fs = require('fs')
+  const path = require('path')
+  const chalk = require('chalk')
+  const logUpdate = require('log-update')
+  const Loader = require('../utils/loader')
+  const { write } = process.stdout
 
-  const { VERBOSE } = flags;
-  const backends = {};
+  const { VERBOSE } = flags
+  const backends = {}
 
-  const { punchPath, configPath } = config;
+  const { punchPath, configPath } = config
 
   backends.load = function(name) {
     if (!config.sync.backends[name]) {
-      console.log(`Backend ${name} is not configured in config.sync.backends.`);
+      console.log(`Backend ${name} is not configured in config.sync.backends.`)
     } else {
-      let conf = config.sync.backends[name];
-      let module;
+      let conf = config.sync.backends[name]
+      let module
       try {
-        return require(`./${name.toLowerCase()}.backend.js`)(config.sync.backends[name], flags);
+        return require(`./${name.toLowerCase()}.backend.js`)(config.sync.backends[name], flags)
       } catch (err) {
-        console.log(`Backend ${name} is not (yet) supported by Punch.`, err);
+        console.log(`Backend ${name} is not (yet) supported by Punch.`, err)
       }
     }
   }

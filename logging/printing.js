@@ -6,7 +6,7 @@
 const moment = require('moment')
 const chalk = require('chalk')
 const Duration = require('../time/duration')
-const table = require('../format/table')
+const Table = require('../format/table')
 const currency = require('../format/currency')
 
 function delimitedList (items, inners = ' / ', outers) {
@@ -150,37 +150,49 @@ function summaryTable (projects) {
   let str = ''
 
   let total = {
-    hours: 0,
-    time: 0,
+    time: new Duration(),
     pay: 0,
     punches: 0
   }
 
-  const tableItems = []
+  const table = new Table({
+    columnStyle: [{
+      align: 'left',
+      leftPadding: 0,
+      rightPadding: 1
+    }, {
+      align: 'right',
+      leftPadding: 1,
+      rightPadding: 1
+    }, {
+      align: 'right',
+      leftPadding: 1,
+      rightPadding: 1
+    }, {
+      align: 'right',
+      leftPadding: 1,
+      rightPadding: 0
+    }]
+  })
 
-  for (let i = 0; i < projects.length; i++) {
-    const project = projects[i]
-    const duration = project.time
-    total.hours += duration.totalHours()
-    total.time += project.time
+  projects.forEach(project => {
+    total.time = total.time.plus(project.time)
     total.pay += project.pay
     total.punches += project.punches
 
-    tableItems.push([
+    table.push([
       chalk.yellow(project.name),
-      project.time.toString(),
+      project.time.toString({ padded: true }),
       currency(project.pay),
       project.punches + ' punch' + (project.punches === 1 ? '' : 'es')
     ])
-  }
+  })
 
-  if (tableItems.length > 0) {
-    console.log(table({ rows: tableItems }))
-  }
+  str += table.toString()
 
   str += '\n' + chalk.bold.cyan('TOTAL') + ' '
   str += delimitedList([
-    new Duration(total.time).toString(),
+    total.time.toString(),
     currency(total.pay),
     total.punches + ' punch' + (total.punches === 1 ? '' : 'es')
   ], ' / ', ['(', ')'])
@@ -218,7 +230,6 @@ function projectSummary ({ name, pay, time, rate, stats }) {
 }
 
 module.exports = {
-  table,
   delimitedList,
   labelTable,
   reportHeader,
