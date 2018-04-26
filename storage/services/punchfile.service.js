@@ -1,108 +1,7 @@
-const fs = require('fs')
-const path = require('path')
-const { descendingBy } = require('../utils/sort-factories')
-
-module.exports = function (config) {
-  class Punch {
-    constructor (project, inTime = Date.now(), outTime = null, comments = []) {
-      this.project = project
-      this.in = new Date(inTime)
-      this.out = outTime ? new Date(outTime) : null
-      this.comments = comments.map(c => new Comment(c.comment || c, c.timestamp))
-
-      if (config.projects[project]) {
-        this.rate = config.projects[project].hourlyRate || 0
-      } else {
-        this.rate = 0
-      }
-    }
-
-    addComment (comment) {
-      this.comments.push(new Comment(comment))
-    }
-
-    punchOut (comment, options = {}) {
-      if (comment) {
-        this.addComment(comment)
-      }
-
-      this.out = options.time || new Date()
-
-      if (options.autosave) {
-        this.save()
-      }
-    }
-
-    toJSON () {
-      return {
-        project: this.project,
-        in: this.in.getTime(),
-        out: this.out ? this.out.getTime() : null,
-        rate: this.rate,
-        comments: this.comments.map(c => c.toJSON())
-      }
-    }
-
-    save () {
-      const file = Punchfile.forDate(new Date(this.in))
-      const existing = file.punches.find(p =>
-        p.in.getTime() === this.in.getTime() && p.project === this.project)
-
-      if (existing) {
-        file.punches.splice(file.punches.indexOf(existing), 1)
-      }
-
-      file.punches.push(this)
-      file.save()
-    }
-  }
-
-  Punch.current = function (project) {
-    const file = Punchfile.mostRecent()
-    return file.punches.find(p => p.out == null && (!project || p.project === project))
-  }
-
-  Punch.latest = function () {
-    const file = Punchfile.mostRecent()
-    return file.punches.sort(descendingBy('in'))[0]
-  }
-
-  Punch.select = function (test) {
-    let selected = []
-
-    Punchfile.each((file, next) => {
-      file.punches.forEach(punch => {
-        if (test(punch)) {
-          selected.push(punch)
-        }
-      })
-      next()
-    })
-
-    return selected
-  }
-
-  Punch.all = function () {
-    return this.select(() => true)
-  }
-
-  class Comment {
-    constructor (comment, timestamp = Date.now()) {
-      this.comment = comment
-      this.timestamp = new Date(timestamp)
-    }
-
-    toString () {
-      return this.comment
-    }
-
-    toJSON () {
-      return {
-        comment: this.comment,
-        timestamp: this.timestamp.getTime()
-      }
-    }
-  }
+module.exports = function PunchfileService (config, Punch) {
+  const fs = require('fs')
+  const path = require('path')
+  const { DateTime } = require('luxon')
 
   class Punchfile {
     constructor (props = {}) {
@@ -112,9 +11,7 @@ module.exports = function (config) {
       this.punches = []
 
       if (props.punches) {
-        this.punches = props.punches.map(p => {
-          return new Punch(p.project, p.in, p.out, p.comments)
-        })
+        this.punches = props.punches.map(p => new Punch(p))
       }
 
       const y = this.created.getFullYear()
@@ -179,13 +76,8 @@ module.exports = function (config) {
     return Punchfile.read(path.join(config.punchPath, latest))
   }
 
-  Punchfile.forDate = function (date = new Date()) {
-    const y = date.getFullYear()
-    const m = date.getMonth() + 1
-    const d = date.getDate()
-
-    const fileName = `punch_${y}_${m}_${d}.json`
-
+  Punchfile.forDate = function (date = DateTime.local()) {
+    const fileName = date.toFormat("'punch_'yyyy'_'M'_'d'.json'")
     return this.readOrCreate(path.join(config.punchPath, fileName))
   }
 
@@ -217,5 +109,48 @@ module.exports = function (config) {
     next()
   }
 
-  return Punch
+  return {
+    async save (punch) {
+      const file = Punchfile.forDate(punch.in)
+      let added = false
+      for (let i = 0; i < file.punches.length; i++) {
+        if (file.punches[i].id === punch.id) {
+          file.punches[i] = punch
+          added = true
+        }
+      }
+      if (!added) file.punches.push(punch)
+      return file.save()
+    },
+
+    async current (project) {
+      const file = Punchfile.mostRecent()
+      const latest = file.punches.pop()
+      if (latest && !latest.out) {
+        return latest
+      }
+    },
+
+    async latest (project) {
+      const file = Punchfile.mostRecent()
+      if (file) {
+        return file.punches.pop()
+      }
+    },
+
+    async select (test) {
+      const selected = []
+
+      Punchfile.each((file, next) => {
+        file.punches.forEach(punch => {
+          if (test(punch)) {
+            selected.push(punch)
+          }
+        })
+        next()
+      })
+
+      return selected
+    }
+  }
 }

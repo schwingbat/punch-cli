@@ -2,6 +2,7 @@ const loaders = {
   braille: ['⣾', '⣽', '⣻', '⢿', '⡿', '⣟', '⣯', '⣷'],
   spinner: ['|', '/', '-', '\\'],
   transfer: [
+    '[-------]',
     '[>------]',
     '[<>-----]',
     '[-<>----]',
@@ -9,38 +10,38 @@ const loaders = {
     '[---<>--]',
     '[----<>-]',
     '[-----<>]',
-    '[------<]',
+    '[------<]'
   ],
-  tris: ['◢', '◣', '◤', '◥'],
-};
+  tris: ['◢', '◣', '◤', '◥']
+}
 
-module.exports = function({ text, animation = 'braille', stopText, fps = 12 }) {
-  const chalk = require('chalk');
-  const logUpdate = require('log-update');
+module.exports = function ({ text, animation = 'braille', stopText, fps = 12 }) {
+  const chalk = require('chalk')
+  const logUpdate = require('log-update')
 
-  let interval;
-  let frames = loaders[animation];
-  let i = 0;
+  let interval
+  let frames = loaders[animation]
+  let i = 0
 
   return {
-    start() {
+    start () {
       if (!interval) {
-        i = 0;
-        console.log();
+        i = 0
+        console.log()
         interval = setInterval(() => {
-          logUpdate(chalk.yellow(frames[i]) + ' ' + text);
-          i = (i + 1) % frames.length;
-        }, 1000 / fps);
+          logUpdate(chalk.yellow(frames[i]) + ' ' + text)
+          i = (i + 1) % frames.length
+        }, 1000 / fps)
       }
     },
-    stop(stopText) {
-      clearInterval(interval);
-      interval = null;
-      i = 0;
+    stop (stopText) {
+      clearInterval(interval)
+      interval = null
+      i = 0
 
       if (stopText) {
-        logUpdate(stopText);
+        logUpdate(stopText)
       }
     }
-  };
-};
+  }
+}

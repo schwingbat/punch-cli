@@ -15,22 +15,23 @@ for (let i = 0; i < ARGS.length; i++) {
 
   if (arg[0] === '-') {
     switch (arg.toLowerCase()) {
-    case '-v':
-      console.log('punch v' + require('./package.json').version)
-      return
-    case '--verbose':
-      flags.VERBOSE = true
-      break
-    case '-b':
-    case '--benchmark':
-      flags.BENCHMARK = true
-      require('time-require')
-      break
-    case '-ns':
-    case '--nosync':
-    case '--no-sync':
-      flags.NO_SYNC = true
-      break
+      case '-v':
+        console.log('punch v' + require('./package.json').version)
+        process.exit()
+        break
+      case '--verbose':
+        flags.VERBOSE = true
+        break
+      case '-b':
+      case '--benchmark':
+        flags.BENCHMARK = true
+        require('time-require')
+        break
+      case '-ns':
+      case '--nosync':
+      case '--no-sync':
+        flags.NO_SYNC = true
+        break
     }
   }
 }
@@ -40,26 +41,23 @@ if (flags.BENCHMARK) {
 }
 
 // Dependencies
-const fs = require('fs')
 const path = require('path')
-
-global.appRoot = path.resolve(__dirname)
-
-const moment = require('moment')
 const readline = require('readline-sync')
 const chalk = require('chalk')
 const logUpdate = require('log-update')
 
 const config = require('./config')()
+const Storage = require('./storage')(config)
+const Punch = require('./punch/punch')(config, Storage)
 const Syncer = require('./sync/syncer')
 const Invoicer = require('./invoicing/invoicer')
 const Logger = require('./logging/log')
-const Punch = require('./punches/punch')(config)
-const TimeSpan = require('./time/timespan')
-const Duration = require('./time/duration')
 
-const { ascendingBy,
-        descendingBy } = require('./utils/sort-factories')
+const { Duration, DateTime } = require('luxon')
+const resolvePath = require('./utils/resolve-path')
+const fuzzyParse = require('./utils/fuzzy-parse')
+
+const { ascendingBy } = require('./utils/sort-factories')
 
 // Formatting
 const summaryfmt = require('./format/projsummary')
@@ -73,12 +71,12 @@ const { autoSync } = config.sync
 
 const { command, run, invoke } = CLI({
   name: 'punch',
-  version: require('./package.json').version,
+  version: require('./package.json').version
 })
 
-/*=========================*\
-||          Utils          ||
-\*=========================*/
+/* ========================= *\
+||           Utils           ||
+\* ========================= */
 
 const getLabelFor = name => {
   return config.projects[name]
@@ -86,33 +84,18 @@ const getLabelFor = name => {
     : name
 }
 
-const getRateFor = name => {
-  return config.projects[name]
-    ? config.projects[name].hourlyRate
-    : 0
-}
-
-const getFileFor = date => {
-  date = new Date(date)
-  const y = date.getFullYear()
-  const m = date.getMonth() + 1
-  const d = date.getDate()
-
-  return path.join(config.punchPath, `punch_${y}_${m}_${d}.json`)
-}
-
-const getMessageFor = (file) => {
-  // Returns a random message from the given file.
-  // Assumes the file is a JSON file containing an array of strings in the resources/messages/ folder.
-  try {
-    const options = require('./resources/messages/' + file + '.json')
-    const i = Math.round(Math.random() * options.length - 1)
-    console.log(options, i)
-    return options[i]
-  } catch (err) {
-    return 'BLORK'
-  }
-}
+// const getMessageFor = (file) => {
+//   // Returns a random message from the given file.
+//   // Assumes the file is a JSON file containing an array of strings in the resources/messages/ folder.
+//   try {
+//     const options = require('./resources/messages/' + file + '.json')
+//     const i = Math.round(Math.random() * options.length - 1)
+//     console.log(options, i)
+//     return options[i]
+//   } catch (err) {
+//     return 'BLORK'
+//   }
+// }
 
 const confirm = question => {
   let response
@@ -132,28 +115,28 @@ const confirm = question => {
 
 const handleSync = () => {
   if (autoSync && !flags.NO_SYNC) {
-    const syncer = Syncer(config, flags)
+    const syncer = new Syncer(config, Punch)
     syncer.sync()
   }
 }
 
-/*=========================*\
-||      Parse/Dispatch     ||
-\*=========================*/
+/* ========================= *\
+||       Parse/Dispatch      ||
+\* ========================= */
 
 command({
   signature: 'in <project>',
   description: 'start tracking time on a project',
-  run: function(args) {
-    const current = Punch.current()
+  run: async function (args) {
+    const current = await Punch.current()
 
     if (current) {
       console.log(`You're already punched in on ${getLabelFor(current.project)}! Punch out first.`)
     } else {
-      const punch = new Punch(args.project)
+      const punch = new Punch({ project: args.project })
       punch.save()
 
-      const time = moment().format(config.timeFormat)
+      const time = DateTime.local().toFormat(config.timeFormat)
       console.log(`Punched in on ${getLabelFor(args.project)} at ${time}.`)
 
       handleSync()
@@ -163,23 +146,22 @@ command({
 
 command({
   signature: 'out [*comment]',
-  description: 'stop tracking time and record an optional description of tasks completed', 
-  run: function(args) {
-    const current = Punch.current()
+  description: 'stop tracking time and record an optional description of tasks completed',
+  run: async function (args) {
+    const current = await Punch.current()
 
     if (current) {
       current.punchOut(args.comment, { autosave: true })
 
       const label = getLabelFor(current.project)
-      const time = moment().format(config.timeFormat)
-      const duration = new Duration(current.out - current.in)
-      const pay = duration.totalHours() * getRateFor(current.project)
+      const time = DateTime.local().toFormat(config.timeFormat)
+      const duration = Duration.fromMillis(current.out - current.in)
+      const pay = duration.as('hours') * current.rate
 
       let str = `Punched out on ${label} at ${time}. Worked for ${duration}`
       if (pay > 0) {
-         str += ` and earned ${currency(pay)}`
+        str += ` and earned ${currency(pay)}`
       }
-
       console.log(str + '.')
 
       handleSync()
@@ -192,39 +174,39 @@ command({
 command({
   signature: 'comment <*comment>',
   description: 'add a comment to remember what you worked on',
-  run: function(args) {
-    const current = Punch.current()
+  run: async function (args) {
+    const current = await Punch.current()
 
     if (!current) {
-      const latest = Punch.latest()
+      const latest = await Punch.latest()
 
       let label = getLabelFor(latest.project)
-      let inTime = moment(latest.in)
-      let outTime = moment(latest.out)
+      let inTime = latest.in
+      let outTime = latest.out
       let date = Date.now()
 
       let format = ''
 
-      if (inTime.date() !== date || outTime.date() !== date) {
+      if (inTime.day !== date || outTime.day !== date) {
         format = config.dateTimeFormat
       } else {
         format = config.timeFormat
       }
 
-      inTime = inTime.format(format)
-      outTime = outTime.format(format)
+      inTime = inTime.toFormat(format)
+      outTime = outTime.toFormat(format)
 
       let str = `You're not punched in. Add to last punch on '${label}' (${inTime} - ${outTime})?`
 
       if (confirm(str)) {
         latest.addComment(args.comment)
-        latest.save()
+        await latest.save()
 
         handleSync()
       }
     } else {
       current.addComment(args.comment)
-      current.save()
+      await current.save()
 
       console.log('Comment saved.')
       handleSync()
@@ -235,7 +217,7 @@ command({
 command({
   signature: 'create <project> <timeIn> <timeOut> [*comment]',
   description: 'create a punch',
-  run: function(args) {
+  run: function (args) {
     const { project, timeIn, timeOut, comment } = args
 
     let punchIn, punchOut
@@ -274,7 +256,12 @@ command({
     str += '\nCreate this punch?'
 
     if (confirm(str)) {
-      const punch = new Punch(project, punchIn.getTime(), punchOut.getTime(), [comment])
+      const punch = new Punch({
+        project,
+        in: punchIn.getTime(),
+        out: punchOut.getTime(),
+        comments: [comment]
+      })
       punch.save()
 
       console.log('Punch created!')
@@ -289,17 +276,17 @@ command({
   description: 'destroy all punches for a given project',
   hidden: true,
   // disabled: true,
-  run: function(args) {
+  run: async function (args) {
     const { project } = args
     const label = getLabelFor(project)
-    const punches = Punch.select(p => p.project === project)
+    const punches = await Punch.select(p => p.project === project)
 
     if (punches.length > 0) {
       const totalTime = punches.reduce((sum, p) =>
         sum + ((p.out || Date.now()) - p.in), 0)
 
       // Confirm and commit changes to files.
-      const confirmString = `Purging ${label} would delete ${punches.length} punch${punches.length == 1 ? '' : 'es'} totalling ${new Duration(totalTime)}.`
+      const confirmString = `Purging ${label} would delete ${punches.length} punch${punches.length === 1 ? '' : 'es'} totalling ${new Duration(totalTime)}.`
 
       console.log(confirmString)
 
@@ -328,18 +315,17 @@ command({
 command({
   signature: 'now',
   description: 'show the status of the current session',
-  run: function() {
-    const active = Punch.current()
+  run: async function () {
+    const active = await Punch.current()
 
     if (active) {
-      const duration = new Duration(Date.now() - active.in)
-      const rate = getRateFor(active.project)
-      const pay = duration.totalHours() * getRateFor(active.project)
-      const punchedIn = moment(active.timestamp).format(config.timeFormat)
+      const duration = Duration.fromMillis(Date.now() - active.in)
+      const pay = duration.as('hours') * active.rate
+      const punchedIn = DateTime.fromMillis(active.timestamp).toFormat(config.timeFormat)
 
       let str = `You've been working on ${getLabelFor(active.project)} since ${punchedIn} (${duration} ago).`
 
-      if (rate) {
+      if (active.rate) {
         str += ` Earned ${currency(pay)}.`
       }
 
@@ -350,14 +336,14 @@ command({
   }
 })
 
-command ({
+command({
   signature: 'watch',
   description: 'continue running to show automatically updated stats of your current session',
-  run: function() {
-    const active = Punch.current()
+  run: async function () {
+    const active = await Punch.current()
     const clock = require('./utils/big-clock')({
       style: 'clockBlockDots',
-      letterSpacing: 1,
+      letterSpacing: 1
     })
 
     if (active) {
@@ -390,7 +376,7 @@ command ({
 command({
   signature: 'project <name>',
   description: 'get statistics for a specific project',
-  run: function(args) {
+  run: function (args) {
     invoke(`projects ${args.name || ''}`)
   }
 })
@@ -398,56 +384,52 @@ command({
 command({
   signature: 'projects [names...]',
   description: 'show statistics for all projects in your config file',
-  run: function(args) {
+  run: async function (args) {
     let { names } = args
 
     if (!names) {
       names = Object.keys(config.projects)
     }
 
-    const allPunches = Punch.all().sort(ascendingBy('in'))
+    const allPunches = await Punch.all().sort(ascendingBy('in'))
 
     const summaries = []
 
     for (let i = 0; i < names.length; i++) {
       const project = names[i]
+      const punches = allPunches.filter(p => p.project === project)
 
-      const punches = allPunches
-          .filter(p => p.project === project)
+      if (punches.length > 0) {
+        let firstPunch = punches[0]
+        let latestPunch = punches[punches.length - 1]
 
-      if (punches.length === 0) {
-        continue
+        const projectData = config.projects[project]
+        const fullName = projectData
+          ? projectData.name
+          : project
+        const totalTime = punches.reduce(
+          (sum, punch) =>
+            sum + ((punch.out || Date.now()) - punch.in - (punch.rewind || 0)),
+          0)
+        const totalHours = (totalTime / 3600000)
+        const totalPay = projectData && projectData.hourlyRate
+          ? totalHours * projectData.hourlyRate
+          : 0
+        const hourlyRate = projectData && projectData.hourlyRate
+          ? projectData.hourlyRate
+          : 0
+
+        summaries.push({
+          fullName,
+          totalTime,
+          totalHours,
+          totalPay,
+          hourlyRate,
+          firstPunch,
+          latestPunch,
+          totalPunches: punches.length
+        })
       }
-
-      let firstPunch = punches[0]
-      let latestPunch = punches[punches.length - 1]
-
-      const projectData = config.projects[project]
-      const fullName = projectData
-        ? projectData.name
-        : project
-      const totalTime = punches.reduce(
-        (sum, punch) =>
-          sum + ((punch.out || Date.now()) - punch.in - (punch.rewind || 0)),
-        0)
-      const totalHours = (totalTime / 3600000)
-      const totalPay = projectData && projectData.hourlyRate
-        ? totalHours * projectData.hourlyRate
-        : 0
-      const hourlyRate = projectData && projectData.hourlyRate
-        ? projectData.hourlyRate
-        : 0
-
-      summaries.push({
-        fullName,
-        totalTime,
-        totalHours,
-        totalPay,
-        hourlyRate,
-        firstPunch,
-        latestPunch,
-        totalPunches: punches.length,
-      })
     }
 
     summaries
@@ -463,11 +445,11 @@ command({
     signature: '--project, -p <name>',
     description: 'show only punches for this project'
   }],
-  run: function(args) {
-    const span = TimeSpan.fuzzyParse(args.when || 'today')
+  run: function (args) {
+    const interval = fuzzyParse(args.when || 'today').interval()
 
-    if (span) {
-      Logger(config, flags).forTimeSpan(span, args.options.project)
+    if (interval) {
+      Logger(config, Punch).forInterval(interval, args.options.project)
     }
   }
 })
@@ -476,7 +458,7 @@ command({
   signature: 'today',
   description: 'show a summary of today\'s punches (alias of "punch log today")',
   hidden: true,
-  run: function() {
+  run: function () {
     invoke('log today')
   }
 })
@@ -485,7 +467,7 @@ command({
   signature: 'yesterday',
   description: 'show a summary of yesterday\'s punches (alias of "punch log yesterday")',
   hidden: true,
-  run: function() {
+  run: function () {
     invoke('log yesterday')
   }
 })
@@ -494,7 +476,7 @@ command({
   signature: 'week',
   description: 'show a summary of punches for the current week (alias of "punch log this week")',
   hidden: true,
-  run: function() {
+  run: function () {
     invoke('log this week')
   }
 })
@@ -503,7 +485,7 @@ command({
   signature: 'month',
   description: 'show a summary of punches for the current month (alias of "punch log this month")',
   hidden: true,
-  run: function() {
+  run: function () {
     invoke('log this month')
   }
 })
@@ -511,8 +493,8 @@ command({
 command({
   signature: 'invoice <project> <startDate> <endDate> <outputFile>',
   description: 'automatically generate an invoice using punch data',
-  run: function(args) {
-    const active = Punch.current()
+  run: async function (args) {
+    const active = await Punch.current()
 
     if (active && active.project === args.project) {
       return console.log(`You're currently punched in on ${getLabelFor(active.project)}. Punch out before creating an invoice.`)
@@ -527,14 +509,12 @@ command({
     }
 
     if (!projectData.hourlyRate) {
-      let message = "Can't invoice for nothing!"
-
-      console.log(`${getLabelFor(project)} has no hourlyRate set. ${getMessageFor('no_hourly_rate')}`)
+      console.log(`${getLabelFor(project)} has no hourly rate set}`)
       return
     }
 
-    startDate = moment(startDate, 'MM-DD-YYYY').startOf('day')
-    endDate = moment(endDate, 'MM-DD-YYYY').endOf('day')
+    startDate = DateTime.fromFormat(startDate, 'MM-DD-YYYY').startOf('day')
+    endDate = DateTime.fromFormat(endDate, 'MM-DD-YYYY').endOf('day')
 
     let format
     let ext = path.extname(outputFile)
@@ -560,22 +540,17 @@ command({
       { label: 'Start Date', value: startDate.format('dddd, MMM Do YYYY') },
       { label: 'End Date', value: endDate.format('dddd, MMM Do YYYY') },
       { label: 'Invoice Format', value: format },
-      { label: 'Output To', value: resolvePath(outputFile) },
+      { label: 'Output To', value: resolvePath(outputFile) }
     ])
     console.log(str)
 
-    let response
-
     if (confirm('Create invoice?')) {
-      const sqlish = SQLish(config, flags)
       const invoicer = Invoicer(config, flags)
 
-      const punches = sqlish.select()
-        .from('punches')
-        .where(p => p.project === project
-                 && p.in >= startDate.valueOf()
-                 && p.in <= endDate.valueOf())
-        .run()
+      const punches = await Punch.select(p =>
+        p.project === project &&
+        p.in.valueOf() >= startDate.valueOf() &&
+        p.in.valueOf() <= endDate.valueOf())
 
       const data = {
         startDate,
@@ -584,7 +559,7 @@ command({
         project: projectData,
         user: config.user,
         output: {
-          path: resolvePath(outputFile),
+          path: resolvePath(outputFile)
         }
       }
 
@@ -596,7 +571,7 @@ command({
 command({
   signature: 'sync',
   description: 'synchronize with any providers in your config file',
-  run: function() {
+  run: function () {
     Syncer(config, flags).sync()
   }
 })
@@ -604,7 +579,7 @@ command({
 command({
   signature: 'config [editor]',
   description: 'open config file in editor - uses EDITOR env var unless an editor command is specified.',
-  run: function(args) {
+  run: function (args) {
     const editor = args.editor || process.env.EDITOR
 
     if (!editor) {
@@ -614,9 +589,9 @@ command({
     const spawn = require('child_process').spawn
     const configPath = config.configPath
 
-    console.log(editor, configPath)
+    // console.log(editor, configPath)
 
-    const child = spawn(editor, [configPath], { stdio: 'inherit' })
+    spawn(editor, [configPath], { stdio: 'inherit' })
   }
 })
 
@@ -624,7 +599,7 @@ command({
   signature: 'edit [date] [editor]',
   description: 'edit punchfile for the given date - uses EDITOR env var unless and editor command is specified',
   hidden: true,
-  run: function(args) {
+  run: function (args) {
     const editor = args.editor || process.env.EDITOR
     const date = moment(args.date || moment(), 'MM/DD/YYYY').startOf('day')
     const fs = require('fs')
@@ -637,15 +612,14 @@ command({
     const m = date.month() + 1
     const d = date.date()
 
-    const filename = 'punch_' + y + '_' + m + '_' + d + '.json';
+    const filename = 'punch_' + y + '_' + m + '_' + d + '.json'
     const file = path.join(config.punchPath, filename)
 
     if (!fs.existsSync(file)) {
       console.warn(chalk.red('File doesn\'t exist.'))
     }
 
-    const spawn = require('child_process').spawn
-    const child = spawn(editor, [file], { stdio: 'inherit' })
+    require('child_process').spawn(editor, [file], { stdio: 'inherit' })
   }
 })
 
@@ -653,7 +627,7 @@ command({
   signature: 'timestamp <time>',
   description: 'get a millisecond timestamp for a given time (mm/dd/yyyy@hh:mm:ss)',
   hidden: true,
-  run: function(args) {
+  run: function (args) {
     const date = moment(args.time, 'MM/DD/YYYY@hh:mm:ssa')
     console.log(date.valueOf() + chalk.grey(' << ') + date.format('MMM Do YYYY, hh:mm:ssa'))
   }
@@ -668,7 +642,7 @@ command({
     description: 'target schema version number',
     parse: val => parseInt(val)
   }],
-  run: function(args) {
+  run: function (args) {
     const version = parseInt(args.to)
     const fs = require('fs')
     const path = require('path')

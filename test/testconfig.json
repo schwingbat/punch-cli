@@ -14,7 +14,11 @@
   },
   "sync": {
     "autoSync": false,
-    "providers": {}
+    "services": [{
+      "name": "dummy"
+    }, {
+      "name": "nope"
+    }]
   },
   "punchPath": "~/test",
   "textColors": false

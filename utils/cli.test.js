@@ -3,11 +3,11 @@ const CLI = require('./cli')
 const {
   parseSignature,
   mapArgs
-} = CLI.___;
+} = CLI.___
 
-/*=======================*\
-||      Args Parsing     ||
-\*=======================*/
+/* ======================= *\
+||       Args Parsing      ||
+\* ======================= */
 
 describe('parseSignature', () => {
   it('returns empty argMap array if no params are named', () => {
@@ -20,20 +20,20 @@ describe('parseSignature', () => {
         name: 'one',
         optional: false,
         multiple: false,
-        splat: false,
+        splat: false
       },
       {
         name: 'two',
         optional: false,
         multiple: false,
-        splat: false,
+        splat: false
       },
       {
         name: 'three',
         optional: false,
         multiple: false,
-        splat: false,
-      },
+        splat: false
+      }
     ])
   })
 
@@ -43,13 +43,13 @@ describe('parseSignature', () => {
         name: 'one',
         optional: false,
         multiple: false,
-        splat: false,
+        splat: false
       },
       {
         name: 'two',
         optional: true,
         multiple: false,
-        splat: false,
+        splat: false
       }
     ])
   })
@@ -60,14 +60,14 @@ describe('parseSignature', () => {
         name: 'one',
         optional: false,
         multiple: false,
-        splat: false,
+        splat: false
       },
       {
         name: 'two',
         optional: true,
         multiple: true,
-        splat: false,
-      },
+        splat: false
+      }
     ])
   })
 
@@ -77,14 +77,14 @@ describe('parseSignature', () => {
         name: 'one',
         optional: false,
         multiple: false,
-        splat: false,
+        splat: false
       },
       {
         name: 'two',
         optional: true,
         multiple: false,
-        splat: true,
-      },
+        splat: true
+      }
     ])
   })
 
@@ -95,9 +95,9 @@ describe('parseSignature', () => {
   })
 })
 
-/*=======================*\
-||      Args Mapping     ||
-\*=======================*/
+/* ======================= *\
+||       Args Mapping      ||
+\* ======================= */
 
 describe('mapArgs', () => {
   it('maps args to empty object when no args are passed', () => {
@@ -105,25 +105,25 @@ describe('mapArgs', () => {
   })
 
   it('maps args to proper names', () => {
-    const args = ['command', 'fish', 'potato', '5'];
+    const args = ['command', 'fish', 'potato', '5']
     const argMap = [
       {
         name: 'one',
-        optional: false,
+        optional: false
       },
       {
         name: 'two',
-        optional: false,
+        optional: false
       },
       {
         name: 'number',
-        optional: false,
+        optional: false
       },
       {
         name: 'shark',
         optional: true
       }
-    ];
+    ]
 
     expect(mapArgs(args.slice(1), argMap)).toEqual({
       one: 'fish',

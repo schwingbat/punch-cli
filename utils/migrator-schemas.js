@@ -33,13 +33,16 @@ exports.V3 = {
   updated: Number,
   punches: [
     {
+      id: String, // UUID
       project: String,
       in: Number,
       out: Number,
       rate: Number, // Hourly rate
       comments: [
         { timestamp: Number, comment: String }
-      ]
+      ],
+      created: Number,
+      updated: Number
     }
   ]
 }

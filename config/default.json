@@ -13,11 +13,12 @@
   "clients": {},
   "sync": {
     "autoSync": false,
-    "backends": {}
+    "services": []
   },
-  "dateFormat": "MMM Do YYYY",
-  "timeFormat": "h[:]mm A",
-  "dateTimeFormat": "MMM Do YYYY h[:]mm A",
+  "dateFormat": "EEEE, MMMM d yyyy",
+  "timeFormat": "t",
+  "dateTimeFormat": "EEEE, MMMM d yyyy t",
   "textColors": true,
-  "punchPath": "~/.punch/punches"
+  "punchPath": "~/.punch/punches",
+  "storageType": "punchfile"
 }

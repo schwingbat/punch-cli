@@ -1,4 +1,4 @@
-module.exports = function(configPath) {
+module.exports = function (configPath) {
   const fs = require('fs')
   const path = require('path')
   const home = require('os').homedir()

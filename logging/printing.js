@@ -2,12 +2,12 @@
   Contains all the reusable methods for producing
   different headers and entries for reports.
 */
-
-const moment = require('moment')
 const chalk = require('chalk')
-const Duration = require('../time/duration')
+const { Duration, DateTime } = require('luxon')
 const Table = require('../format/table')
-const currency = require('../format/currency')
+const formatCurrency = require('../format/currency')
+const formatDuration = require('../format/duration')
+const config = require('../config')()
 
 function delimitedList (items, inners = ' / ', outers) {
   let joined = items.filter(i => i).join(chalk.grey(inners))
@@ -19,12 +19,10 @@ function delimitedList (items, inners = ' / ', outers) {
 
 const labelTable = (items) => {
   let str = ''
-  let length = items.reduce(
-      (longest, item) =>
-        item.label && item.label.length > longest
-          ? item.label.length
-          : longest,
-        0)
+  let length = items.reduce((longest, item) =>
+    item.label && item.label.length > longest
+      ? item.label.length
+      : longest, 0)
 
   items.forEach(({ label, value }) => {
     if (!label) {
@@ -37,18 +35,18 @@ const labelTable = (items) => {
   return str
 }
 
-function reportHeader(text, stats) {
+function reportHeader (text, stats) {
   let str = '\n'
 
-  str += /*'▋  ' + */' ' + chalk.bold(text) + '\n'
+  str += ' ' + chalk.bold(text) + '\n'
   if (stats) {
-    str += /*'▋  ' + */' ' + delimitedList(stats)
+    str += ' ' + delimitedList(stats)
   }
 
   return str
 }
 
-function projectHeader(text, stats) {
+function projectHeader (text, stats) {
   let str = ''
 
   str += chalk.bold.yellow(' ' + text)
@@ -59,16 +57,20 @@ function projectHeader(text, stats) {
   return str
 };
 
-function daySessions(sessions) {
+function daySessions (sessions) {
   let str = ''
 
   sessions.forEach(session => {
     str += '     '
 
-    if (session.timeSpan.slice(session.timeSpan.length - 3).toLowerCase() === 'now') {
-      str += chalk.bold.green(session.timeSpan)
+    const timeIn = session.in.toFormat(config.timeFormat)
+    const timeOut = (session.out || DateTime.local()).toFormat(config.timeFormat)
+    const timeSpan = timeIn.padStart(8) + ' - ' + timeOut.padStart(8)
+
+    if (!session.out) {
+      str += chalk.bold.green(timeSpan)
     } else {
-      str += chalk.cyan(session.timeSpan)
+      str += chalk.cyan(timeSpan)
     }
 
     if (session.comments.length > 0) {
@@ -98,8 +100,8 @@ function dayPunches (punches, projects, config) {
 
   for (let i = 0; i < punches.length; i++) {
     const punch = punches[i]
-    const start = moment(punch.in).format(config.timeFormat).padStart(7)
-    const end = (punch.current ? 'Now' : moment(punch.out).format(config.timeFormat)).padStart(7)
+    const start = punch.in.toFormat(config.timeFormat).padStart(7)
+    const end = (!punch.out ? 'Now' : punch.out.toFormat(config.timeFormat)).padStart(7)
     const timeSpan = `${start} - ${end}`
     const project = projects.find(p => p.alias === punch.project)
     const projectName = project ? project.name : punch.project
@@ -150,7 +152,7 @@ function summaryTable (projects) {
   let str = ''
 
   let total = {
-    time: new Duration(),
+    time: Duration.fromMillis(),
     pay: 0,
     punches: 0
   }
@@ -182,8 +184,8 @@ function summaryTable (projects) {
 
     table.push([
       chalk.yellow(project.name),
-      project.time.toString({ padded: true }),
-      currency(project.pay),
+      formatDuration(project.time, { padded: true }),
+      formatCurrency(project.pay),
       project.punches + ' punch' + (project.punches === 1 ? '' : 'es')
     ])
   })
@@ -192,8 +194,8 @@ function summaryTable (projects) {
 
   str += '\n' + chalk.bold.cyan('TOTAL') + ' '
   str += delimitedList([
-    total.time.toString(),
-    currency(total.pay),
+    formatDuration(total.time),
+    formatCurrency(total.pay),
     total.punches + ' punch' + (total.punches === 1 ? '' : 'es')
   ], ' / ', ['(', ')'])
 
@@ -203,7 +205,7 @@ function summaryTable (projects) {
 function projectDay ({ date, stats, sessions }) {
   let str = ''
 
-  str += chalk.grey('   ⸭ ') + chalk.bold.white(date.format('MMM Do, dddd'))
+  str += chalk.grey('   ⸭ ') + chalk.bold.white(date.toFormat(config.dateFormat))
   if (stats) {
     str += ' ' + delimitedList(stats, ' / ', ['(', ')']) + '\n'
   }

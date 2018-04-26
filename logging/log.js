@@ -1,7 +1,7 @@
-const Duration = require('../time/duration')
+const { Duration } = require('luxon')
 const { descendingBy } = require('../utils/sort-factories')
 
-function summarize (punches, config) {
+function summarize (config, punches) {
   const projects = {}
 
   for (let i = 0; i < punches.length; i++) {
@@ -24,14 +24,14 @@ function summarize (punches, config) {
         name: project ? project.name : name,
         punches: 0,
         pay: 0,
-        time: new Duration()
+        time: Duration.fromMillis(0)
       }
     }
 
-    const duration = new Duration((punch.out || now) - punch.in)
+    const duration = Duration.fromMillis((punch.out || now) - punch.in)
 
     projects[name].punches += 1
-    projects[name].pay += duration.totalHours() * rate
+    projects[name].pay += duration.as('hours') * rate
     projects[name].time = projects[name].time.plus(duration)
   }
 
@@ -44,25 +44,23 @@ function summarize (punches, config) {
     })
   }
 
-  return projectArray.sort(descendingBy(t => t.time.totalMilliseconds()))
+  return projectArray.sort(descendingBy(t => t.time.as('milliseconds')))
 }
 
-module.exports = function Reporter(config, flags) {
-  const Punch = require('../punches/punch')(config)
-
+module.exports = function Logger (config, Punch) {
   const printDay = require('./log-day')
   // const printWeek = require('./log-week')
   const printMonth = require('./log-month')
 
   return {
-    forTimeSpan (span, project) {
-      const punches = Punch.select(p => {
-        return (!project || p.project === project)
-            && p.in >= span.start
-            && p.in <= span.end
+    async forInterval (interval, project) {
+      const punches = await Punch.select(p => {
+        return (!project || p.project === project) &&
+                p.in.valueOf() >= interval.start.valueOf() &
+                p.in.valueOf() <= interval.end.valueOf()
       })
 
-      let days = span.totalHours() / 24
+      let days = interval.length('days')
 
       if (days > 31) {
         console.log('Yearly logs are not implemented yet.')
@@ -70,9 +68,9 @@ module.exports = function Reporter(config, flags) {
         printMonth({
           config,
           punches,
-          date: span.start,
+          date: interval.start,
           project,
-          summary: summarize(punches, config)
+          summary: summarize(config, punches)
         })
       } else if (days > 1) {
         console.log('Weekly logs are not implemented yet')
@@ -80,11 +78,12 @@ module.exports = function Reporter(config, flags) {
         printDay({
           config,
           punches,
-          date: span.start,
+          date: interval.start,
           project,
-          summary: summarize(punches, config)
+          summary: summarize(config, punches)
         })
       }
-    }
+    },
+    _summarize: summarize
   }
 }

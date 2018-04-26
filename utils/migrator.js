@@ -1,124 +1,125 @@
 // Migrate punchfiles from one format to another.
 
 // const schemas = require('./migrator-schemas.js')
-// const fs = require('fs')
-// const path = require('path')
-const config = require('../config')
 
-function V1toV2 (obj) {
-  // Add created
-  let newCreated
+module.exports = function (config) {
+  function V1toV2 (obj) {
+    // Add created
+    let newCreated
 
-  if (obj.punches[0]) {
-    newCreated = obj.punches[0].in
+    if (obj.punches[0]) {
+      newCreated = obj.punches[0].in
+    }
+
+    return {
+      created: newCreated,
+      updated: obj.updated,
+      punches: obj.punches.map(punch => {
+        return {
+          project: punch.project,
+          in: punch.in,
+          out: punch.out || null,
+          rewind: punch.rewind,
+          comments: punch.comment != null ? [punch.comment] : []
+        }
+      })
+    }
   }
 
-  return {
-    created: newCreated,
-    updated: obj.updated,
-    punches: obj.punches.map(punch => {
-      return {
-        project: punch.project,
-        in: punch.in,
-        out: punch.out || null,
-        rewind: punch.rewind,
-        comments: punch.comment != null ? [punch.comment] : []
-      }
+  function V2toV3 (obj) {
+    return {
+      version: 3,
+      created: obj.created,
+      updated: obj.updated,
+      punches: obj.punches.map(punch => {
+        return {
+          project: punch.project,
+          in: punch.in,
+          out: punch.out || null,
+          rate: config.projects[punch.project]
+            ? config.projects[punch.project].hourlyRate || 0.0
+            : 0.0,
+          comments: punch.comments
+            .filter(c => typeof c === 'string')
+            .map(c => ({
+              timestamp: punch.out || Date.now(),
+              comment: c
+            }))
+        }
+      })
+    }
+  }
+
+  function pass (obj) {
+    return obj
+  }
+
+  // Make sure the objects conform to the version they say they are.
+
+  function conformToV1 (obj) {
+    return obj
+  }
+
+  function conformToV2 (obj) {
+    // Make sure punch comments don't have nulls
+    obj.punches = obj.punches.map(punch => {
+      punch.comments = punch.comments.filter(c => c != null)
+      return punch
     })
-  }
-}
 
-function V2toV3 (obj) {
-  return {
-    version: 3,
-    created: obj.created,
-    updated: obj.updated,
-    punches: obj.punches.map(punch => {
-      return {
-        project: punch.project,
-        in: punch.in,
-        out: punch.out || null,
-        rate: config.projects[punch.project]
-          ? config.projects[punch.project].hourlyRate || 0.0
-          : 0.0,
-        comments: punch.comments
-          .filter(c => typeof c === 'string')
-          .map(c => ({
-            timestamp: punch.out || Date.now(),
-            comment: c
-          }))
-      }
+    return obj
+  }
+
+  function conformToV3 (obj) {
+    return obj
+  }
+
+  // Migration paths from one version to another.
+  // Invalid conversions will simply return the unaltered object
+  const migrations = [
+    [[1, 1], [pass, conformToV1]],
+    [[1, 2], [V1toV2]],
+    [[1, 3], [V1toV2, V2toV3]],
+
+    [[2, 1], [pass, conformToV2]],
+    [[2, 2], [pass, conformToV2]],
+    [[2, 3], [V2toV3, conformToV3]],
+
+    [[3, 1], [pass, conformToV3]],
+    [[3, 2], [pass, conformToV3]],
+    [[3, 3], [pass, conformToV3]]
+  ]
+
+  function getPunchFileVersion (obj) {
+    if (obj.version === 3) {
+      return 3
+    }
+
+    if (obj.created && obj.updated) {
+      return 2
+    }
+
+    if (obj.updated && !obj.created) {
+      return 1
+    }
+  }
+
+  function migrate (from, to, file) {
+    let migration = migrations.find(m => {
+      let [versionFrom, versionTo] = m[0]
+      return versionFrom === from && versionTo === to
     })
-  }
-}
 
-function pass (obj) {
-  return obj
-}
+    let pipeline = migration[1]
 
-// Make sure the objects conform to the version they say they are.
+    let migrated = file
 
-function conformToV1 (obj) {
-  return obj
-}
+    pipeline.forEach(func => {
+      migrated = func(migrated)
+    })
 
-function conformToV2 (obj) {
-  // Make sure punch comments don't have nulls
-  obj.punches = obj.punches.map(punch => {
-    punch.comments = punch.comments.filter(c => c != null)
-    return punch
-  })
-
-  return obj
-}
-
-function conformToV3 (obj) {
-  return obj
-}
-
-// Migration paths from one version to another.
-// Invalid conversions will simply return the unaltered object
-const migrations = [
-  [[1, 1], [pass, conformToV1]],
-  [[1, 2], [V1toV2]],
-  [[1, 3], [V1toV2, V2toV3]],
-
-  [[2, 1], [pass, conformToV2]],
-  [[2, 2], [pass, conformToV2]],
-  [[2, 3], [V2toV3, conformToV3]],
-
-  [[3, 1], [pass, conformToV3]],
-  [[3, 2], [pass, conformToV3]],
-  [[3, 3], [pass, conformToV3]]
-]
-
-exports.getPunchfileVersion = function getPunchfileVersion(obj) {
-  if (obj.version === 3) {
-    return 3
+    return migrated
   }
 
-  if (obj.created && obj.updated) {
-    return 2
-  }
-
-  if (obj.updated && !obj.created) {
-    return 1
-  }
-}
-
-exports.migrate = function (from, to, file) {
-  let migration = migrations.find(m => {
-    let [versionFrom, versionTo] = m[0]
-    return versionFrom === from && versionTo === to
-  })
-
-  let pipeline = migration[1]
-
-  let migrated = file
-
-  pipeline.forEach(func => {
-    migrated = func(migrated)
-  })
-
-  return migrated
+  return { migrate, getPunchFileVersion }
 }

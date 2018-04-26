@@ -1,181 +1,97 @@
-const capitalize = (str) => {
-  return str[0].toUpperCase() + str.slice(1)
-}
+const fs = require('fs')
+const path = require('path')
+const logUpdate = require('log-update')
+const Loader = require('../utils/loader')
+const SyncService = require('./syncservice')
 
-module.exports = function(config, flags) {
-  const fs = require('fs')
-  const path = require('path')
-  const chalk = require('chalk')
-  const logUpdate = require('log-update')
-  const Loader = require('../utils/loader')
-  const { write } = process.stdout
+class Syncer {
+  constructor (config, Punch) {
+    if (!config) {
+      throw new Error('Syncer requires a config object as the first parameter')
+    }
+    if (!Punch) {
+      throw new Error('Syncer requires the Punch class to be passed as the second parameter')
+    }
 
-  const { VERBOSE } = flags
-  const backends = {}
+    this._config = config
+    this._punch = Punch
+  }
 
-  const { punchPath, configPath } = config
+  _loadService (service) {
+    if (service instanceof SyncService) {
+      return service
+    }
 
-  backends.load = function(name) {
-    if (!config.sync.backends[name]) {
-      console.log(`Backend ${name} is not configured in config.sync.backends.`)
+    if (typeof service !== 'string') {
+      throw new Error('_loadService requires either a string or instance of SyncService')
+    }
+
+    const conf = this._config.sync.services
+      .find(s => s.name.toLowerCase() === service.toLowerCase())
+
+    if (conf) {
+      const modulePath = path.join(__dirname, 'services', service.toLowerCase() + '.service.js')
+      if (fs.existsSync(modulePath)) {
+        const Service = require(modulePath)
+        return new Service(conf)
+      } else {
+        throw new Error(`Service ${service} is not (yet) supported.`)
+      }
     } else {
-      let conf = config.sync.backends[name]
-      let module
-      try {
-        return require(`./${name.toLowerCase()}.backend.js`)(config.sync.backends[name], flags)
-      } catch (err) {
-        console.log(`Backend ${name} is not (yet) supported by Punch.`, err)
-      }
+      throw new Error(`Service ${service} is not configured in config.sync.services`)
     }
   }
 
-  function diff(manifest) {
-    return new Promise((resolve, reject) => {
-      const uploads = [];
-      const downloads = [];
-      let total = 0;
-      let done = 0;
+  async _diff (manifest) {
+    const punches = this._punch.all()
 
-      for (const file in manifest) {
-        total += 1;
+    const uploads = punches.filter(punch => {
+      // Upload if punch doesn't exist remotely or if local copy is newer.
+      return !manifest[punch.id] || manifest[punch.id] < punch.updated
+    })
+
+    const downloads = []
+    for (const id in manifest) {
+      // Download if punch doesn't exist locally or if remote copy is newer.
+      const punch = punches.find(p => p.id === id)
+      if (!punch || punch.updated < manifest[id]) {
+        downloads.push(id)
       }
-
-      // Check for files in sync manifest.
-      for (const file in manifest) {
-        try {
-          const f = JSON.parse(fs.readFileSync(path.join(punchPath, file), 'utf8'));
-
-          if (!manifest[file] || f.updated > manifest[file]) {
-            uploads.push(file)
-          } else if (f.updated < manifest[file]) {
-            downloads.push(file);
-          }
-        } catch (err) {
-          downloads.push(file);
-        }
-      }
-
-      fs.readdirSync(punchPath).forEach(file => {
-        if (!manifest[file]) {
-          uploads.push(file);
-        }
-      });
-      if (VERBOSE) console.log(`Finished diffing ${total} files.`);
-      return resolve({ uploads, downloads, manifest });
-    });
-  }
-
-  async function writeFiles(results) {
-    if (results.downloaded) {
-      let count = 0;
-      for (const name in results.downloaded) {
-        const d = results.downloaded[name];
-        fs.writeFileSync(path.join(config.punchPath, name), JSON.stringify(d, null, 2));
-      }
-      if (VERBOSE && count > 0) console.log(`Wrote ${count} downloaded files.`);
-    }
-    return results;
-  }
-
-  async function readFiles(results) {
-    if (VERBOSE && results.uploads.length > 0) console.log(`Reading contents of files to be uploaded.`);
-
-    let count = 0;
-    const uploadable = {};
-    results.uploads.forEach(u => {
-      count += 1;
-      uploadable[u] = JSON.parse(fs.readFileSync(path.join(punchPath, u), 'utf8'));
-    });
-    results.uploadable = uploadable;
-
-    if (VERBOSE && count > 0) {
-      console.log(`Read contents of ${count} files.`);
     }
 
-    return results;
+    return { uploads, downloads }
   }
 
-  async function updateStamps(results) {
-    const { uploads, postManifest } = results;
+  async sync (service) {
+    /*
+      Multi-sync
+      - Get all manifests
+      - Compare manifests and local against each other
+      - Build upload/download lists for each service
+      - Order requests so newest punches are fetched first
 
-    if (results._dummy) return results;
+      For now it's just single sync
+    */
 
-    if (uploads && uploads.length > 0) {
-      if (VERBOSE) console.log('Updating timestamps on uploaded files...');
-      uploads.forEach(file => {
-        if (postManifest[file]) {
-          try {
-            const p = path.join(punchPath, file)
-            const f = JSON.parse(fs.readFileSync(p, 'utf8'));
-            f.updated = postManifest[file];
-            fs.writeFileSync(p, JSON.stringify(f, null, 2));
-          } catch (err) {
-            console.error(`There was a problem updating the timestamp on ${file}: ${err}`);
-          }
-        }
-      });
-    }
+    if (service instanceof SyncService || typeof service === 'string') {
+      service = this._loadService(service)
 
-    return results;
-  }
+      const manifest = await service.getManifest()
+      const { uploads, downloads } = await this._diff(manifest)
 
-  async function doSync(backend, next) {
-    const service = backends.load(backend);
-    const loader = new Loader({
-      text: `[${capitalize(backend)}] Syncing...`,
-      animation: 'braille',
-    });
-    loader.start();
+      const loader = new Loader({})
+      const uploaded = await service.upload(uploads)
+      const downloaded = await service.download(downloads)
 
-    if (service) {
-      service
-        .getManifest()
-        .then(diff)
-        .then(readFiles)
-        .then(service.upload)
-        .then(service.download)
-        .then(writeFiles)
-        .then(updateStamps)
-        .then(r => {
-          const up = r.uploads.length;
-          const down = r.downloads.length;
+      downloaded.forEach(punch => {
+        punch.save()
+      })
 
-          let counts = '';
-          if (up > 0) counts += ` ${chalk.magenta('⬈')} ${up} up`;
-          if (down > 0) counts += ` ${chalk.cyan('⬊')} ${down} down`;
-          if (counts === '') counts = ` ${chalk.green('⊙')} no changes`;
-
-          loader.stop(`${chalk.green('⸭')} Synced with ${capitalize(backend)}! ${counts}`);
-          next();
-        })
-        .catch(err => {
-          console.error(`${chalk.red('⁙')} Sync with ${capitalize(backend)} failed!`, err);
-          next();
-        });
+      return { uploaded, downloaded }
     } else {
-      console.log(`No sync service by the name ${backend}`);
-      next();
-    }
-  }
-
-  return {
-    sync() {
-      const syncers = [];
-      const start = Date.now();
-
-      const backends = Object.keys(config.sync.backends);
-      let current = 0;
-
-      const next = () => {
-        if (backends[current]) {
-          doSync(backends[current], next.bind(this));
-          current += 1;
-        } else {
-          return Promise.all(syncers);
-        }
-      }
-
-      next();
+      throw new Error('First parameter must be a string or an instance of SyncService')
     }
   }
 }
+
+module.exports = Syncer
