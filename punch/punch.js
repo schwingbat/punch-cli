@@ -1,4 +1,5 @@
 const uuid = require('uuid/v1')
+const isValidDate = require('date-fns/is_valid')
 
 module.exports = function (config, Storage) {
   class Punch {
@@ -23,8 +24,8 @@ module.exports = function (config, Storage) {
 
       this.id = props.id || uuid()
       this.project = props.project
-      this.in = new Date(props.in)
-      this.out = props.out ? new Date(props.out) : null
+      this.in = new Date(props.in || new Date())
+      this.out = props.out ? new Date(props.out || new Date()) : null
       this.comments = props.comments
         ? props.comments.map(c => new Comment(c.comment || c, c.timestamp))
         : []
@@ -38,8 +39,8 @@ module.exports = function (config, Storage) {
         throw new Error(`Punch out time cannot be earlier than punch in time. ${this.project} ${this.in} ${this.out}`)
       }
 
-      this.created = new Date(props.created)
-      this.updated = new Date(props.updated)
+      this.created = new Date(props.created || new Date())
+      this.updated = new Date(props.updated || new Date())
     }
 
     addComment (comment) {
@@ -102,7 +103,7 @@ module.exports = function (config, Storage) {
   }
 
   class Comment {
-    constructor (comment, timestamp) {
+    constructor (comment, timestamp = new Date()) {
       this.comment = comment
       this.timestamp = new Date(timestamp)
     }
