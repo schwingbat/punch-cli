@@ -15,9 +15,10 @@
     "autoSync": false,
     "services": []
   },
-  "dateFormat": "EEEE, MMMM d yyyy",
-  "timeFormat": "t",
-  "dateTimeFormat": "EEEE, MMMM d yyyy t",
+  "dateFormat": "dddd, MMMM Do",
+  "timeFormat": "h:mm A",
+  "dateTimeFormat": "dddd, MMMM Do h:mm A",
+  "dateTimeWithYearFormat": "dddd, MMMM Do YYYY h:mm A",
   "textColors": true,
   "punchPath": "~/.punch/punches",
   "storageType": "punchfile"

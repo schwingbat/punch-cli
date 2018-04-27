@@ -2,8 +2,8 @@ const { Interval, DateTime } = require('luxon')
 const fuzzyParse = require('./fuzzy-parse')
 
 function dayIsWithin (interval, datetime) {
-  return datetime.valueOf() >= interval.start.valueOf() &&
-         datetime.valueOf() <= interval.end.valueOf()
+  return datetime.valueOf() >= interval.start.getTime() &&
+         datetime.valueOf() <= interval.end.getTime()
 }
 
 describe('fuzzyParse', () => {

@@ -1,5 +1,4 @@
 const path = require('path')
-const { DateTime, Duration } = require('luxon')
 
 const configPath = path.join(__dirname, '../test/testconfig.json')
 // const brokenConfigPath = path.join(__dirname, '../test/brokentestconfig.json')
@@ -52,7 +51,7 @@ describe('Punch', () => {
 
       expect(punch.comments.length).toBe(2)
       expect(punch.comments[0].comment).toBeTruthy()
-      expect(punch.comments[0].timestamp instanceof DateTime).toBe(true)
+      expect(punch.comments[0].timestamp instanceof Date).toBe(true)
     })
 
     it('throws an error if first argument is not an object', () => {
@@ -68,10 +67,10 @@ describe('Punch', () => {
     })
 
     it('throws an error if out time is before in time', () => {
-      const timeIn = DateTime.fromObject({ year: 2018, month: 4, day: 30, hour: 14, minute: 32 })
-      const timeOut = DateTime.fromObject({ year: 2018, month: 4, day: 30, hour: 12, minute: 30 })
+      const timeIn = new Date(2018, 3, 30, 14, 32)
+      const timeOut = new Date(2018, 3, 30, 12, 30)
 
-      expect(() => new Punch({ project: 'test', in: timeIn.valueOf(), out: timeOut.valueOf() })).toThrow()
+      expect(() => new Punch({ project: 'test', in: timeIn.getTime(), out: timeOut.getTime() })).toThrow()
     })
   })
 
@@ -111,22 +110,22 @@ describe('Punch', () => {
     })
 
     it('uses time specified in options.time', () => {
-      const time = DateTime.fromObject({ year: 2018, month: 5, day: 10, hour: 15, minute: 22, second: 12 })
+      const time = new Date(2018, 4, 10, 15, 22, 12)
       punch.punchOut(null, { time: time })
-      expect(punch.out.valueOf()).toBe(time.valueOf())
+      expect(punch.out.getTime()).toBe(time.getTime())
     })
   })
 
   describe('duration', () => {
-    it('returns a luxon Duration', () => {
+    it('returns a value in milliseconds', () => {
       const punch = new Punch({ project: 'test' })
-      expect(punch.duration() instanceof Duration).toBe(true)
+      expect(typeof punch.duration()).toBe('number')
     })
 
     it('calculates time correctly', () => {
       const punch = new Punch({ project: 'test' })
       punch.punchOut()
-      expect(punch.duration().as('milliseconds')).toEqual(punch.out.valueOf() - punch.in.valueOf())
+      expect(punch.duration()).toEqual(punch.out.getTime() - punch.in.getTime())
     })
   })
 
@@ -137,20 +136,20 @@ describe('Punch', () => {
     let punch2
 
     beforeAll(() => {
-      let timeIn = DateTime.fromObject({ year: 2018, month: 2, day: 11, hour: 9, minute: 22, second: 10 })
-      let timeOut = DateTime.fromObject({ year: 2018, month: 2, day: 11, hour: 11, minute: 32, second: 58 })
+      let timeIn = new Date(2018, 1, 11, 9, 22, 10)
+      let timeOut = new Date(2018, 1, 11, 11, 32, 58)
 
       data = {
         project: 'test',
-        in: timeIn.valueOf(),
-        out: timeOut.valueOf(),
+        in: timeIn.getTime(),
+        out: timeOut.getTime(),
         comments: [{
           comment: 'test comment',
-          timestamp: timeOut.valueOf()
+          timestamp: timeOut.getTime()
         }],
         rate: 35.00,
-        created: timeIn.valueOf(),
-        updated: timeOut.valueOf()
+        created: timeIn.getTime(),
+        updated: timeOut.getTime()
       }
 
       data2 = Object.assign({}, data)

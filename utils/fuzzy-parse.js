@@ -89,7 +89,10 @@ module.exports = function (string, now = DateTime.local()) {
       return unit || '???'
     },
     interval () {
-      return Interval.fromDateTimes(start, end)
+      return {
+        start: start.toJSDate(),
+        end: end.toJSDate()
+      }
     }
   }
 }

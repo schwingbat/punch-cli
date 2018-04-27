@@ -40,29 +40,23 @@ if (flags.BENCHMARK) {
   require('time-require')
 }
 
-// Dependencies
-const path = require('path')
-const readline = require('readline-sync')
-const chalk = require('chalk')
-const logUpdate = require('log-update')
+const bench = require('./utils/bench')({ disabled: !flags.BENCHMARK })
 
 const config = require('./config')()
+bench.mark('config loaded')
+
 const Storage = require('./storage')(config)
 const Punch = require('./punch/punch')(config, Storage)
 const Syncer = require('./sync/syncer')
 const Invoicer = require('./invoicing/invoicer')
 const Logger = require('./logging/log')
 
-const { Duration, DateTime } = require('luxon')
-const resolvePath = require('./utils/resolve-path')
-const fuzzyParse = require('./utils/fuzzy-parse')
+bench.mark('modules loaded')
 
+const resolvePath = require('./utils/resolve-path')
 const { ascendingBy } = require('./utils/sort-factories')
 
-// Formatting
-const summaryfmt = require('./format/projsummary')
-const print = require('./logging/printing')
-const currency = require('./format/currency')
+bench.mark('utils loaded')
 
 // Utils
 const CLI = require('./utils/cli.js')
@@ -101,7 +95,7 @@ const confirm = question => {
   let response
 
   while (!['y', 'n', 'yes', 'no'].includes(response)) {
-    response = readline.question(`${question} [y/n] `).toLowerCase().trim()
+    response = require('readline-sync').question(`${question} [y/n] `).toLowerCase().trim()
 
     if (response === 'y' || response === 'yes') {
       return true
@@ -113,10 +107,9 @@ const confirm = question => {
   }
 }
 
-const handleSync = () => {
+const handleSync = async () => {
   if (autoSync && !flags.NO_SYNC) {
-    const syncer = new Syncer(config, Punch)
-    syncer.sync()
+    return new Syncer(config, Punch).sync()
   }
 }
 
@@ -128,6 +121,7 @@ command({
   signature: 'in <project>',
   description: 'start tracking time on a project',
   run: async function (args) {
+    const format = require('date-fns/format')
     const current = await Punch.current()
 
     if (current) {
@@ -136,7 +130,7 @@ command({
       const punch = new Punch({ project: args.project })
       punch.save()
 
-      const time = DateTime.local().toFormat(config.timeFormat)
+      const time = format(new Date(), config.timeFormat)
       console.log(`Punched in on ${getLabelFor(args.project)} at ${time}.`)
 
       handleSync()
@@ -151,16 +145,20 @@ command({
     const current = await Punch.current()
 
     if (current) {
+      const formatDate = require('date-fns/format')
+      const formatDuration = require('./format/duration')
+      const formatCurrency = require('./format/currency')
+
       current.punchOut(args.comment, { autosave: true })
 
       const label = getLabelFor(current.project)
-      const time = DateTime.local().toFormat(config.timeFormat)
-      const duration = Duration.fromMillis(current.out - current.in)
-      const pay = duration.as('hours') * current.rate
+      const duration = formatDuration(current.duration())
+      const time = formatDate(new Date(), config.timeFormat)
+      const pay = current.pay()
 
       let str = `Punched out on ${label} at ${time}. Worked for ${duration}`
       if (pay > 0) {
-        str += ` and earned ${currency(pay)}`
+        str += ` and earned ${formatCurrency(pay)}`
       }
       console.log(str + '.')
 
@@ -218,35 +216,48 @@ command({
   signature: 'create <project> <timeIn> <timeOut> [*comment]',
   description: 'create a punch',
   run: function (args) {
+    const formatDuration = require('./format/duration')
+    const formatCurrency = require('./format/currency')
+    const formatDate = require('date-fns/format')
+
     const { project, timeIn, timeOut, comment } = args
 
     let punchIn, punchOut
-    try {
-      punchIn = moment(timeIn, 'MM-DD-YYYY@hh:mmA')
-      punchOut = moment(timeOut, 'MM-DD-YYYY@hh:mmA')
-    } catch (err) {
-      console.log(`Please enter dates formatted as 'mm-dd-yyyy@hours:minutesAM' (err: ${err})`)
+    // Parses a time in this format: 'MM-DD-YYYY@hh:mmA'
+    const timeRegex = /(\d+)[-/](\d+)[-/](\d+)@(\d+):(\d+)\s*(.*)/
+    const parseTime = timeString => {
+      let parts = timeString.match(timeRegex).slice(1, 7)
+      let meridian = parts.pop().toUpperCase()
+      parts = parts.map(Number)
+
+      let time = new Date(parts[2], parts[0] - 1, parts[1], parts[3], parts[4])
+      if (meridian === 'PM') {
+        require('date-fns/add_hours')(time, 12)
+      }
+      return time
     }
 
-    if (!punchIn.isValid() || !punchOut.isValid()) {
-      return console.log('Please enter dates formatted as \'mm-dd-yyyy@hours:minutesAM\'')
+    if (!timeRegex.test(timeIn) || !timeRegex.test(timeOut)) {
+      return console.log('Please enter dates formatted as: mm-dd-yyyy@hours:minutesAM')
     }
 
-    const proj = config.projects[project]
-    const duration = new Duration(punchOut - punchIn)
+    punchIn = parseTime(timeIn)
+    punchOut = parseTime(timeOut)
+
+    const duration = punchOut.getTime() - punchIn.getTime()
+    const projectData = config.projects[project]
     let pay
-    if (proj && proj.hourlyRate) {
-      pay = currency(duration.totalHours() * proj.hourlyRate)
+    if (projectData && projectData.hourlyRate) {
+      pay = formatCurrency(duration / 3600000 * projectData.hourlyRate)
     } else {
       pay = 'N/A'
     }
 
     let str = ''
-
     str += `   Project: ${getLabelFor(project)}\n`
-    str += `   Time In: ${punchIn.format('dddd, MMM Do YYYY [@] h:mma')}\n`
-    str += `  Time Out: ${punchOut.format('dddd, MMM Do YYYY [@] h:mma')}\n`
-    str += `  Duration: ${duration}\n`
+    str += `   Time In: ${formatDate(punchIn, 'dddd, MMM Do YYYY [@] h:mma')}\n`
+    str += `  Time Out: ${formatDate(punchOut, 'dddd, MMM Do YYYY [@] h:mma')}\n`
+    str += `  Duration: ${formatDuration(duration)}\n`
     str += `       Pay: ${pay}\n`
 
     if (comment) {
@@ -275,36 +286,22 @@ command({
   signature: 'purge <project>',
   description: 'destroy all punches for a given project',
   hidden: true,
-  // disabled: true,
+  disabled: true,
   run: async function (args) {
     const { project } = args
     const label = getLabelFor(project)
     const punches = await Punch.select(p => p.project === project)
 
     if (punches.length > 0) {
-      const totalTime = punches.reduce((sum, p) =>
-        sum + ((p.out || Date.now()) - p.in), 0)
+      const formatDuration = require('./format/duration')
+      const totalTime = punches.reduce((sum, p) => sum + p.duration(), 0)
+      const duration = formatDuration(totalTime)
 
       // Confirm and commit changes to files.
-      const confirmString = `Purging ${label} would delete ${punches.length} punch${punches.length === 1 ? '' : 'es'} totalling ${new Duration(totalTime)}.`
-
-      console.log(confirmString)
-
-      let response
-
-      while (response !== label) {
-        response = readline.question(`Type in '${label}' if you're REALLY sure, or 'n' to cancel: `).toLowerCase().trim()
-
-        if (response === label) {
-          // Delete
-          punches.forEach(punch => {
-            punch._file.punches = punch._file.punches.filter(p => p !== punch)
-            punch._file.save()
-          })
-          console.log(`Purged ${punches.length} punches.`)
-        } else if (response === 'n') {
-          return false
-        }
+      if (confirm(`Purging ${label} would delete ${punches.length} punches totalling ${duration}. Are you sure?`)) {
+        console.log('Punch purge not yet re-implemented')
+      } else {
+        return false
       }
     } else {
       console.log(`${label} has no punches.`)
@@ -319,14 +316,18 @@ command({
     const active = await Punch.current()
 
     if (active) {
-      const duration = Duration.fromMillis(Date.now() - active.in)
-      const pay = duration.as('hours') * active.rate
-      const punchedIn = DateTime.fromMillis(active.timestamp).toFormat(config.timeFormat)
+      const formatDate = require('date-fns/format')
+      const formatDuration = require('./format/duration')
+      const formatCurrency = require('./format/currency')
+
+      const punchedIn = formatDate(active.in, config.timeFormat)
+      const duration = formatDuration(active.duration())
+      const pay = active.pay()
 
       let str = `You've been working on ${getLabelFor(active.project)} since ${punchedIn} (${duration} ago).`
 
       if (active.rate) {
-        str += ` Earned ${currency(pay)}.`
+        str += ` Earned ${formatCurrency(pay)}.`
       }
 
       console.log(str)
@@ -341,23 +342,22 @@ command({
   description: 'continue running to show automatically updated stats of your current session',
   run: async function () {
     const active = await Punch.current()
-    const clock = require('./utils/big-clock')({
-      style: 'clockBlockDots',
-      letterSpacing: 1
-    })
 
     if (active) {
-      const project = config.projects[active.project]
-      const label = project && project.name ? project.name : active.project
-      const rate = project && project.hourlyRate ? project.hourlyRate : 0
+      const formatCurrency = require('./format/currency')
+      const formatDuration = require('./format/duration')
+      const logUpdate = require('log-update')
+      const clock = require('./utils/big-clock')({
+        style: 'clockBlockDots',
+        letterSpacing: 1
+      })
 
       const update = () => {
-        let duration = new Duration(Date.now() - active.in)
-        let pay = duration.totalHours() * rate
+        let duration = active.duration()
 
-        let working = `Working on ${label}`
-        let money = currency(pay)
-        let numbers = clock.display(duration.toClockString())
+        let working = `Working on ${getLabelFor(active.project)}`
+        let money = formatCurrency(active.pay())
+        let numbers = clock.display(formatDuration(duration, { style: 'clock' }))
         let numbersLength = numbers.split('\n')[0].length
 
         let topLine = working.padEnd(numbersLength - money.length, ' ') + money
@@ -385,14 +385,12 @@ command({
   signature: 'projects [names...]',
   description: 'show statistics for all projects in your config file',
   run: async function (args) {
-    let { names } = args
+    const { projectSummary } = require('./logging/printing')
+    const formatSummary = require('./format/projsummary')
 
-    if (!names) {
-      names = Object.keys(config.projects)
-    }
+    let names = args.names || Object.keys(config.projects)
 
     const allPunches = await Punch.all().sort(ascendingBy('in'))
-
     const summaries = []
 
     for (let i = 0; i < names.length; i++) {
@@ -404,17 +402,9 @@ command({
         let latestPunch = punches[punches.length - 1]
 
         const projectData = config.projects[project]
-        const fullName = projectData
-          ? projectData.name
-          : project
-        const totalTime = punches.reduce(
-          (sum, punch) =>
-            sum + ((punch.out || Date.now()) - punch.in - (punch.rewind || 0)),
-          0)
-        const totalHours = (totalTime / 3600000)
-        const totalPay = projectData && projectData.hourlyRate
-          ? totalHours * projectData.hourlyRate
-          : 0
+        const fullName = getLabelFor(project)
+        const totalTime = punches.reduce((sum, punch) => sum + punch.duration(), 0)
+        const totalPay = punches.reduce((sum, punch) => sum + punch.pay(), 0)
         const hourlyRate = projectData && projectData.hourlyRate
           ? projectData.hourlyRate
           : 0
@@ -422,7 +412,6 @@ command({
         summaries.push({
           fullName,
           totalTime,
-          totalHours,
           totalPay,
           hourlyRate,
           firstPunch,
@@ -433,8 +422,8 @@ command({
     }
 
     summaries
-      .sort((a, b) => a.fullName > b.fullName) // Sort alphabetically
-      .forEach(s => console.log(print.projectSummary(summaryfmt(s))))
+      .sort(ascendingBy('fullName'))
+      .forEach(s => console.log(projectSummary(formatSummary(s))))
   }
 })
 
@@ -446,6 +435,7 @@ command({
     description: 'show only punches for this project'
   }],
   run: function (args) {
+    const fuzzyParse = require('./utils/fuzzy-parse')
     const interval = fuzzyParse(args.when || 'today').interval()
 
     if (interval) {
@@ -494,15 +484,19 @@ command({
   signature: 'invoice <project> <startDate> <endDate> <outputFile>',
   description: 'automatically generate an invoice using punch data',
   run: async function (args) {
+    return console.log('Not re-implemented yet')
+
     const active = await Punch.current()
 
     if (active && active.project === args.project) {
       return console.log(`You're currently punched in on ${getLabelFor(active.project)}. Punch out before creating an invoice.`)
     }
 
+    const { labelTable } = require('./logging/printing')
     let { project, startDate, endDate, outputFile } = args
     const projectData = config.projects[project]
     if (!projectData) {
+      const chalk = require('chalk')
       console.log(`Can't invoice for ${chalk.red(project)} because your config file contains no information for that project.`)
       console.log(`You can run ${chalk.cyan('punch config')} to open your config file to add the project info.`)
       return
@@ -513,11 +507,11 @@ command({
       return
     }
 
-    startDate = DateTime.fromFormat(startDate, 'MM-DD-YYYY').startOf('day')
-    endDate = DateTime.fromFormat(endDate, 'MM-DD-YYYY').endOf('day')
+    // startDate = DateTime.fromFormat(startDate, 'MM-DD-YYYY').startOf('day')
+    // endDate = DateTime.fromFormat(endDate, 'MM-DD-YYYY').endOf('day')
 
     let format
-    let ext = path.extname(outputFile)
+    let ext = require('path').extname(outputFile)
 
     switch (ext.toLowerCase()) {
       case '.pdf':
@@ -535,7 +529,7 @@ command({
 
     let str = '\n'
 
-    str += print.labelTable([
+    str += labelTable([
       { label: 'Project', value: projectData.name || project },
       { label: 'Start Date', value: startDate.format('dddd, MMM Do YYYY') },
       { label: 'End Date', value: endDate.format('dddd, MMM Do YYYY') },
@@ -563,7 +557,7 @@ command({
         }
       }
 
-      invoicer.create(data, format)
+      invoicer.generate(data, format)
     }
   }
 })
@@ -583,7 +577,7 @@ command({
     const editor = args.editor || process.env.EDITOR
 
     if (!editor) {
-      return console.log(chalk.red('No editor specified and no EDITOR variable available. Please specify an editor to use: punch config <editor>'))
+      return console.log(require('chalk').red('No editor specified and no EDITOR variable available. Please specify an editor to use: punch config <editor>'))
     }
 
     const spawn = require('child_process').spawn
@@ -605,7 +599,7 @@ command({
     const fs = require('fs')
 
     if (!editor) {
-      return console.log(chalk.red('No editor specified and no EDITOR variable available.\nPlease specify an editor to use: punch edit <date> <editor>'))
+      return console.log(require('chalk').red('No editor specified and no EDITOR variable available.\nPlease specify an editor to use: punch edit <date> <editor>'))
     }
 
     const y = date.year()
@@ -613,10 +607,10 @@ command({
     const d = date.date()
 
     const filename = 'punch_' + y + '_' + m + '_' + d + '.json'
-    const file = path.join(config.punchPath, filename)
+    const file = require('path').join(config.punchPath, filename)
 
     if (!fs.existsSync(file)) {
-      console.warn(chalk.red('File doesn\'t exist.'))
+      console.warn(require('chalk').red('File doesn\'t exist.'))
     }
 
     require('child_process').spawn(editor, [file], { stdio: 'inherit' })
@@ -629,7 +623,7 @@ command({
   hidden: true,
   run: function (args) {
     const date = moment(args.time, 'MM/DD/YYYY@hh:mm:ssa')
-    console.log(date.valueOf() + chalk.grey(' << ') + date.format('MMM Do YYYY, hh:mm:ssa'))
+    console.log(date.valueOf() + require('chalk').grey(' << ') + date.format('MMM Do YYYY, hh:mm:ssa'))
   }
 })
 
@@ -672,3 +666,6 @@ command({
 })
 
 run(ARGS.filter(a => a[0] !== '-'))
+
+bench.mark('parsed and run')
+bench.printAll()

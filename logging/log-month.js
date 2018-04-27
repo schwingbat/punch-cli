@@ -1,5 +1,4 @@
 module.exports = function ({ config, punches, date, summary, project }) {
-  const { Duration } = require('luxon')
   const formatCurrency = require('../format/currency')
   const formatDuration = require('../format/duration')
   const { descendingBy } = require('../utils/sort-factories')
@@ -15,7 +14,7 @@ module.exports = function ({ config, punches, date, summary, project }) {
       projects[punch.project] = {
         name: punch.project,
         project: config.projects[punch.project],
-        time: Duration.fromMillis(),
+        time: 0,
         pay: 0,
         sessions: []
       }
@@ -23,16 +22,16 @@ module.exports = function ({ config, punches, date, summary, project }) {
 
     const obj = projects[punch.project]
 
-    obj.time = obj.time.plus(punch.duration())
+    obj.time += punch.duration()
+    obj.pay += punch.pay()
     obj.sessions.push(punch)
-    obj.pay += punch.duration().as('hours') * punch.rate
   })
 
   // Group by day within project
 
   const projArr = Object.values(projects)
 
-  projArr.sort(descendingBy(p => p.time.as('hours'))).forEach(project => {
+  projArr.sort(descendingBy('time')).forEach(project => {
     console.log(projectHeader(
       project.project ? project.project.name : project.name,
       [
@@ -53,18 +52,19 @@ module.exports = function ({ config, punches, date, summary, project }) {
 
     for (const day in sessionsByDay) {
       const sum = {
-        time: Duration.fromMillis(),
+        time: 0,
         pay: 0,
         sessions: []
       }
 
       sessionsByDay[day].forEach(session => {
-        sum.time = sum.time.plus(session.duration())
-        sum.pay += session.duration().as('hours') * session.rate
+        sum.time += session.duration()
+        sum.pay += session.pay()
         sum.sessions.push(session)
       })
 
       console.log(projectDay({
+        config,
         date: sessionsByDay[day][0].in,
         stats: [
           formatDuration(sum.time),

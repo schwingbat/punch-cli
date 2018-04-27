@@ -1,4 +1,3 @@
-const { Duration } = require('luxon')
 const { descendingBy } = require('../utils/sort-factories')
 
 function summarize (config, punches) {
@@ -8,31 +7,19 @@ function summarize (config, punches) {
     const punch = punches[i]
     const name = punch.project
     const project = config.projects[name]
-    const now = Date.now()
-    let rate
-
-    if (punch.rate) {
-      rate = punch.rate
-    } else if (project && project.hourlyRate) {
-      rate = project.hourlyRate
-    } else {
-      rate = 0
-    }
 
     if (!projects[name]) {
       projects[name] = {
         name: project ? project.name : name,
         punches: 0,
         pay: 0,
-        time: Duration.fromMillis(0)
+        time: 0
       }
     }
 
-    const duration = Duration.fromMillis((punch.out || now) - punch.in)
-
     projects[name].punches += 1
-    projects[name].pay += duration.as('hours') * rate
-    projects[name].time = projects[name].time.plus(duration)
+    projects[name].pay += punch.pay()
+    projects[name].time += punch.duration()
   }
 
   const projectArray = []
@@ -44,7 +31,7 @@ function summarize (config, punches) {
     })
   }
 
-  return projectArray.sort(descendingBy(t => t.time.as('milliseconds')))
+  return projectArray.sort(descendingBy('time'))
 }
 
 module.exports = function Logger (config, Punch) {
@@ -56,11 +43,11 @@ module.exports = function Logger (config, Punch) {
     async forInterval (interval, project) {
       const punches = await Punch.select(p => {
         return (!project || p.project === project) &&
-                p.in.valueOf() >= interval.start.valueOf() &
-                p.in.valueOf() <= interval.end.valueOf()
+                p.in.getTime() >= interval.start.getTime() &&
+                p.in.getTime() <= interval.end.getTime()
       })
 
-      let days = interval.length('days')
+      let days = (interval.end.getTime() / 86400000) - (interval.start.getTime() / 86400000)
 
       if (days > 31) {
         console.log('Yearly logs are not implemented yet.')

@@ -1,10 +1,11 @@
-module.exports = function (project) {
+module.exports = function (config, project) {
   // Turn the detailed object into an array of formatted stats.
 
-  const Duration = require('../time/duration')
-  const currency = require('./currency')
-  const moment = require('moment')
+  const distanceInWords = require('date-fns/distance_in_words_strict')
+  const formatDate = require('date-fns/format')
   const chalk = require('chalk')
+  const formatCurrency = require('./currency')
+  const formatDuration = require('./duration')
 
   const {
     fullName,
@@ -17,19 +18,18 @@ module.exports = function (project) {
   } = project
 
   let lastActive = latestPunch.out
-    ? moment(latestPunch.out).fromNow()
+    ? distanceInWords(latestPunch.out)
     : chalk.bold.green('Now')
 
   return {
     name: fullName,
-    pay: totalPay ? currency(totalPay) : null,
-    time: new Duration(totalTime).toString(),
-    rate: hourlyRate ? currency(hourlyRate) + '/hr' : null,
+    pay: totalPay ? formatCurrency(totalPay) : null,
+    time: formatDuration(totalTime),
+    rate: hourlyRate ? formatCurrency(hourlyRate) + '/hr' : null,
     stats: [
       { label: 'Punches', value: totalPunches },
-      { label: 'Started', value: moment(firstPunch.in).format('MMM Do, YYYY') },
-      { label: 'Last active', value: lastActive },
-      // { label: 'Average time per day', value: moment(firstPunch.in). }
+      { label: 'Started', value: formatDate(firstPunch.in, config.dateFormat) },
+      { label: 'Last active', value: lastActive }
     ]
   }
 }

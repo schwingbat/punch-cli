@@ -1,7 +1,6 @@
 module.exports = function PunchfileService (config, Punch) {
   const fs = require('fs')
   const path = require('path')
-  const { DateTime } = require('luxon')
 
   class Punchfile {
     constructor (props = {}) {
@@ -76,8 +75,12 @@ module.exports = function PunchfileService (config, Punch) {
     return Punchfile.read(path.join(config.punchPath, latest))
   }
 
-  Punchfile.forDate = function (date = DateTime.local()) {
-    const fileName = date.toFormat("'punch_'yyyy'_'M'_'d'.json'")
+  Punchfile.forDate = function (date = new Date()) {
+    const year = date.getFullYear()
+    const month = date.getMonth() + 1
+    const day = date.getDate()
+
+    const fileName = `punch_${year}_${month}_${day}.json`
     return this.readOrCreate(path.join(config.punchPath, fileName))
   }
 

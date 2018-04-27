@@ -3,11 +3,10 @@
   different headers and entries for reports.
 */
 const chalk = require('chalk')
-const { Duration, DateTime } = require('luxon')
 const Table = require('../format/table')
 const formatCurrency = require('../format/currency')
 const formatDuration = require('../format/duration')
-const config = require('../config')()
+const formatDate = require('date-fns/format')
 
 function delimitedList (items, inners = ' / ', outers) {
   let joined = items.filter(i => i).join(chalk.grey(inners))
@@ -57,14 +56,14 @@ function projectHeader (text, stats) {
   return str
 };
 
-function daySessions (sessions) {
+function daySessions (sessions, config) {
   let str = ''
 
   sessions.forEach(session => {
     str += '     '
 
-    const timeIn = session.in.toFormat(config.timeFormat)
-    const timeOut = (session.out || DateTime.local()).toFormat(config.timeFormat)
+    const timeIn = formatDate(session.in, config.timeFormat)
+    const timeOut = session.out ? formatDate(session.out, config.timeFormat) : 'NOW'
     const timeSpan = timeIn.padStart(8) + ' - ' + timeOut.padStart(8)
 
     if (!session.out) {
@@ -94,14 +93,11 @@ function daySessions (sessions) {
 
 function dayPunches (punches, projects, config) {
   let str = ''
-  // const nameLength = punches.reduce((max, punch) => {
-  //   return Math.max(projects[punch.project].name.length, max)
-  // }, 0)
 
   for (let i = 0; i < punches.length; i++) {
     const punch = punches[i]
-    const start = punch.in.toFormat(config.timeFormat).padStart(7)
-    const end = (!punch.out ? 'Now' : punch.out.toFormat(config.timeFormat)).padStart(7)
+    const start = formatDate(punch.in, config.timeFormat).padStart(8)
+    const end = (!punch.out ? 'Now' : formatDate(punch.out, config.timeFormat)).padStart(8)
     const timeSpan = `${start} - ${end}`
     const project = projects.find(p => p.alias === punch.project)
     const projectName = project ? project.name : punch.project
@@ -152,7 +148,7 @@ function summaryTable (projects) {
   let str = ''
 
   let total = {
-    time: Duration.fromMillis(),
+    time: 0,
     pay: 0,
     punches: 0
   }
@@ -178,7 +174,7 @@ function summaryTable (projects) {
   })
 
   projects.forEach(project => {
-    total.time = total.time.plus(project.time)
+    total.time += project.time
     total.pay += project.pay
     total.punches += project.punches
 
@@ -202,15 +198,15 @@ function summaryTable (projects) {
   return str
 }
 
-function projectDay ({ date, stats, sessions }) {
+function projectDay ({ date, stats, sessions, config }) {
   let str = ''
 
-  str += chalk.grey('   ⸭ ') + chalk.bold.white(date.toFormat(config.dateFormat))
+  str += chalk.grey('   ⸭ ') + chalk.bold.white(formatDate(date, config.dateFormat))
   if (stats) {
     str += ' ' + delimitedList(stats, ' / ', ['(', ')']) + '\n'
   }
 
-  str += daySessions(sessions)
+  str += daySessions(sessions, config)
 
   return str
 }

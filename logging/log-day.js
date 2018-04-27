@@ -1,6 +1,7 @@
 module.exports = function ({ config, punches, date, summary, project }) {
   const { ascendingBy } = require('../utils/sort-factories')
   const { dayPunches, summaryTable } = require('./printing')
+  const formatDate = require('date-fns/format')
 
   /*
     Show punches chronologically in this format:
@@ -11,7 +12,7 @@ module.exports = function ({ config, punches, date, summary, project }) {
   */
 
   if (punches.length === 0) {
-    return console.log('\n' + 'No sessions for ' + date.toFormat(config.dateFormat))
+    return console.log('\n' + 'No sessions for ' + formatDate(date, config.dateFormat))
   }
 
   punches = punches
