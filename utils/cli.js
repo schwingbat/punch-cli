@@ -172,6 +172,13 @@ function makeHelp (programName, command, argMap, mapped) {
   return str + '\n'
 }
 
+const paramExplanation = `
+  a ${chalk.bold('<param>')} is required
+  a ${chalk.bold('[param]')} is optional
+  a ${chalk.bold('param...')} takes more than one value (separated by spaces)
+  a ${chalk.bold('*param')} joins the parameter and any following words into a single text value
+`
+
 function indent (depth = 1) {
   let str = ''
   while (str.length < depth * 2) {
@@ -183,7 +190,8 @@ function indent (depth = 1) {
 function makeGeneralHelp (program, commands) {
   let str = '\n'
 
-  str += indent() + program.name + ' v' + program.version + '\n\n'
+  str += indent() + program.name + ' v' + program.version + '\n'
+  str += paramExplanation + '\n'
   str += chalk.bold('  Commands:') + '\n'
 
   for (const cmd in commands) {

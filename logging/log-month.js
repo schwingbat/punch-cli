@@ -1,63 +1,34 @@
-module.exports = function ({ config, punches, date, summary, project }) {
+module.exports = function ({ config, punches, date, summary }) {
   const formatCurrency = require('../format/currency')
   const formatDuration = require('../format/duration')
-  const { descendingBy } = require('../utils/sort-factories')
+  const { ascendingBy, descendingBy } = require('../utils/sort-factories')
 
   const { projectHeader, projectDay, summaryTable } = require('./printing')
 
-  // Group punches by project
-
-  let projects = {}
-
-  punches.forEach(punch => {
-    if (!projects[punch.project]) {
-      projects[punch.project] = {
-        name: punch.project,
-        project: config.projects[punch.project],
-        time: 0,
-        pay: 0,
-        sessions: []
-      }
-    }
-
-    const obj = projects[punch.project]
-
-    obj.time += punch.duration()
-    obj.pay += punch.pay()
-    obj.sessions.push(punch)
-  })
-
-  // Group by day within project
-
-  const projArr = Object.values(projects)
-
-  projArr.sort(descendingBy('time')).forEach(project => {
-    console.log(projectHeader(
-      project.project ? project.project.name : project.name,
-      [
-        formatDuration(project.time),
-        project.pay ? formatCurrency(project.pay) : null
-      ]
-    ))
+  summary.sort(descendingBy('time')).forEach(project => {
+    console.log(projectHeader(project.name, [
+      formatDuration(project.time),
+      project.pay ? formatCurrency(project.pay) : null
+    ]))
     console.log()
 
     // Sort sessions by day
-    let sessionsByDay = {}
+    let punchesByDay = {}
 
-    project.sessions.forEach(session => {
-      const day = session.in.day
-      if (!sessionsByDay[day]) sessionsByDay[day] = []
-      sessionsByDay[day].push(session)
+    project.punches.sort(ascendingBy('in')).forEach(punch => {
+      const day = punch.in.getDate()
+      if (!punchesByDay[day]) punchesByDay[day] = []
+      punchesByDay[day].push(punch)
     })
 
-    for (const day in sessionsByDay) {
+    for (const day in punchesByDay) {
       const sum = {
         time: 0,
         pay: 0,
         sessions: []
       }
 
-      sessionsByDay[day].forEach(session => {
+      punchesByDay[day].forEach(session => {
         sum.time += session.duration()
         sum.pay += session.pay()
         sum.sessions.push(session)
@@ -65,7 +36,7 @@ module.exports = function ({ config, punches, date, summary, project }) {
 
       console.log(projectDay({
         config,
-        date: sessionsByDay[day][0].in,
+        date: punchesByDay[day][0].in,
         stats: [
           formatDuration(sum.time),
           sum.pay

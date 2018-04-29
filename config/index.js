@@ -41,7 +41,7 @@ module.exports = function (configPath) {
   config.punchPath = config.punchPath.replace(/^~/, home)
   config.configPath = configPath
 
-  if (config.textColors === false) {
+  if (config.display.textColors === false) {
     require('chalk').level = 0
   }
 

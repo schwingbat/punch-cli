@@ -1,11 +1,12 @@
 module.exports = function bench (options = {}) {
+  const chalk = require('chalk')
   let start = Date.now()
   let marks = []
 
   function printMark (mark, i) {
     const difference = mark.time - start
     const sinceLast = mark.time - (marks[i - 1] ? marks[i - 1].time : start)
-    console.log('@' + difference + 'ms: ' + mark.comment + ' +' + sinceLast + 'ms')
+    console.log(`@ ${difference}ms: ${mark.comment} ${chalk.bold(`+${sinceLast}ms`)}`)
   }
 
   return {

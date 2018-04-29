@@ -11,15 +11,15 @@ function summarize (config, punches) {
     if (!projects[name]) {
       projects[name] = {
         name: project ? project.name : name,
-        punches: 0,
         pay: 0,
-        time: 0
+        time: 0,
+        punches: []
       }
     }
 
-    projects[name].punches += 1
     projects[name].pay += punch.pay()
     projects[name].time += punch.duration()
+    projects[name].punches.push(punch)
   }
 
   const projectArray = []

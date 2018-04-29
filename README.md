@@ -2,6 +2,8 @@
 
 Punch is a cross-platform time tracker for your terminal. You just `punch in` when you start working and `punch out` when you stop. You can also `punch sync` to synchronize your data, so your work can follow you between computers and operating systems throughout the day. Punch is currently functional; I've been using it every day to track and invoice projects for the last few months. It has the odd issue here and there, but over all it's currently pretty solid.
 
+Thanks to the stateless nature of Punch, nothing actually runs in the background while punched in. You can `punch in` on one computer and `punch out` on another as long as both computers are configured to sync with the same source.
+
 ## Requirements
 
 - A macOS, Linux or Windows computer
@@ -17,49 +19,14 @@ Punch is a cross-platform time tracker for your terminal. You just `punch in` wh
 
 ## Configuration
 
-The basic configuration is thus: you have a folder in your home directory called `.punch`, which contains this structure:
-
-```
-~/.punch/
-|-> punch.yaml
-|-> punches/
-    |-> punches_10_25_2017.json
-    |-> punches_10_26_2017.json
-    |-> punches_10_27_2017.json
-    |-> ...
-```
-
-Each punch file contains something like this:
-
-```json
-[
-  {
-    "project": "itzadoozie",
-    "in": 902898102,
-    "out": 908210292,
-    "rewind": 600120,
-    "comments": [
-      "Fixed sticky tiles"
-    ]
-  },
-  {
-    "project": "morganizer",
-    "in": 902898102,
-    "out": null,
-    "rewind": 0,
-    "comments": []
-  },
-]
-```
-
-Thanks to the stateless and file-based nature of Punch, nothing actually runs in the background while punched in. You can `punch in` on one computer and `punch out` on another as long as both computers are configured to sync with the same S3 bucket.
+> TODO: Add configuration guide.
 
 ## API
 
 ### Key
 - `<something>` is a required parameter.
 - `[something]` is an optional parameter.
-- `[*something] and [something...]` are parameters that can include multiple words (`punch out this is all a comment` is equivalent to `punch out "this is all a comment"`).
+- `[*something]` and `[something...]` are parameters that can include multiple words (`punch out this is all a comment` is equivalent to `punch out "this is all a comment"`).
 
 ### Commands
 
@@ -75,13 +42,9 @@ Stop tracking time and record an optional description of tasks completed.
 
 Add a comment to your current session.
 
-#### `create <project> <time_in> <time_out> [*comment]`
+#### `create <project> <timeIn> <timeOut> [*comment]`
 
 Create a punch.
-
-#### `purge <project>`
-
-Destroy all punches for a given project.
 
 #### `now`
 
@@ -91,35 +54,15 @@ Show the status of the current session.
 
 Continue running to show automatically updated stats of your current session.
 
-#### `project <name>`
+#### `projects`
 
-Get statistics for a specific project.
-
-#### `projects [names...]`
-
-Show statistics for projects.
+Show statistics for all projects in your config file.
 
 #### `log [*when]`
 
-Show a summary of punches for a given period.
+Show a summary of punches for a given period. Understands relative times like `today`, `last week`, `last october` or `three months ago`.
 
-#### `today`
-
-Show a summary of today's punches (alias of "punch log today").
-
-#### `yesterday`
-
-Show a summary of yesterday's punches (alias of "punch log yesterday").
-
-#### `week`
-
-Show a summary of punches for the current week (alias of `punch log this week`).
-
-#### `month`
-
-Show a summary of punches for the current month (alias of `punch log this month`).
-
-#### `invoice <project> <start_date> <end_date> <output_file>`
+#### `invoice <project> <startDate> <endDate> <outputFile>`
 
 Automatically generate an invoice using punch data.
 
@@ -129,4 +72,4 @@ Synchronize with any providers you have configured. Just running `punch sync` wi
 
 #### `config [editor]`
 
-Open config file in `editor` - uses `EDITOR` env var unless an editor command is specified.
+Open config file in `editor` - uses `EDITOR` environment variable unless an editor command is specified.

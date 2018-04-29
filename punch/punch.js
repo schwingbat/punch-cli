@@ -1,5 +1,4 @@
 const uuid = require('uuid/v1')
-const isValidDate = require('date-fns/is_valid')
 
 module.exports = function (config, Storage) {
   class Punch {

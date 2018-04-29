@@ -150,7 +150,7 @@ function summaryTable (projects) {
   let total = {
     time: 0,
     pay: 0,
-    punches: 0
+    punchCount: 0
   }
 
   const table = new Table({
@@ -176,13 +176,13 @@ function summaryTable (projects) {
   projects.forEach(project => {
     total.time += project.time
     total.pay += project.pay
-    total.punches += project.punches
+    total.punchCount += project.punches.length
 
     table.push([
       chalk.yellow(project.name),
       formatDuration(project.time, { padded: true }),
       formatCurrency(project.pay),
-      project.punches + ' punch' + (project.punches === 1 ? '' : 'es')
+      project.punches.length + ' punch' + (project.punches.length === 1 ? '' : 'es')
     ])
   })
 
@@ -192,7 +192,7 @@ function summaryTable (projects) {
   str += delimitedList([
     formatDuration(total.time),
     formatCurrency(total.pay),
-    total.punches + ' punch' + (total.punches === 1 ? '' : 'es')
+    total.punchCount + ' punch' + (total.punchCount === 1 ? '' : 'es')
   ], ' / ', ['(', ')'])
 
   return str
@@ -201,7 +201,7 @@ function summaryTable (projects) {
 function projectDay ({ date, stats, sessions, config }) {
   let str = ''
 
-  str += chalk.grey('   ⸭ ') + chalk.bold.white(formatDate(date, config.dateFormat))
+  str += chalk.grey('   ⸭ ') + chalk.bold.white(formatDate(date, config.display.dateFormat))
   if (stats) {
     str += ' ' + delimitedList(stats, ' / ', ['(', ')']) + '\n'
   }

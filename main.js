@@ -113,6 +113,26 @@ const handleSync = async () => {
   }
 }
 
+const parseDateTime = str => {
+  // Parses a time in this format: 'MM-DD-YYYY@hh:mmA'
+  const pattern = /(\d+)[-/](\d+)[-/](\d+)@(\d+):(\d+)\s*(.*)/
+  let parts = str.match(pattern).slice(1, 7)
+  let meridian = parts.pop().toUpperCase()
+  parts = parts.map(Number)
+
+  let time = new Date(parts[2], parts[0] - 1, parts[1], parts[3], parts[4])
+  if (meridian === 'PM') {
+    require('date-fns/add_hours')(time, 12)
+  }
+  return time
+}
+
+const parseDate = str => {
+  const pattern = /(\d)[-/](\d+)[-/](\d+)/
+  let parts = str.match(pattern)
+  return new Date(Number(parts[3]), Number(parts[1]) - 1, Number(parts[2]))
+}
+
 /* ========================= *\
 ||       Parse/Dispatch      ||
 \* ========================= */
@@ -176,6 +196,7 @@ command({
     const current = await Punch.current()
 
     if (!current) {
+      const formatDate = require('date-fns/format')
       const latest = await Punch.latest()
 
       let label = getLabelFor(latest.project)
@@ -186,13 +207,13 @@ command({
       let format = ''
 
       if (inTime.day !== date || outTime.day !== date) {
-        format = config.dateTimeFormat
+        format = config.display.timeFormat + ' ' + config.display.dateFormat
       } else {
-        format = config.timeFormat
+        format = config.display.timeFormat
       }
 
-      inTime = inTime.toFormat(format)
-      outTime = outTime.toFormat(format)
+      inTime = formatDate(inTime, format)
+      outTime = formatDate(outTime, format)
 
       let str = `You're not punched in. Add to last punch on '${label}' (${inTime} - ${outTime})?`
 
@@ -223,26 +244,9 @@ command({
     const { project, timeIn, timeOut, comment } = args
 
     let punchIn, punchOut
-    // Parses a time in this format: 'MM-DD-YYYY@hh:mmA'
-    const timeRegex = /(\d+)[-/](\d+)[-/](\d+)@(\d+):(\d+)\s*(.*)/
-    const parseTime = timeString => {
-      let parts = timeString.match(timeRegex).slice(1, 7)
-      let meridian = parts.pop().toUpperCase()
-      parts = parts.map(Number)
 
-      let time = new Date(parts[2], parts[0] - 1, parts[1], parts[3], parts[4])
-      if (meridian === 'PM') {
-        require('date-fns/add_hours')(time, 12)
-      }
-      return time
-    }
-
-    if (!timeRegex.test(timeIn) || !timeRegex.test(timeOut)) {
-      return console.log('Please enter dates formatted as: mm-dd-yyyy@hours:minutesAM')
-    }
-
-    punchIn = parseTime(timeIn)
-    punchOut = parseTime(timeOut)
+    punchIn = parseDateTime(timeIn)
+    punchOut = parseDateTime(timeOut)
 
     const duration = punchOut.getTime() - punchIn.getTime()
     const projectData = config.projects[project]
@@ -483,18 +487,33 @@ command({
 command({
   signature: 'invoice <project> <startDate> <endDate> <outputFile>',
   description: 'automatically generate an invoice using punch data',
+  arguments: [{
+    name: 'project',
+    description: 'project alias'
+  }, {
+    name: 'startDate',
+    description: 'start date for invoice period',
+    parse: parseDate
+  }, {
+    name: 'endDate',
+    description: 'end date for invoice period',
+    parse: parseDate
+  }, {
+    name: 'outputFile',
+    description: 'file to output to',
+    parse: resolvePath
+  }],
   run: async function (args) {
-    return console.log('Not re-implemented yet')
-
     const active = await Punch.current()
 
     if (active && active.project === args.project) {
       return console.log(`You're currently punched in on ${getLabelFor(active.project)}. Punch out before creating an invoice.`)
     }
-
     const { labelTable } = require('./logging/printing')
+    const formatDate = require('date-fns/format')
     let { project, startDate, endDate, outputFile } = args
     const projectData = config.projects[project]
+
     if (!projectData) {
       const chalk = require('chalk')
       console.log(`Can't invoice for ${chalk.red(project)} because your config file contains no information for that project.`)
@@ -507,18 +526,21 @@ command({
       return
     }
 
-    // startDate = DateTime.fromFormat(startDate, 'MM-DD-YYYY').startOf('day')
-    // endDate = DateTime.fromFormat(endDate, 'MM-DD-YYYY').endOf('day')
+    startDate = parseDate(startDate)
+    endDate = parseDate(endDate)
 
-    let format
+    startDate.setHours(0, 0, 0, 0)
+    endDate.setHours(23, 59, 59, 999)
+
+    let fileFormat
     let ext = require('path').extname(outputFile)
 
     switch (ext.toLowerCase()) {
       case '.pdf':
-        format = 'PDF'
+        fileFormat = 'PDF'
         break
       case '.html':
-        format = 'HTML'
+        fileFormat = 'HTML'
         break
       case '.txt':
       case '.md':
@@ -527,37 +549,41 @@ command({
         return console.log(`Can't export to file with an extension of ${ext}`)
     }
 
-    let str = '\n'
-
-    str += labelTable([
+    console.log('\n' + labelTable([
       { label: 'Project', value: projectData.name || project },
-      { label: 'Start Date', value: startDate.format('dddd, MMM Do YYYY') },
-      { label: 'End Date', value: endDate.format('dddd, MMM Do YYYY') },
-      { label: 'Invoice Format', value: format },
+      { label: 'Start Date', value: formatDate(startDate, config.display.dateFormat + ' ' + config.display.timeFormat) },
+      { label: 'End Date', value: formatDate(endDate, config.display.dateFormat + ' ' + config.display.timeFormat) },
+      { label: 'Invoice Format', value: fileFormat },
       { label: 'Output To', value: resolvePath(outputFile) }
-    ])
-    console.log(str)
+    ]))
 
     if (confirm('Create invoice?')) {
-      const invoicer = Invoicer(config, flags)
+      const loader = require('./utils/loader')({ text: 'Generating invoice...' })
+      loader.start()
 
+      const invoicer = Invoicer(config, flags)
       const punches = await Punch.select(p =>
         p.project === project &&
-        p.in.valueOf() >= startDate.valueOf() &&
-        p.in.valueOf() <= endDate.valueOf())
+        p.in.getTime() >= startDate.getTime() &&
+        p.in.getTime() <= endDate.getTime())
 
-      const data = {
-        startDate,
-        endDate,
-        punches,
-        project: projectData,
-        user: config.user,
-        output: {
-          path: resolvePath(outputFile)
-        }
+      try {
+        await invoicer.generate({
+          project: projectData,
+          start: startDate,
+          end: endDate,
+          today: new Date(),
+          punches,
+          user: config.user,
+          output: {
+            path: resolvePath(outputFile),
+            format: fileFormat
+          }
+        })
+        loader.stop(`${fileFormat} invoice generated!`)
+      } catch (err) {
+        loader.stop(`There was an error while generating the invoice: ${err.message}`)
       }
-
-      invoicer.generate(data, format)
     }
   }
 })
@@ -592,24 +618,28 @@ command({
 command({
   signature: 'edit [date] [editor]',
   description: 'edit punchfile for the given date - uses EDITOR env var unless and editor command is specified',
+  // arguments: [{
+  //   name: 'date',
+  //   description: 'date for the desired punchfile (MM-DD-YYYY format)',
+  //   parse: parseDate
+  // }],
   hidden: true,
   run: function (args) {
     const editor = args.editor || process.env.EDITOR
-    const date = moment(args.date || moment(), 'MM/DD/YYYY').startOf('day')
-    const fs = require('fs')
+    let date = parseDate(args.date)
 
     if (!editor) {
       return console.log(require('chalk').red('No editor specified and no EDITOR variable available.\nPlease specify an editor to use: punch edit <date> <editor>'))
     }
 
-    const y = date.year()
-    const m = date.month() + 1
-    const d = date.date()
+    const y = date.getFullYear()
+    const m = date.getMonth() + 1
+    const d = date.getDate()
 
     const filename = 'punch_' + y + '_' + m + '_' + d + '.json'
     const file = require('path').join(config.punchPath, filename)
 
-    if (!fs.existsSync(file)) {
+    if (!require('fs').existsSync(file)) {
       console.warn(require('chalk').red('File doesn\'t exist.'))
     }
 
@@ -617,15 +647,15 @@ command({
   }
 })
 
-command({
-  signature: 'timestamp <time>',
-  description: 'get a millisecond timestamp for a given time (mm/dd/yyyy@hh:mm:ss)',
-  hidden: true,
-  run: function (args) {
-    const date = moment(args.time, 'MM/DD/YYYY@hh:mm:ssa')
-    console.log(date.valueOf() + require('chalk').grey(' << ') + date.format('MMM Do YYYY, hh:mm:ssa'))
-  }
-})
+// command({
+//   signature: 'timestamp <time>',
+//   description: 'get a millisecond timestamp for a given time (mm/dd/yyyy@hh:mm:ss)',
+//   hidden: true,
+//   run: function (args) {
+//     const date = moment(args.time, 'MM/DD/YYYY@hh:mm:ssa')
+//     console.log(date.valueOf() + require('chalk').grey(' << ') + date.format('MMM Do YYYY, hh:mm:ssa'))
+//   }
+// })
 
 command({
   signature: 'migrate <to>',

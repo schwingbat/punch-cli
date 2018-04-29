@@ -5,6 +5,7 @@ const configPath = path.join(__dirname, '../test/testconfig.json')
 const MockStorage = require('../test/mocks/storage.mock')
 const config = require('../config')
 const _punch = require('./punch')
+const isValidDate = require('date-fns/is_valid')
 
 describe('Punch', () => {
   let Punch
@@ -52,6 +53,15 @@ describe('Punch', () => {
       expect(punch.comments.length).toBe(2)
       expect(punch.comments[0].comment).toBeTruthy()
       expect(punch.comments[0].timestamp instanceof Date).toBe(true)
+    })
+
+    it('initializes in, created and updated even if no dates are passed', () => {
+      const punch = new Punch({ project: 'test' })
+
+      expect(isValidDate(punch.in)).toBe(true)
+      expect(punch.out).toBe(null)
+      expect(isValidDate(punch.created)).toBe(true)
+      expect(isValidDate(punch.updated)).toBe(true)
     })
 
     it('throws an error if first argument is not an object', () => {

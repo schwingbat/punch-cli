@@ -33,6 +33,7 @@ module.exports = function ({ text, animation = 'braille', stopText, fps = 12 }) 
           i = (i + 1) % frames.length
         }, 1000 / fps)
       }
+      return this
     },
     stop (stopText) {
       clearInterval(interval)

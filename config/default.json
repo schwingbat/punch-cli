@@ -15,11 +15,15 @@
     "autoSync": false,
     "services": []
   },
-  "dateFormat": "dddd, MMMM Do",
-  "timeFormat": "h:mm A",
-  "dateTimeFormat": "dddd, MMMM Do h:mm A",
-  "dateTimeWithYearFormat": "dddd, MMMM Do YYYY h:mm A",
-  "textColors": true,
+  "invoice": {
+    "dateFormat": "MM/DD/YYYY",
+    "timeFormat": "h:mm A"
+  },
+  "display": {
+    "textColors": true,
+    "dateFormat": "dddd, MMMM Do",
+    "timeFormat": "h:mm A"
+  },
   "punchPath": "~/.punch/punches",
   "storageType": "punchfile"
 }
