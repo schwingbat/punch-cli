@@ -7,43 +7,36 @@ function parseSignature (str) {
 
   let buffer = ''
   let inArg = false
-  let inOpt = false
-  let inSplat = false
-  let inMulti = false
+  let isRequired = false
+  let isVariadic = false
 
   const addArg = () => {
-    if (inSplat && inMulti) {
-      throw new Error(`Error at index ${i} - param is both splat and multiple`)
-    }
-
     const obj = {
       name: buffer,
-      optional: inOpt,
-      multiple: inMulti,
-      splat: inSplat
+      required: isRequired,
+      variadic: isVariadic
     }
 
     argMap.push(obj)
     buffer = ''
 
     inArg = false
-    inOpt = false
-    inSplat = false
-    inMulti = false
+    isRequired = false
+    isVariadic = false
   }
 
   while (i < end) {
     switch (str[i]) {
       case '<':
         inArg = true
-        inOpt = false
+        isRequired = true
         break
       case '>':
         addArg()
         break
       case '[':
         inArg = true
-        inOpt = true
+        isRequired = false
         break
       case ']':
         addArg()
@@ -51,19 +44,13 @@ function parseSignature (str) {
       case '.':
         if (inArg && buffer.length > 0) {
           let eq = str[i] === '.'
-                && str[i+1] === '.'
-                && str[i+2] === '.'
+                && str[i + 1] === '.'
+                && str[i + 2] === '.'
 
           if (eq) {
             i += 2
-            inMulti = true
+            isVariadic = true
           }
-        }
-        break
-      case '*':
-        if (inArg && buffer.length === 0) {
-          // If '*' is the first thing to appear in the name
-          inSplat = true
         }
         break
       case ' ':
@@ -87,6 +74,27 @@ function parseSignature (str) {
   return argMap
 }
 
+function applyArgExtras (argMap, extras) {
+  // Apply any extra properties provided in the arguments array when the command
+  // was instantated. Descriptions, parsing functions and other properties are
+  // added to their respective arguments.
+
+  if (extras) {
+    extras.forEach(props => {
+      const mapped = argMap.find(arg => arg.name === props.name)
+      if (mapped) {
+        mapped.description = props.description
+        mapped.parse = props.parse
+        if (props.default) {
+          mapped.default = props.default
+        }
+      }
+    })
+  }
+
+  return argMap
+}
+
 function mapArgs (args, argMap) {
   // Using a command's argMap, map the args to their proper names.
 
@@ -100,12 +108,25 @@ function mapArgs (args, argMap) {
 
   argMap.forEach((arg, i) => {
     if (args[i]) {
-      if (arg.splat) {
-        mapped[arg.name] = args.slice(i).join(' ')
-      } else if (arg.multiple) {
-        mapped[arg.name] = args.slice(i)
+      let value
+      if (arg.variadic) {
+        value = args.slice(i)
       } else {
-        mapped[arg.name] = args[i]
+        value = args[i]
+      }
+      if (typeof arg.parse === 'function') {
+        try {
+          value = arg.parse(value)
+        } catch (err) {
+          arg._error = err
+        }
+      }
+      mapped[arg.name] = value
+    } else if (arg.hasOwnProperty('default')) {
+      if (typeof arg.default === 'function') {
+        mapped[arg.name] = arg.default()
+      } else {
+        mapped[arg.name] = arg.default
       }
     }
   })
@@ -118,7 +139,7 @@ function requiredArgsProvided (mappedArgs, argMap) {
 
   for (let i = 0; i < argMap.length; i++) {
     const marg = argMap[i]
-    if (!marg.optional && !mappedArgs[marg.name]) {
+    if (marg.required && !mappedArgs[marg.name]) {
       return false
     }
   }
@@ -126,17 +147,18 @@ function requiredArgsProvided (mappedArgs, argMap) {
   return true
 }
 
-function formatSentence (str) {
-  let sentence = str[0].toUpperCase() + str.slice(1)
-  if (sentence[sentence.length - 1] !== '.') {
-    sentence += '.'
+const paramExplanation = `
+  a ${chalk.bold('<param>')} is required
+  a ${chalk.bold('[param]')} is optional
+  a ${chalk.bold('param...')} groups any arguments after this point into one argument
+`
+
+function indent (depth = 1) {
+  let str = ''
+  while (str.length < depth * 2) {
+    str += '  '
   }
-
-  return sentence
-}
-
-function toSnakeCase (str) {
-  return str.replace(/([a-z][A-Z])/g, cap => cap[0] + '_' + cap[1].toLowerCase())
+  return str
 }
 
 function makeHelp (programName, command, argMap, mapped) {
@@ -146,45 +168,33 @@ function makeHelp (programName, command, argMap, mapped) {
 
   argMap.forEach(arg => {
     let argStr = ' '
-    let name = toSnakeCase(arg.name)
-    if (arg.splat) {
-      name += '...'
+    if (arg.variadic) {
+      arg.name += '...'
     }
 
-    if (arg.optional) {
-      argStr += `[${name}]`
+    if (arg.required) {
+      argStr += `<${arg.name}>`
     } else {
-      argStr += `<${name}>`
+      argStr += `[${arg.name}]`
     }
 
-    // Highlight in red if this arg was missed.
-    if (!mapped[arg.name]) {
-      if (arg.optional) {
-        str += chalk.bold.yellow(argStr)
+    if (arg._error) {
+      str += chalk.bold.red(argStr)
+    } else {
+      // Highlight in red if this arg was missed.
+      if (!mapped[arg.name]) {
+        if (arg.required) {
+          str += chalk.bold.red(argStr)
+        } else {
+          str += chalk.bold.yellow(argStr)
+        }
       } else {
-        str += chalk.bold.red(argStr)
+        str += argStr
       }
-    } else {
-      str += argStr
     }
   })
 
   return str + '\n'
-}
-
-const paramExplanation = `
-  a ${chalk.bold('<param>')} is required
-  a ${chalk.bold('[param]')} is optional
-  a ${chalk.bold('param...')} takes more than one value (separated by spaces)
-  a ${chalk.bold('*param')} joins the parameter and any following words into a single text value
-`
-
-function indent (depth = 1) {
-  let str = ''
-  while (str.length < depth * 2) {
-    str += '  '
-  }
-  return str
 }
 
 function makeGeneralHelp (program, commands) {
@@ -198,9 +208,9 @@ function makeGeneralHelp (program, commands) {
     const { signature, description, hidden } = commands[cmd]
 
     if (!hidden) {
-      str += indent(2) + toSnakeCase(signature) + '\n'
+      str += indent(2) + signature + '\n'
       if (description) {
-        str += indent(3) + chalk.italic.grey(formatSentence(description)) + '\n'
+        str += indent(3) + chalk.italic.grey(description) + '\n'
       }
     }
   }
@@ -211,31 +221,8 @@ function makeGeneralHelp (program, commands) {
 function CLI (program) {
   const commands = {}
 
-  const command = (...args) => {
-    let config
-
-    if (typeof args[0] === 'string' && typeof args[1] === 'string' && typeof args[2] === 'function') {
-      // command(signature, description, run)
-
-      config = {
-        signature: args[0],
-        description: args[1],
-        run: args[2]
-      }
-    } else if (typeof args[0] === 'string' && typeof args[1] === 'object') {
-      // command(signature, config)
-
-      config = {
-        signature: args[0],
-        ...args[1]
-      }
-    } else if (typeof args[0] === 'object') {
-      // command(config)
-
-      config = args[0]
-    }
-
-    if (config.disabled) {
+  const command = (config) => {
+    if (!config || config.disabled) {
       // BAIL!
       return
     }
@@ -247,7 +234,10 @@ function CLI (program) {
     commands[command] = {
       signature,
       description,
-      args: parseSignature(signature),
+      args: applyArgExtras(
+        parseSignature(signature),
+        config.arguments
+      ),
       hidden: !!config.hidden,
       run
     }
@@ -262,6 +252,12 @@ function CLI (program) {
     }
 
     const mapped = mapArgs(args.slice(1), cmd.args)
+
+    for (let i = 0; i < cmd.args.length; i++) {
+      if (cmd.args[i]._error) {
+        return console.log(`There was a problem parsing '${cmd.args[i].name}':\n  ${chalk.red(cmd.args[i]._error.message)}`)
+      }
+    }
 
     if (!requiredArgsProvided(mapped, cmd.args)) {
       return console.log(makeHelp(program.name, command, cmd.args, mapped))
@@ -282,7 +278,10 @@ function CLI (program) {
 CLI.___ = {
   parseSignature,
   mapArgs,
-  requiredArgsProvided
+  applyArgExtras,
+  requiredArgsProvided,
+  makeHelp,
+  makeGeneralHelp
 }
 
 module.exports = CLI

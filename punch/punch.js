@@ -28,11 +28,13 @@ module.exports = function (config, Storage) {
       this.comments = props.comments
         ? props.comments.map(c => new Comment(c.comment || c, c.timestamp))
         : []
-      this.rate = props.rate
-        ? props.rate
-        : config.projects[props.project]
-          ? config.projects[props.project].hourlyRate || 0
-          : 0
+      if (props.rate) {
+        this.rate = props.rate
+      } else if (config.projects[props.project]) {
+        this.rate = config.projects[props.project].hourlyRate || 0
+      } else {
+        this.rate = 0
+      }
 
       if (this.out && this.out < this.in) {
         throw new Error(`Punch out time cannot be earlier than punch in time. ${this.project} ${this.in} ${this.out}`)

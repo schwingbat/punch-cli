@@ -36,6 +36,9 @@ module.exports = function (configPath) {
         throw Error(`Project '${name}' references '${client}', but no client with that name exists.`)
       }
     }
+
+    // Also store the alias in the object
+    projects[alias].alias = alias
   }
 
   config.punchPath = config.punchPath.replace(/^~/, home)

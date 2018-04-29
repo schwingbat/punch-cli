@@ -12,7 +12,7 @@ module.exports = function ({ config, punches, date, summary, project }) {
   */
 
   if (punches.length === 0) {
-    return console.log('\n' + 'No sessions for ' + formatDate(date, config.dateFormat))
+    return console.log('\n' + 'No sessions for ' + formatDate(date, config.display.dateFormat))
   }
 
   punches = punches
