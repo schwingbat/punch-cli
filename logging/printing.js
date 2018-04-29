@@ -62,8 +62,8 @@ function daySessions (sessions, config) {
   sessions.forEach(session => {
     str += '     '
 
-    const timeIn = formatDate(session.in, config.timeFormat)
-    const timeOut = session.out ? formatDate(session.out, config.timeFormat) : 'NOW'
+    const timeIn = formatDate(session.in, config.display.timeFormat)
+    const timeOut = session.out ? formatDate(session.out, config.display.timeFormat) : 'NOW'
     const timeSpan = timeIn.padStart(8) + ' - ' + timeOut.padStart(8)
 
     if (!session.out) {
@@ -96,8 +96,8 @@ function dayPunches (punches, projects, config) {
 
   for (let i = 0; i < punches.length; i++) {
     const punch = punches[i]
-    const start = formatDate(punch.in, config.timeFormat).padStart(8)
-    const end = (!punch.out ? 'Now' : formatDate(punch.out, config.timeFormat)).padStart(8)
+    const start = formatDate(punch.in, config.display.timeFormat).padStart(8)
+    const end = (!punch.out ? 'Now' : formatDate(punch.out, config.display.timeFormat)).padStart(8)
     const timeSpan = `${start} - ${end}`
     const project = projects.find(p => p.alias === punch.project)
     const projectName = project ? project.name : punch.project
