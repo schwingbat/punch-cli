@@ -43,9 +43,9 @@ function parseSignature (str) {
         break
       case '.':
         if (inArg && buffer.length > 0) {
-          let eq = str[i] === '.'
-                && str[i + 1] === '.'
-                && str[i + 2] === '.'
+          let eq = str[i] === '.' &&
+                   str[i + 1] === '.' &&
+                   str[i + 2] === '.'
 
           if (eq) {
             i += 2
@@ -271,17 +271,22 @@ function CLI (program) {
     run([].concat(command.split(' '), args || []))
   }
 
-  return { command, run, invoke }
-}
+  return {
+    command,
+    run,
+    invoke,
 
-// Expose for testing.
-CLI.___ = {
-  parseSignature,
-  mapArgs,
-  applyArgExtras,
-  requiredArgsProvided,
-  makeHelp,
-  makeGeneralHelp
+    // Expose for testing.
+    __testRefs: {
+      commands,
+      parseSignature,
+      mapArgs,
+      applyArgExtras,
+      requiredArgsProvided,
+      makeHelp,
+      makeGeneralHelp
+    }
+  }
 }
 
 module.exports = CLI

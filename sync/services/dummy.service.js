@@ -1,16 +1,28 @@
 const SyncService = require('../syncservice.js')
 
 class DummySyncService extends SyncService {
-  async getManifest () {
-    return {}
+  getManifest () {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve({})
+      }, Math.random() * 300 + 200)
+    })
   }
 
-  async upload (uploads) {
-    return uploads.map(p => p)
+  upload (uploads) {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve(uploads.map(p => p))
+      }, Math.random() * 300 + 200)
+    })
   }
 
-  async download (downloads) {
-    return []
+  download (downloads) {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve([{}, {}, {}])
+      }, Math.random() * 300 + 200)
+    })
   }
 }
 

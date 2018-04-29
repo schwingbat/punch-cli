@@ -4,8 +4,8 @@ const config = require('./index')
 const brokenConfigPath = path.join(__dirname, '../test/brokentestconfig.json')
 
 describe('Config', () => {
-  it('loads a config file from a given path', () => {  
-    expect(config(__dirname + '/default.json')).toEqual(defaultConfig)
+  it('loads a config file from a given path', () => {
+    expect(config(path.join(__dirname, 'default.json'))).toEqual(defaultConfig)
   })
 
   it('throws an error if a project references a nonexistent client', () => {

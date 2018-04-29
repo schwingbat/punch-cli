@@ -3,7 +3,7 @@ const path = require('path')
 const SyncService = require('../syncservice.js')
 
 class S3SyncService extends SyncService {
-  constructor (config, Punch = require('../punches/punch')(config), S3 = require('aws-sdk').S3) {
+  constructor (config, Punch, S3 = require('aws-sdk').S3) {
     super(config)
     this._punch = Punch
     this._s3 = new S3(new S3Credentials(config.credentials))

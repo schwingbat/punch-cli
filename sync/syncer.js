@@ -1,7 +1,5 @@
 const fs = require('fs')
 const path = require('path')
-const logUpdate = require('log-update')
-const Loader = require('../utils/loader')
 const SyncService = require('./syncservice')
 
 class Syncer {
@@ -43,7 +41,7 @@ class Syncer {
   }
 
   async _diff (manifest) {
-    const punches = this._punch.all()
+    const punches = await this._punch.all()
 
     const uploads = punches.filter(punch => {
       // Upload if punch doesn't exist remotely or if local copy is newer.
@@ -79,13 +77,12 @@ class Syncer {
       const manifest = await service.getManifest()
       const { uploads, downloads } = await this._diff(manifest)
 
-      const loader = new Loader({})
       const uploaded = await service.upload(uploads)
       const downloaded = await service.download(downloads)
 
-      downloaded.forEach(punch => {
-        punch.save()
-      })
+      // downloaded.forEach(punch => {
+      //   punch.save()
+      // })
 
       return { uploaded, downloaded }
     } else {

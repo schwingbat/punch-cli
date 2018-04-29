@@ -1,18 +1,19 @@
 const CLI = require('./cli')
 
+const { command, run, invoke, __testRefs } = CLI({
+  name: 'test',
+  version: '0.0.0'
+})
+
 const {
+  commands,
   parseSignature,
   mapArgs,
   applyArgExtras,
   requiredArgsProvided,
   makeHelp,
   makeGeneralHelp
-} = CLI.___
-
-const { command, run, invoke } = CLI({
-  name: 'test',
-  version: '0.0.0'
-})
+} = __testRefs
 
 describe('CLI', () => {
   describe('internal', () => {

@@ -15,7 +15,7 @@ const loaders = {
   tris: ['◢', '◣', '◤', '◥']
 }
 
-module.exports = function ({ text, animation = 'braille', stopText, fps = 12 }) {
+module.exports = function ({ text = 'Loading...', animation = 'braille', stopText, fps = 12 } = {}) {
   const chalk = require('chalk')
   const logUpdate = require('log-update')
 
@@ -24,12 +24,12 @@ module.exports = function ({ text, animation = 'braille', stopText, fps = 12 }) 
   let i = 0
 
   return {
-    start () {
+    start (startText = text) {
       if (!interval) {
         i = 0
         console.log()
         interval = setInterval(() => {
-          logUpdate(chalk.yellow(frames[i]) + ' ' + text)
+          logUpdate(chalk.yellow(frames[i]) + ' ' + startText)
           i = (i + 1) % frames.length
         }, 1000 / fps)
       }

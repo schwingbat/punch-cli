@@ -42,7 +42,7 @@ if (flags.BENCHMARK) {
 
 const bench = require('./utils/bench')({ disabled: !flags.BENCHMARK })
 
-const config = require('./config')()
+const config = require('./config')(process.env.PUNCH_CONFIG_PATH)
 bench.mark('config loaded')
 
 const Storage = require('./storage')(config)
@@ -612,8 +612,27 @@ command({
 command({
   signature: 'sync',
   description: 'synchronize with any providers in your config file',
-  run: function () {
-    Syncer(config, flags).sync()
+  run: async function () {
+    const chalk = require('chalk')
+    const loader = require('./utils/loader')()
+    const syncer = new Syncer(config, Punch)
+
+    loader.start(`Syncing with Dummy...`)
+
+    const results = await syncer.sync('dummy')
+
+    let report = chalk.green('✓') + ' Synced with Dummy  '
+    if (results.uploaded.length > 0) {
+      report += `${chalk.grey('[')}${chalk.magenta('⬆')} ${results.uploaded.length}${chalk.grey(']')}`
+
+      if (results.downloaded.length > 0) {
+        report += ' '
+      }
+    }
+    if (results.downloaded.length > 0) {
+      report += `${chalk.grey('[')}${chalk.cyan('⬇')} ${results.downloaded.length}${chalk.grey(']')}`
+    }
+    loader.stop(report)
   }
 })
 

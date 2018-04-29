@@ -20,6 +20,6 @@
       "name": "nope"
     }]
   },
-  "punchPath": "~/test",
+  "punchPath": "./testpunches",
   "textColors": false
 }

@@ -21,55 +21,38 @@ Thanks to the stateless nature of Punch, nothing actually runs in the background
 
 > TODO: Add configuration guide.
 
-## API
+## Commands
 
-### Key
-- `<something>` is a required parameter.
-- `[something]` is an optional parameter.
-- `[*something]` and `[something...]` are parameters that can include multiple words (`punch out this is all a comment` is equivalent to `punch out "this is all a comment"`).
+Output from `punch help`:
 
-### Commands
+```
+punch v1.13.0
 
-#### `in <project>`
+a <param> is required
+a [param] is optional
+a param... groups any arguments after this point into one argument
 
-Start tracking time on a project.
-
-#### `out [*comment]`
-
-Stop tracking time and record an optional description of tasks completed.
-
-#### `comment [*comment]`
-
-Add a comment to your current session.
-
-#### `create <project> <timeIn> <timeOut> [*comment]`
-
-Create a punch.
-
-#### `now`
-
-Show the status of the current session.
-
-#### `watch`
-
-Continue running to show automatically updated stats of your current session.
-
-#### `projects`
-
-Show statistics for all projects in your config file.
-
-#### `log [*when]`
-
-Show a summary of punches for a given period. Understands relative times like `today`, `last week`, `last october` or `three months ago`.
-
-#### `invoice <project> <startDate> <endDate> <outputFile>`
-
-Automatically generate an invoice using punch data.
-
-#### `sync`
-
-Synchronize with any providers you have configured. Just running `punch sync` with no providers will sync with all of them.
-
-#### `config [editor]`
-
-Open config file in `editor` - uses `EDITOR` environment variable unless an editor command is specified.
+Commands:
+  in <project>
+    start tracking time on a project
+  out [comment...]
+    stop tracking time and record an optional description of tasks completed
+  comment <comment...>
+    add a comment to remember what you worked on
+  create <project> <timeIn> <timeOut> [comment...]
+    create a punch
+  watch
+    continue running to show automatically updated stats of your current session
+  project <name>
+    get statistics for a specific project
+  projects [names...]
+    show statistics for all projects in your config file
+  log [when...]
+    show a summary of punches for a given period ("last month", "this week", "two days ago", etc)
+  invoice <project> <startDate> <endDate> <outputFile>
+    automatically generate an invoice using punch data
+  sync
+    synchronize with any providers in your config file
+  config [editor]
+    open config file in editor - uses EDITOR env var unless an editor command is specified.
+```
