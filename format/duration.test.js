@@ -36,4 +36,34 @@ describe('duration', () => {
     expect(formatDuration(fromParts({ hours: 4 }), { long: true }))
       .toBe('4 hours 0 minutes 0 seconds')
   })
+
+  describe('resolutions', () => {
+    let duration1 = fromParts({ hours: 5, minutes: 13, seconds: 12, ms: 124 })
+    let duration2 = fromParts({ minutes: 58, seconds: 15, milliseconds: 662 })
+    let duration3 = fromParts({ hours: 15, minutes: 32, seconds: 58, milliseconds: 10 })
+
+    it('returns the expected result if resolution is set to hours', () => {
+      expect(formatDuration(duration1, { resolution: 'hours' })).toBe('5h')
+      expect(formatDuration(duration2, { resolution: 'hours' })).toBe('1h')
+      expect(formatDuration(duration3, { resolution: 'hours' })).toBe('16h')
+    })
+
+    it('returns the expected result if resolution is set to minutes', () => {
+      expect(formatDuration(duration1, { resolution: 'minutes' })).toBe('5h 13m')
+      expect(formatDuration(duration2, { resolution: 'minutes' })).toBe('58m')
+      expect(formatDuration(duration3, { resolution: 'minutes' })).toBe('15h 33m')
+    })
+
+    it('returns the expected result if resolution is set to seconds', () => {
+      expect(formatDuration(duration1, { resolution: 'seconds' })).toBe('5h 13m 12s')
+      expect(formatDuration(duration2, { resolution: 'seconds' })).toBe('58m 16s')
+      expect(formatDuration(duration3, { resolution: 'seconds' })).toBe('15h 32m 58s')
+    })
+
+    it('returns the expected result if resolution is set to milliseconds', () => {
+      expect(formatDuration(duration1, { resolution: 'milliseconds' })).toBe('5h 13m 12s 124ms')
+      expect(formatDuration(duration2, { resolution: 'milliseconds' })).toBe('58m 15s 662ms')
+      expect(formatDuration(duration3, { resolution: 'milliseconds' })).toBe('15h 32m 58s 10ms')
+    })
+  })
 })

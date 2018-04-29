@@ -1,5 +1,6 @@
 module.exports = function formatDuration (milliseconds, opts = {}) {
   let out = []
+  let resolution = resolutions[opts.resolution] || 1
 
   let hours = milliseconds / 3600000
   let minutes = 0
@@ -25,23 +26,55 @@ module.exports = function formatDuration (milliseconds, opts = {}) {
     if (seconds > 0 || minutes > 0 || hours > 0) {
       let val = seconds
       if (opts.padded) val = seconds.toString().padStart(2)
-      out.push(val + (opts.long ? ' seconds' : 's'))
+      if (resolution <= resolutions['seconds']) {
+        out.push(val + (opts.long ? ' seconds' : 's'))
+      } else {
+        minutes += Math.round(val / 60)
+      }
     }
 
     if (minutes > 0 || hours > 0) {
       let val = minutes
       if (opts.padded) val = minutes.toString().padStart(2)
-      out.push(val + (opts.long ? ' minutes' : 'm'))
+      if (resolution <= resolutions['minutes']) {
+        out.push(val + (opts.long ? ' minutes' : 'm'))
+      } else {
+        hours += Math.round(val / 60)
+      }
     }
 
-    if (hours > 0) {
+    if (resolution === resolutions['hours']) {
       out.push(hours + (opts.long ? ' hours' : 'h'))
-    }
+    } else {
+      if (hours > 0) {
+        out.push(hours + (opts.long ? ' hours' : 'h'))
+      }
 
-    if (seconds === 0 && minutes === 0 && hours === 0) {
-      out.push(milliseconds + (opts.long ? ' milliseconds' : 'ms'))
+      if (resolution === resolutions['milliseconds']) {
+        out.push(milliseconds + (opts.long ? ' milliseconds' : 'ms'))
+      }
     }
 
     return out.reverse().join(' ')
   }
+}
+
+const resolutions = {
+  0: 0,
+  1: 1,
+  2: 2,
+  3: 3,
+
+  ms: 0,
+  millisecond: 0,
+  milliseconds: 0,
+
+  second: 1,
+  seconds: 1,
+
+  minute: 2,
+  minutes: 2,
+
+  hour: 3,
+  hours: 3
 }
