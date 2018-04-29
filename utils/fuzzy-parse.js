@@ -1,11 +1,24 @@
-const { DateTime, Interval } = require('luxon')
-
 /*
   Takes a fuzzy string like "two days ago" or "last wednesday"
   and makes it into a useful Interval.
 */
 
-module.exports = function (string, now = DateTime.local()) {
+const {
+  startOfDay,
+  endOfDay,
+  addDays,
+  startOfWeek,
+  endOfWeek,
+  addWeeks,
+  startOfMonth,
+  endOfMonth,
+  addMonths,
+  startOfYear,
+  endOfYear,
+  addYears
+} = require('date-fns')
+
+module.exports = function (string, now = new Date()) {
   let parts = string.toLowerCase().split(/\s+/)
 
   let start
@@ -16,15 +29,15 @@ module.exports = function (string, now = DateTime.local()) {
   if (['now', 'today'].includes(parts[0])) {
     unit = 'day'
     modifier = 0
-    start = now.startOf('day')
-    end = now.endOf('day')
+    start = startOfDay(now)
+    end = endOfDay(now)
   }
 
   if (parts[0] === 'yesterday') {
     unit = 'day'
     modifier = 1
-    start = now.minus({ days: 1 }).startOf('day')
-    end = start.endOf('day')
+    start = startOfDay(addDays(now, -1))
+    end = endOfDay(addDays(now, -1))
   }
 
   if (!start || !end) {
@@ -50,33 +63,31 @@ module.exports = function (string, now = DateTime.local()) {
 
     if (!(modifier === 0 && parts[2] === 'ago')) {
       if (unit === 'day') {
-        start = now.plus({ days: modifier }).startOf('day')
-        end = start.endOf('day')
-      } else if (unit === 'month') {
-        start = now.plus({ months: modifier }).startOf('month')
-        end = start.endOf('month')
+        start = startOfDay(addDays(now, modifier))
+        end = endOfDay(addDays(now, modifier))
       } else if (unit === 'week') {
-        start = now.plus({ weeks: modifier }).startOf('week')
-        end = start.endOf('week')
+        start = startOfWeek(addWeeks(now, modifier))
+        end = endOfWeek(addWeeks(now, modifier))
+      } else if (unit === 'month') {
+        start = startOfMonth(addMonths(now, modifier))
+        end = endOfMonth(addMonths(now, modifier))
       } else if (unit === 'year') {
-        start = now.plus({ years: modifier }).startOf('year')
-        end = start.endOf('year')
+        start = startOfYear(addYears(now, modifier))
+        end = endOfYear(addYears(now, modifier))
       } else if (weekdays.includes(unit)) {
         let dayIndex = weekdays.indexOf(unit)
-        start = now
-        while (start.day !== dayIndex) {
-          start = start.minus({ days: 1 })
+        start = startOfDay(now)
+        while (start.getDay() !== dayIndex) {
+          start = addDays(start, -1)
         }
-        start = start.startOf('day')
-        end = start.endOf('day')
+        end = endOfDay(start)
       } else if (months.includes(unit)) {
         let monthIndex = months.indexOf(unit)
-        start = now
-        while (start.month !== monthIndex) {
-          start = start.minus({ months: 1 })
+        start = startOfMonth(now)
+        while (start.getMonth() !== monthIndex) {
+          start = addMonths(start, -1)
         }
-        start = start.startOf('month')
-        end = start.endOf('month')
+        end = endOfMonth(start)
       }
     }
   }
@@ -89,10 +100,7 @@ module.exports = function (string, now = DateTime.local()) {
       return unit || '???'
     },
     interval () {
-      return {
-        start: start.toJSDate(),
-        end: end.toJSDate()
-      }
+      return { start, end }
     }
   }
 }

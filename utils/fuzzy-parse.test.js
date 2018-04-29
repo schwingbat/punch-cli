@@ -1,15 +1,17 @@
-const { Interval, DateTime } = require('luxon')
 const fuzzyParse = require('./fuzzy-parse')
+const addDays = require('date-fns/add_days')
+const addWeeks = require('date-fns/add_weeks')
+const addMonths = require('date-fns/add_months')
 
 function dayIsWithin (interval, datetime) {
-  return datetime.valueOf() >= interval.start.getTime() &&
-         datetime.valueOf() <= interval.end.getTime()
+  return datetime.getTime() >= interval.start.getTime() &&
+         datetime.getTime() <= interval.end.getTime()
 }
 
 describe('fuzzyParse', () => {
   let day
   beforeEach(() => {
-    day = DateTime.fromObject({ year: 2018, month: 4, day: 26 })
+    day = new Date(2018, 3, 26)
   })
 
   it('returns current day for "today"', () => {
@@ -26,39 +28,39 @@ describe('fuzzyParse', () => {
 
   it('works for "yesterday"', () => {
     const parsed = fuzzyParse('yesterday', day).interval()
-    expect(dayIsWithin(parsed, day.minus({ days: 1 }))).toBe(true)
+    expect(dayIsWithin(parsed, addDays(day, -1))).toBe(true)
   })
 
   it.skip('works for "tomorrow"', () => {
     const parsed = fuzzyParse('tomorrow', day).interval()
-    expect(dayIsWithin(parsed, day.plus({ days: 1 }))).toBe(true)
+    expect(dayIsWithin(parsed, addDays(day, 1))).toBe(true)
   })
 
   it.skip('works for "___ from now"', () => {
     const parsed = fuzzyParse('three days from now').interval()
-    expect(dayIsWithin(parsed, day.plus({ days: 3 }))).toBe(true)
+    expect(dayIsWithin(parsed, addDays(day, 3))).toBe(true)
   })
 
   it('works for numbers in English: num ___ ago', () => {
     const one = fuzzyParse('one day ago', day).interval()
-    expect(one instanceof Interval).toBe(true)
-    expect(dayIsWithin(one, day.minus({ days: 1 }))).toBe(true)
+    expect(one.start instanceof Date && one.end instanceof Date).toBe(true)
+    expect(dayIsWithin(one, addDays(day, -1))).toBe(true)
 
     const seven = fuzzyParse('seven days ago', day).interval()
-    expect(seven instanceof Interval).toBe(true)
-    expect(dayIsWithin(seven, day.minus({ days: 7 }))).toBe(true)
+    expect(seven.start instanceof Date && seven.end instanceof Date).toBe(true)
+    expect(dayIsWithin(seven, addDays(day, -7))).toBe(true)
   })
 
   it('works for numeric numbers: num ___ ago', () => {
     const six = fuzzyParse('6 days ago', day).interval()
-    expect(dayIsWithin(six, day.minus({ days: 6 }))).toBe(true)
+    expect(dayIsWithin(six, addDays(day, -6))).toBe(true)
   })
 
   it('parses relative weeks', () => {
     const minusTwo = fuzzyParse('2 weeks ago', day)
     expect(minusTwo.unit()).toBe('week')
     expect(minusTwo.modifier()).toBe(-2)
-    expect(dayIsWithin(minusTwo.interval(), day.minus({ weeks: 2 }))).toBe(true)
+    expect(dayIsWithin(minusTwo.interval(), addWeeks(day, -2))).toBe(true)
 
     const current = fuzzyParse('this week', day)
     expect(current.unit()).toBe('week')
@@ -70,12 +72,12 @@ describe('fuzzyParse', () => {
     const minusFive = fuzzyParse('five months ago', day)
     expect(minusFive.unit()).toBe('month')
     expect(minusFive.modifier()).toBe(-5)
-    expect(dayIsWithin(minusFive.interval(), day.minus({ months: 5 }))).toBe(true)
+    expect(dayIsWithin(minusFive.interval(), addMonths(day, -5))).toBe(true)
 
     const last = fuzzyParse('last month', day)
     expect(last.unit()).toBe('month')
     expect(last.modifier()).toBe(-1)
-    expect(dayIsWithin(last.interval(), day.minus({ months: 1 }))).toBe(true)
+    expect(dayIsWithin(last.interval(), addMonths(day, -1))).toBe(true)
   })
 
   it('parses relative years', () => {
