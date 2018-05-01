@@ -28,7 +28,7 @@ module.exports = function (config, project) {
     rate: hourlyRate ? formatCurrency(hourlyRate) + '/hr' : null,
     stats: [
       { label: 'Punches', value: totalPunches },
-      { label: 'Started', value: formatDate(firstPunch.in, config.dateFormat) },
+      { label: 'Started', value: formatDate(firstPunch.in, config.display.dateFormat) },
       { label: 'Last active', value: lastActive }
     ]
   }

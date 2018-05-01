@@ -159,11 +159,8 @@ describe('Syncer', () => {
     })
 
     it('calls .save() on downloaded punches', async () => {
-      expect.assertions(1)
-
-      await syncer.sync(new MockService(config)).then(results => {
-        expect(saved.length).toBe(3)
-      })
+      await syncer.sync(new MockService(config))
+      expect(saved.length).toBe(3)
     })
   })
 })

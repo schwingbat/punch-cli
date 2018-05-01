@@ -32,13 +32,13 @@ describe('duration', () => {
 
   it('uses long hour/minute/second labels when "long" option is passed', () => {
     expect(formatDuration(fromParts({ hours: 2, minutes: 13, seconds: 42 }), { long: true }))
-      .toBe('2 hours 13 minutes 42 seconds')
+      .toBe('2 hours, 13 minutes and 42 seconds')
     expect(formatDuration(fromParts({ hours: 4 }), { long: true }))
-      .toBe('4 hours 0 minutes 0 seconds')
+      .toBe('4 hours, 0 minutes and 0 seconds')
   })
 
   describe('resolutions', () => {
-    let duration1 = fromParts({ hours: 5, minutes: 13, seconds: 12, ms: 124 })
+    let duration1 = fromParts({ hours: 5, minutes: 13, seconds: 12, milliseconds: 124 })
     let duration2 = fromParts({ minutes: 58, seconds: 15, milliseconds: 662 })
     let duration3 = fromParts({ hours: 15, minutes: 32, seconds: 58, milliseconds: 10 })
 

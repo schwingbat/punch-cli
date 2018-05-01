@@ -19,7 +19,7 @@ module.exports = function ({ config, punches, date, summary, project }) {
     .filter(punch => !project || punch.project !== project)
     .sort(ascendingBy('in'))
 
-  console.log()
+  console.log(`\n${formatDate(date, config.display.dateFormat)}\n`)
   console.log(dayPunches(punches, summary, config))
   console.log(summaryTable(summary))
   console.log()

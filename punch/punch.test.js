@@ -95,6 +95,16 @@ describe('Punch', () => {
     })
   })
 
+  describe('comment.toString', () => {
+    it('returns the comment text when called on a comment', () => {
+      const punch = new Punch({ project: 'test' })
+      punch.addComment('test comment')
+
+      expect(punch.comments[0].comment).toBe('test comment')
+      expect(punch.comments[0].toString()).toBe('test comment')
+    })
+  })
+
   describe('punchOut', () => {
     let punch
 
@@ -136,6 +146,15 @@ describe('Punch', () => {
       const punch = new Punch({ project: 'test' })
       punch.punchOut()
       expect(punch.duration()).toEqual(punch.out.getTime() - punch.in.getTime())
+    })
+  })
+
+  describe('pay', () => {
+    it('returns the billable amount for a punch based on punch time and project rate', () => {
+      const timeIn = new Date(2018, 3, 15, 12, 10)
+      const timeOut = new Date(2018, 3, 15, 14, 40)
+      const punch = new Punch({ project: 'test', in: timeIn.getTime(), out: timeOut.getTime(), rate: 62 })
+      expect(punch.pay()).toBe(155)
     })
   })
 

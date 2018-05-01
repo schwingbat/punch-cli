@@ -21,7 +21,7 @@
   },
   "display": {
     "textColors": true,
-    "dateFormat": "dddd, MMMM Do",
+    "dateFormat": "dddd, MMMM Do YYYY",
     "timeFormat": "h:mm A"
   },
   "punchPath": "~/.punch/punches",

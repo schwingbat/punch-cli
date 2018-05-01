@@ -55,6 +55,8 @@ bench.mark('modules loaded')
 
 const resolvePath = require('./utils/resolve-path')
 const { ascendingBy } = require('./utils/sort-factories')
+const parseDate = require('./utils/parse-date')
+const parseDateTime = require('./utils/parse-datetime')
 
 bench.mark('utils loaded')
 
@@ -78,18 +80,17 @@ const getLabelFor = name => {
     : name
 }
 
-// const getMessageFor = (file) => {
-//   // Returns a random message from the given file.
-//   // Assumes the file is a JSON file containing an array of strings in the resources/messages/ folder.
-//   try {
-//     const options = require('./resources/messages/' + file + '.json')
-//     const i = Math.round(Math.random() * options.length - 1)
-//     console.log(options, i)
-//     return options[i]
-//   } catch (err) {
-//     return 'BLORK'
-//   }
-// }
+const getMessageFor = (condition, opts = {}) => {
+  // Returns a random message from the given file.
+  // Assumes the file is a JSON file containing an array of strings in the resources/messages/ folder.
+  try {
+    const messages = require('./resources/messages/' + condition.toLowerCase().replace(/\s/g, '_') + '.json')
+    const i = Math.round(Math.random() * (messages.length - 1))
+    return messages[i]
+  } catch (err) {
+    return opts.default || `Message file not found for ${condition}...`
+  }
+}
 
 const confirm = question => {
   let response
@@ -111,38 +112,6 @@ const handleSync = async () => {
   if (autoSync && !flags.NO_SYNC) {
     return new Syncer(config, Punch).sync()
   }
-}
-
-const parseDateTime = str => {
-  // Parses a time in this format: 'MM-DD-YYYY@hh:mmA'
-  let parts = str
-    .match(/(\d+)[-/](\d+)[-/](\d+)@(\d+):(\d+)\s*(.*)/)
-
-  if (parts) {
-    const meridian = parts[6].toUpperCase()
-    let time = new Date(
-      Number(parts[3]),
-      Number(parts[1]) - 1,
-      Number(parts[2]),
-      Number(parts[4]),
-      Number(parts[5])
-    )
-    if (meridian === 'PM') {
-      if (Number(parts[4]) >= 13) {
-        throw new Error('Hours should not be greater than 12 when PM is present.')
-      } else {
-        time = require('date-fns/add_hours')(time, 12)
-      }
-    }
-    return time
-  } else {
-    throw new Error('Time should be formatted like so: MM-DD-YYYY@hh:mm[AM/PM]')
-  }
-}
-
-const parseDate = str => {
-  const parts = str.match(/(\d)[-/](\d+)[-/](\d+)/)
-  return new Date(Number(parts[3]), Number(parts[1]) - 1, Number(parts[2]))
 }
 
 /* ========================= *\
@@ -167,7 +136,7 @@ command({
       punch.save()
 
       const time = format(new Date(), config.display.timeFormat)
-      console.log(`Punched in on ${getLabelFor(args.project)} at ${time}.`)
+      console.log(`Punched in on ${getLabelFor(args.project)}. ${getMessageFor('punched in', { default: '' })}`)
 
       handleSync()
     }
@@ -255,6 +224,31 @@ command({
 
       console.log('Comment saved.')
       handleSync()
+    }
+  }
+})
+
+command({
+  signature: 'now',
+  description: 'show stats for the current session',
+  run: async function () {
+    const current = await Punch.current()
+
+    if (current) {
+      // Print current session stats.
+      // Project name, current pay, time worked,
+    } else {
+      let message = "You're not punched in."
+
+      const latest = await Punch.latest()
+      if (latest) {
+        const formatDuration = require('./format/duration')
+        const label = getLabelFor(latest.project)
+        const timeDiff = formatDuration(Date.now() - latest.out, { long: true })
+        message += ` You punched out of ${label} ${timeDiff} ago.`
+      }
+
+      console.log(message)
     }
   }
 })
@@ -396,19 +390,11 @@ command({
 })
 
 command({
-  signature: 'project <name>',
-  description: 'get statistics for a specific project',
-  run: function (args) {
-    invoke(`projects ${args.name || ''}`)
-  }
-})
-
-command({
   signature: 'projects [names...]',
   description: 'show statistics for all projects in your config file',
   run: async function (args) {
     const { projectSummary } = require('./logging/printing')
-    const formatSummary = require('./format/projsummary')
+    const formatSummary = require('./format/project-summary')
 
     let names = args.names || Object.keys(config.projects)
 
@@ -532,7 +518,7 @@ command({
     parse: parseDate
   }, {
     name: 'outputFile',
-    description: 'file to output to',
+    description: 'file to output to (extension determines format)',
     parse: resolvePath
   }],
   run: async function (args) {
@@ -701,7 +687,7 @@ command({
 
 command({
   signature: 'migrate <version>',
-  description: 'migrate any punchfiles with older schemas than the specified version to the specified version',
+  description: 'migrate punchfiles with older schemas up to the specified version',
   hidden: true,
   arguments: [{
     name: 'version',

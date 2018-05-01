@@ -2,7 +2,7 @@
  * Sort factory functions. Intended to be passed in to Array.sort()
  */
 
-exports.descendingBy = function(property) {
+exports.descendingBy = function (property) {
   if (typeof property === 'function') {
     return function (a, b) {
       return property(a) > property(b) ? -1 : 1
@@ -16,7 +16,7 @@ exports.descendingBy = function(property) {
   }
 }
 
-exports.ascendingBy = function(property) {
+exports.ascendingBy = function (property) {
   if (typeof property === 'function') {
     return function (a, b) {
       return property(a) < property(b) ? -1 : 1

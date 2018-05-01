@@ -47,12 +47,12 @@ class S3SyncService extends SyncService {
       uploads.forEach(punch => {
         const params = {
           Bucket: config.bucket,
-          Key: `${punch.id}.json`,
+          Key: `punches/${punch.id}.json`,
           Body: punch.toJSON()
         }
 
         s3.putObject(params, (err, data) => {
-          if (err) throw err
+          if (err) return reject(new Error('Error while uploading punch data: ' + err.message))
           done()
         })
       })
@@ -83,7 +83,7 @@ class S3SyncService extends SyncService {
         }
 
         s3.getObject(params, (err, obj) => {
-          if (err) throw err
+          if (err) return reject(new Error('Error while downloading punch data: ' + err.message))
 
           downloaded.push(new Punch(obj.Body))
           done()

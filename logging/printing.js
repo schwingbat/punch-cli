@@ -63,7 +63,7 @@ function daySessions (sessions, config) {
     str += '     '
 
     const timeIn = formatDate(session.in, config.display.timeFormat)
-    const timeOut = session.out ? formatDate(session.out, config.display.timeFormat) : 'NOW'
+    const timeOut = session.out ? formatDate(session.out, config.display.timeFormat) : 'Now'
     const timeSpan = timeIn.padStart(8) + ' - ' + timeOut.padStart(8)
 
     if (!session.out) {
@@ -102,7 +102,7 @@ function dayPunches (punches, projects, config) {
     const project = projects.find(p => p.alias === punch.project)
     const projectName = project ? project.name : punch.project
 
-    if (punch.current) {
+    if (!punch.out) {
       str += chalk.bold.green(timeSpan)
     } else {
       str += chalk.cyan(timeSpan)

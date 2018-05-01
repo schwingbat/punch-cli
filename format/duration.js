@@ -1,12 +1,12 @@
 module.exports = function formatDuration (milliseconds, opts = {}) {
-  let out = []
-  let resolution = resolutions[opts.resolution] || 1
+  let resolution = resolutions[opts.resolution]
+  if (resolution == null) { resolution = 1 }
 
   let hours = milliseconds / 3600000
   let minutes = 0
   let seconds = 0
-  let remainder = hours - ~~hours
 
+  let remainder = hours - ~~hours
   hours = ~~hours
   minutes = remainder * 60
   remainder = minutes - ~~minutes
@@ -14,48 +14,80 @@ module.exports = function formatDuration (milliseconds, opts = {}) {
   seconds = remainder * 60
   remainder = seconds - ~~seconds
   seconds = ~~seconds
-  milliseconds = ~~(remainder * 1000)
+  milliseconds = Math.round(remainder * 1000)
+
+  if (resolution > 0) {
+    seconds += Math.round(milliseconds / 1000)
+  }
+  if (resolution > 1) {
+    minutes += Math.round(seconds / 60)
+  }
+  if (resolution > 2) {
+    hours += Math.round(minutes / 60)
+  }
+
+  const parts = {}
+
+  if (resolution <= resolutions.hours) {
+    if (resolution === resolutions.hours || hours > 0) {
+      parts.hours = hours
+    }
+  }
+  if (resolution <= resolutions.minutes) {
+    if (resolution === resolutions.minutes || minutes > 0 || hours > 0) {
+      parts.minutes = minutes
+    }
+  }
+  if (resolution <= resolutions.seconds) {
+    if (resolution === resolutions.seconds || seconds > 0 || minutes > 0 || hours > 0) {
+      parts.seconds = seconds
+    }
+  }
+  if (resolution <= resolutions.milliseconds) {
+    if (resolution === resolutions.milliseconds || milliseconds > 0 || seconds > 0 || minutes > 0 || hours > 0) {
+      parts.milliseconds = milliseconds
+    }
+  }
 
   if (opts.style === 'clock') {
-    const h = hours.toString().padStart(2, '0')
-    const m = minutes.toString().padStart(2, '0')
-    const s = seconds.toString().padStart(2, '0')
+    const h = (parts.hours || 0).toString().padStart(2, '0')
+    const m = (parts.minutes || 0).toString().padStart(2, '0')
+    const s = (parts.seconds || 0).toString().padStart(2, '0')
 
     return `${h}:${m}:${s}`
   } else {
-    if (seconds > 0 || minutes > 0 || hours > 0) {
-      let val = seconds
-      if (opts.padded) val = seconds.toString().padStart(2)
-      if (resolution <= resolutions['seconds']) {
-        out.push(val + (opts.long ? ' seconds' : 's'))
-      } else {
-        minutes += Math.round(val / 60)
-      }
+    let out = []
+
+    if ('hours' in parts) {
+      out.push(parts.hours + (opts.long ? ' hours' : 'h'))
     }
 
-    if (minutes > 0 || hours > 0) {
-      let val = minutes
-      if (opts.padded) val = minutes.toString().padStart(2)
-      if (resolution <= resolutions['minutes']) {
-        out.push(val + (opts.long ? ' minutes' : 'm'))
-      } else {
-        hours += Math.round(val / 60)
-      }
+    if ('minutes' in parts) {
+      out.push(parts.minutes + (opts.long ? ' minutes' : 'm'))
     }
 
-    if (resolution === resolutions['hours']) {
-      out.push(hours + (opts.long ? ' hours' : 'h'))
+    if ('seconds' in parts) {
+      out.push(parts.seconds + (opts.long ? ' seconds' : 's'))
+    }
+
+    if ('milliseconds' in parts) {
+      out.push(parts.milliseconds + (opts.long ? ' milliseconds' : 'ms'))
+    }
+
+    if (opts.long) {
+      let str = ''
+      out.forEach((part, i) => {
+        str += part
+        if (i + 2 === out.length) {
+          str += ' and '
+        } else if (i + 1 < out.length) {
+          str += ', '
+        }
+      })
+      return str
     } else {
-      if (hours > 0) {
-        out.push(hours + (opts.long ? ' hours' : 'h'))
-      }
-
-      if (resolution === resolutions['milliseconds']) {
-        out.push(milliseconds + (opts.long ? ' milliseconds' : 'ms'))
-      }
+      return out.join(' ')
     }
-
-    return out.reverse().join(' ')
   }
 }
 

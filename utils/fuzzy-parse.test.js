@@ -14,6 +14,21 @@ describe('fuzzyParse', () => {
     day = new Date(2018, 3, 26)
   })
 
+  it('returns a specific date', () => {
+    const parsed = fuzzyParse('10/15/2018', day)
+    expect(parsed.unit()).toBe('day')
+    expect(parsed.modifier()).toBe(172)
+
+    const interval = parsed.interval()
+    const expectedStart = new Date(2018, 9, 15)
+    const expectedEnd = new Date(2018, 9, 15)
+    expectedStart.setHours(0, 0, 0, 0)
+    expectedEnd.setHours(23, 59, 59, 999)
+
+    expect(interval.start.getTime()).toEqual(expectedStart.getTime())
+    expect(interval.end.getTime()).toEqual(expectedEnd.getTime())
+  })
+
   it('returns current day for "today"', () => {
     const parsed = fuzzyParse('today', day)
     expect(dayIsWithin(parsed.interval(), day)).toBe(true)
@@ -90,5 +105,21 @@ describe('fuzzyParse', () => {
 
   it('parses months by name', () => {
 
+  })
+
+  it('parses date strings', () => {
+    const parsed = fuzzyParse('4/12/2018', day)
+    const interval = parsed.interval()
+
+    expect(parsed.unit()).toBe('day')
+    expect(parsed.modifier()).toBe(-14)
+
+    const expectedStart = new Date(2018, 3, 12)
+    const expectedEnd = new Date(expectedStart)
+    expectedStart.setHours(0, 0, 0, 0)
+    expectedEnd.setHours(23, 59, 59, 999)
+
+    expect(interval.start.getTime()).toBe(expectedStart.getTime())
+    expect(interval.end.getTime()).toBe(expectedEnd.getTime())
   })
 })

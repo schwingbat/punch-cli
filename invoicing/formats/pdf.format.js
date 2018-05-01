@@ -24,11 +24,11 @@ module.exports = async function (config, data, outPath) {
       days: data.days.map(day => ({
         ...day,
         date: formatDate(day.date, config.invoice.dateFormat),
-        time: formatDuration(day.time),
+        time: formatDuration(day.time, { resolution: 'minutes' }),
         pay: formatCurrency(day.pay)
       })),
       totalPay: formatCurrency(data.totalPay),
-      totalTime: formatDuration(data.totalTime)
+      totalTime: formatDuration(data.totalTime, { resolution: 'minutes' })
     }
 
     const html = template(templateData)

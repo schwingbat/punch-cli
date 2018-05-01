@@ -27,6 +27,9 @@ const mockBucketContents = [{
 }]
 
 let S3Calls = {}
+let throwListError = false
+let throwGetError = false
+let throwPutError = false
 
 class MockS3 {
   constructor (credentials) {
@@ -42,28 +45,40 @@ class MockS3 {
 
   listObjectsV2 (props = {}, callback) {
     this._recordCall('listObjectsV2', { props })
-    return callback(null, {
-      Contents: mockBucketContents.map(c => {
-        return {
-          Key: c.Key,
-          LastModified: c.LastModified
-        }
+    if (throwListError) {
+      return callback(new Error('Test error'))
+    } else {
+      return callback(null, {
+        Contents: mockBucketContents.map(c => {
+          return {
+            Key: c.Key,
+            LastModified: c.LastModified
+          }
+        })
       })
-    })
+    }
   }
 
   putObject (props = {}, callback) {
     this._recordCall('putObject', { props })
-    return callback(null, null)
+    if (throwPutError) {
+      return callback(new Error('Test error'))
+    } else {
+      return callback(null, null)
+    }
   }
 
   getObject (props = {}, callback) {
     this._recordCall('getObject', { props })
-    return callback(null, mockBucketContents.map(c => {
-      return {
-        Body: c.Body
-      }
-    }))
+    if (throwGetError) {
+      return callback(new Error('Test error'))
+    } else {
+      return callback(null, mockBucketContents.map(c => {
+        return {
+          Body: c.Body
+        }
+      }))
+    }
   }
 }
 
@@ -87,6 +102,10 @@ describe('S3SyncService', () => {
   beforeEach(() => {
     service = new Service(config, MockPunch, MockS3)
     S3Calls = {}
+
+    throwListError = false
+    throwGetError = false
+    throwPutError = false
   })
 
   describe('constructor', () => {
@@ -107,6 +126,30 @@ describe('S3SyncService', () => {
 
       expect(service._s3.credentials.accessKeyId).toBe('asdf')
       expect(service._s3.credentials.secretAccessKey).toBe('asdf')
+    })
+
+    it('throws an error if credentials are not included in config', () => {
+      expect(() => {
+        service = new Service({ name: 'S3' }, MockPunch, MockS3)
+      }).toThrow(new Error('S3 config has no credentials'))
+    })
+
+    it('throws an error if credentials is missing a required property', () => {
+      expect(() => {
+        service = new Service({
+          name: 'S3',
+          credentials: { secretAccessKey: '123' }
+        }, MockPunch, MockS3)
+      }).toThrow(new Error('Credentials must include both accessKeyId and secretAccessKey.'))
+    })
+
+    it('throws an error if credentials are not a string or object', () => {
+      expect(() => {
+        service = new Service({
+          name: 'S3',
+          credentials: 12
+        })
+      }).toThrow(new Error('Credentials should either be a path to a JSON file containing your S3 credentials or an object containing the credentials themselves.'))
     })
   })
 
@@ -141,24 +184,38 @@ describe('S3SyncService', () => {
         expect(S3Calls.putObject.length).toBe(1)
         expect(S3Calls.putObject[0].props).toEqual({
           Bucket: config.bucket,
-          Key: 'asdf.json',
+          Key: 'punches/asdf.json',
           Body: { id: 'asdf', project: 'test' }
         })
       })
     })
+
+    it('rejects the promise if putObject throws an error', () => {
+      throwPutError = true
+      expect(service.upload([ new MockPunch({ project: 'test' }), new MockPunch({ project: 'test2' }) ]))
+        .rejects.toEqual(new Error('Error while uploading punch data: Test error'))
+    })
   })
 
   describe('download', () => {
-    it('immediately resolves if there is nothing to download', () => {
-      expect.assertions(2)
+    it('immediately resolves if there is nothing to download', async () => {
+      await service.download([])
+      expect(S3Calls.getObject).toBeFalsy()
 
-      service.download([]).then(uploaded => {
-        expect(S3Calls.getObject).toBeFalsy()
-      })
+      await service.download()
+      expect(S3Calls.getObject).toBeFalsy()
+    })
 
-      service.download().then(uploaded => {
-        expect(S3Calls.getObject).toBeFalsy()
-      })
+    it('calls getObject for each ID', async () => {
+      await service.download(['123', '456', '789'])
+      expect(S3Calls.getObject).toBeTruthy()
+      expect(S3Calls.getObject.length).toBe(3)
+    })
+
+    it('rejects the Promise if getObject throws an error', () => {
+      throwGetError = true
+      expect(service.download(['123']))
+        .rejects.toEqual(new Error('Error while downloading punch data: Test error'))
     })
   })
 })
