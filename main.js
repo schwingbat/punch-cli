@@ -126,7 +126,7 @@ command({
     description: 'name of the project'
   }],
   run: async function (args) {
-    const format = require('date-fns/format')
+    // const format = require('date-fns/format')
     const current = await Punch.current()
 
     if (current) {
@@ -135,7 +135,7 @@ command({
       const punch = new Punch({ project: args.project })
       punch.save()
 
-      const time = format(new Date(), config.display.timeFormat)
+      // const time = format(new Date(), config.display.timeFormat)
       console.log(`Punched in on ${getLabelFor(args.project)}. ${getMessageFor('punched in', { default: '' })}`)
 
       handleSync()
@@ -398,7 +398,8 @@ command({
 
     let names = args.names || Object.keys(config.projects)
 
-    const allPunches = await Punch.all().sort(ascendingBy('in'))
+    let allPunches = await Punch.all()
+    allPunches = allPunches.sort(ascendingBy('in'))
     const summaries = []
 
     for (let i = 0; i < names.length; i++) {
@@ -429,9 +430,11 @@ command({
       }
     }
 
+    console.log()
     summaries
       .sort(ascendingBy('fullName'))
-      .forEach(s => console.log(projectSummary(formatSummary(s))))
+      .forEach(s => console.log(projectSummary(formatSummary(config, s))))
+    console.log()
   }
 })
 
