@@ -675,15 +675,23 @@ command({
   }
 })
 
-// command({
-//   signature: 'timestamp <time>',
-//   description: 'get a millisecond timestamp for a given time (mm/dd/yyyy@hh:mm:ss)',
-//   hidden: true,
-//   run: function (args) {
-//     const date = moment(args.time, 'MM/DD/YYYY@hh:mm:ssa')
-//     console.log(date.valueOf() + require('chalk').grey(' << ') + date.format('MMM Do YYYY, hh:mm:ssa'))
-//   }
-// })
+command({
+  signature: 'timestamp <time>',
+  description: 'get a millisecond timestamp for a given time (mm/dd/yyyy@hh:mm:ss)',
+  arguments: [{
+    name: 'time',
+    description: 'datetime string to get a timestamp for',
+    parse: parseDateTime
+  }],
+  hidden: true,
+  run: function (args) {
+    const formatDate = require('date-fns/format')
+    const chalk = require('chalk')
+    const timestamp = args.time.getTime()
+
+    console.log(timestamp + chalk.grey(' << ') + formatDate(args.time, 'MMM Do YYYY, hh:mm:ssa'))
+  }
+})
 
 command({
   signature: 'migrate <version>',
