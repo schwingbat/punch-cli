@@ -54,80 +54,6 @@ function projectHeader (text, stats) {
   }
 
   return str
-};
-
-function daySessions (sessions, config) {
-  let str = ''
-
-  sessions.forEach(session => {
-    str += '     '
-
-    const timeIn = formatDate(session.in, config.display.timeFormat)
-    const timeOut = session.out ? formatDate(session.out, config.display.timeFormat) : 'Now'
-    const timeSpan = timeIn.padStart(8) + ' - ' + timeOut.padStart(8)
-
-    if (!session.out) {
-      str += chalk.bold.green(timeSpan)
-    } else {
-      str += chalk.cyan(timeSpan)
-    }
-
-    if (session.comments.length > 0) {
-      for (let i = 0; i < session.comments.length; i++) {
-        const c = session.comments[i]
-        if (!c) continue
-
-        if (i > 0) {
-          str += '\n                        ' + chalk.grey(' » ') + c
-        } else {
-          str += chalk.grey(' » ') + c
-        }
-      }
-    }
-
-    str += '\n'
-  })
-
-  return str
-}
-
-function dayPunches (punches, projects, config) {
-  let str = ''
-
-  for (let i = 0; i < punches.length; i++) {
-    const punch = punches[i]
-    const start = formatDate(punch.in, config.display.timeFormat).padStart(8)
-    const end = (!punch.out ? 'Now' : formatDate(punch.out, config.display.timeFormat)).padStart(8)
-    const timeSpan = `${start} - ${end}`
-    const project = projects.find(p => p.alias === punch.project)
-    const projectName = project ? project.name : punch.project
-
-    if (!punch.out) {
-      str += chalk.bold.green(timeSpan)
-    } else {
-      str += chalk.cyan(timeSpan)
-    }
-
-    str += chalk.yellow(` [${projectName}]`)
-    str += '\n'
-
-    if (punch.comments.length > 0) {
-      for (let i = 0; i < punch.comments.length; i++) {
-        const c = punch.comments[i]
-
-        if (c) {
-          str += chalk.grey('   ⸭ ') + c
-
-          if (punch.comments[i + 1]) {
-            str += '\n'
-          }
-        }
-      }
-      str += '\n'
-    }
-  }
-
-  return str
 }
 
 /* Takes an array like so:
@@ -198,15 +124,97 @@ function summaryTable (projects) {
   return str
 }
 
-function projectDay ({ date, stats, sessions, config }) {
+function projectDay ({ date, stats, punches, config }) {
   let str = ''
 
-  str += chalk.grey('   ⸭ ') + chalk.bold.white(formatDate(date, config.display.dateFormat))
+  str += '┏' + '━'.repeat(80) + '┓' + '\n'
+  str += '┃  ' + chalk.bold(formatDate(date, 'ddd, MMM Do'))
   if (stats) {
     str += ' ' + delimitedList(stats, ' / ', ['(', ')']) + '\n'
   }
+  str += '┗' + '━'.repeat(80) + '┛' + '\n'
 
-  str += daySessions(sessions, config)
+  str += '  ' + dayPunches(punches, date, config).replace(/\n/g, '\n  ')
+
+  return str
+}
+
+function dayPunches (punches, date, config, indent = 0) {
+  let str = ''
+
+  const dateStart = new Date(date)
+  dateStart.setHours(0, 0, 0, 0)
+  const dateEnd = new Date(dateStart)
+  dateEnd.setHours(23, 59, 59, 999)
+
+  punches.forEach(punch => {
+    let start
+    let end
+    let carryForward = 0
+    let carryBack = 0
+
+    if (punch.in < dateStart) {
+      carryBack = dateStart.getTime() - punch.in.getTime()
+      start = dateStart
+    } else {
+      start = punch.in
+    }
+
+    if (punch.out) {
+      if (punch.out > dateEnd) {
+        carryForward = punch.out.getTime() - dateEnd.getTime()
+        end = dateEnd
+      } else {
+        end = punch.out
+      }
+    }
+
+    let timeSpan = ''
+    if (carryBack) {
+      timeSpan += 'MIDNIGHT - '
+    } else {
+      timeSpan += formatDate(start, config.display.timeFormat).padStart(8) + ' - '
+    }
+    if (carryForward) {
+      timeSpan += 'MIDNIGHT'
+    } else {
+      if (end) {
+        timeSpan += formatDate(end, config.display.timeFormat).padStart(8)
+      } else {
+        timeSpan += 'NOW'.padStart(8)
+      }
+    }
+
+    if (end) {
+      timeSpan = chalk.cyan(timeSpan)
+    } else {
+      timeSpan = chalk.bold.green(timeSpan)
+    }
+
+    const project = config.projects[punch.project]
+    const projectName = project ? project.name : punch.project
+
+    str += timeSpan
+    str += chalk.yellow(` [${projectName}]`)
+    if (carryBack) {
+      str += ' ' + chalk.magenta(`(+ ${formatDuration(carryBack)} yesterday)`)
+    }
+    if (carryForward) {
+      str += ' ' + chalk.magenta(`(+ ${formatDuration(carryForward)} tomorrow)`)
+    }
+    str += '\n'
+
+    if (punch.comments.length > 0) {
+      punch.comments.forEach((comment, i) => {
+        str += chalk.grey('   ⸭ ') + comment
+
+        if (punch.comments[i + 1]) {
+          str += '\n'
+        }
+      })
+      str += '\n'
+    }
+  })
 
   return str
 }
@@ -231,7 +239,6 @@ module.exports = {
   delimitedList,
   labelTable,
   reportHeader,
-  daySessions,
   dayPunches,
   summaryTable,
   projectHeader,

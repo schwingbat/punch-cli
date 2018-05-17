@@ -1,5 +1,4 @@
 /*
-
   Weekly logs will contain summaries for each day
 
   Monday (9h 27m 8s / $X,XXX.XX)
@@ -16,5 +15,4 @@
     ...
 
   TOTAL (52h 26m 36s / $1,578.81 / 24 punches)
-
 */

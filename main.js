@@ -1,5 +1,19 @@
 #!/usr/bin/env node
 
+// const heapdump = require('heapdump')
+// heapdump.writeSnapshot()
+
+const resolvePath = require('./utils/resolve-path')
+const { ascendingBy } = require('./utils/sort-factories')
+const parseDate = require('./utils/parse-date')
+const parseDateTime = require('./utils/parse-datetime')
+const CLI = require('./utils/cli.js')
+
+const { command, run, invoke } = CLI({
+  name: 'punch',
+  version: require('./package.json').version
+})
+
 const flags = {
   VERBOSE: false,
   BENCHMARK: false,
@@ -47,28 +61,9 @@ bench.mark('config loaded')
 
 const Storage = require('./storage')(config)
 const Punch = require('./punch/punch')(config, Storage)
-const Syncer = require('./sync/syncer')
-const Invoicer = require('./invoicing/invoicer')
-const Logger = require('./logging/log')
+// const Syncer = require('./sync/syncer')
 
-bench.mark('modules loaded')
-
-const resolvePath = require('./utils/resolve-path')
-const { ascendingBy } = require('./utils/sort-factories')
-const parseDate = require('./utils/parse-date')
-const parseDateTime = require('./utils/parse-datetime')
-
-bench.mark('utils loaded')
-
-// Utils
-const CLI = require('./utils/cli.js')
-
-const { autoSync } = config.sync
-
-const { command, run, invoke } = CLI({
-  name: 'punch',
-  version: require('./package.json').version
-})
+// const { autoSync } = config.sync
 
 /* ========================= *\
 ||           Utils           ||
@@ -80,17 +75,19 @@ const getLabelFor = name => {
     : name
 }
 
-const getMessageFor = (condition, opts = {}) => {
-  // Returns a random message from the given file.
-  // Assumes the file is a JSON file containing an array of strings in the resources/messages/ folder.
-  try {
-    const messages = require('./resources/messages/' + condition.toLowerCase().replace(/\s/g, '_') + '.json')
-    const i = Math.round(Math.random() * (messages.length - 1))
-    return messages[i]
-  } catch (err) {
-    return opts.default || `Message file not found for ${condition}...`
-  }
-}
+const getMessageFor = require('./utils/message-for')
+
+// const getMessageFor = (condition, opts = {}) => {
+//   // Returns a random message from the given file.
+//   // Assumes the file is a JSON file containing an array of strings in the resources/messages/ folder.
+//   try {
+//     const messages = require('./resources/messages/' + condition.toLowerCase().replace(/\s/g, '_') + '.json')
+//     const i = Math.round(Math.random() * (messages.length - 1))
+//     return messages[i]
+//   } catch (err) {
+//     return opts.default || `Message file not found for ${condition}...`
+//   }
+// }
 
 const confirm = question => {
   let response
@@ -109,9 +106,9 @@ const confirm = question => {
 }
 
 const handleSync = async () => {
-  if (autoSync && !flags.NO_SYNC) {
-    return new Syncer(config, Punch).sync()
-  }
+  // if (autoSync && !flags.NO_SYNC) {
+  //   return new Syncer(config, Punch).sync()
+  // }
 }
 
 /* ========================= *\
@@ -136,7 +133,7 @@ command({
       punch.save()
 
       // const time = format(new Date(), config.display.timeFormat)
-      console.log(`Punched in on ${getLabelFor(args.project)}. ${getMessageFor('punched in', { default: '' })}`)
+      console.log(`Punched in on ${getLabelFor(args.project)}. ${getMessageFor('punched-in', { default: '' })}`)
 
       handleSync()
     }
@@ -231,24 +228,39 @@ command({
 command({
   signature: 'now',
   description: 'show stats for the current session',
-  run: async function () {
+  options: [{
+    name: 'minimal',
+    short: 'm',
+    description: 'print a stripped down output for scripting use',
+    type: 'boolean'
+  }, {
+    name: 'test',
+    type: 'number'
+  }],
+  run: async function (args) {
     const current = await Punch.current()
+    const formatDuration = require('./format/duration')
 
-    if (current) {
-      // Print current session stats.
-      // Project name, current pay, time worked,
-    } else {
-      let message = "You're not punched in."
-
-      const latest = await Punch.latest()
-      if (latest) {
-        const formatDuration = require('./format/duration')
-        const label = getLabelFor(latest.project)
-        const timeDiff = formatDuration(Date.now() - latest.out, { long: true })
-        message += ` You punched out of ${label} ${timeDiff} ago.`
+    if (args.options.minimal) {
+      if (current) {
+        console.log(`${getLabelFor(current.project)} ${formatDuration(current.duration())}`)
       }
+    } else {
+      if (current) {
+        // Print current session stats.
+        // Project name, current pay, time worked,
+      } else {
+        let message = "You're not punched in."
 
-      console.log(message)
+        const latest = await Punch.latest()
+        if (latest) {
+          const label = getLabelFor(latest.project)
+          const timeDiff = formatDuration(Date.now() - latest.out, { long: true })
+          message += ` You punched out of ${label} ${timeDiff} ago.`
+        }
+
+        console.log(message)
+      }
     }
   }
 })
@@ -456,7 +468,7 @@ command({
     const interval = fuzzyParse(args.when).interval()
 
     if (interval) {
-      Logger(config, Punch).forInterval(interval, args.options.project)
+      require('./logging/log')(config, Punch).forInterval(interval, args.options.project)
     }
   }
 })
@@ -571,7 +583,7 @@ command({
       const loader = require('./utils/loader')({ text: 'Generating invoice...' })
       loader.start()
 
-      const invoicer = Invoicer(config, flags)
+      const invoicer = require('./invoicing/invoicer')(config, flags)
       const punches = await Punch.select(p =>
         p.project === project.alias &&
         p.in.getTime() >= startDate.getTime() &&
@@ -598,32 +610,32 @@ command({
   }
 })
 
-command({
-  signature: 'sync',
-  description: 'synchronize with any providers in your config file',
-  run: async function () {
-    const chalk = require('chalk')
-    const loader = require('./utils/loader')()
-    const syncer = new Syncer(config, Punch)
+// command({
+//   signature: 'sync',
+//   description: 'synchronize with any providers in your config file',
+//   run: async function () {
+//     const chalk = require('chalk')
+//     const loader = require('./utils/loader')()
+//     const syncer = new Syncer(config, Punch)
 
-    loader.start(`Syncing with Dummy...`)
+//     loader.start(`Syncing with Dummy...`)
 
-    const results = await syncer.sync('dummy')
+//     const results = await syncer.sync('dummy')
 
-    let report = chalk.green('✓') + ' Synced with Dummy  '
-    if (results.uploaded.length > 0) {
-      report += `${chalk.grey('[')}${chalk.magenta('⬆')} ${results.uploaded.length}${chalk.grey(']')}`
+//     let report = chalk.green('✓') + ' Synced with Dummy  '
+//     if (results.uploaded.length > 0) {
+//       report += `${chalk.grey('[')}${chalk.magenta('⬆')} ${results.uploaded.length}${chalk.grey(']')}`
 
-      if (results.downloaded.length > 0) {
-        report += ' '
-      }
-    }
-    if (results.downloaded.length > 0) {
-      report += `${chalk.grey('[')}${chalk.cyan('⬇')} ${results.downloaded.length}${chalk.grey(']')}`
-    }
-    loader.stop(report)
-  }
-})
+//       if (results.downloaded.length > 0) {
+//         report += ' '
+//       }
+//     }
+//     if (results.downloaded.length > 0) {
+//       report += `${chalk.grey('[')}${chalk.cyan('⬇')} ${results.downloaded.length}${chalk.grey(']')}`
+//     }
+//     loader.stop(report)
+//   }
+// })
 
 command({
   signature: 'config [editor]',
@@ -734,7 +746,7 @@ command({
   }
 })
 
-run(ARGS.filter(a => a[0] !== '-'))
+run(ARGS)
 
 bench.mark('parsed and run')
 bench.printAll()

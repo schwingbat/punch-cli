@@ -95,16 +95,56 @@ function applyArgExtras (argMap, extras) {
   return argMap
 }
 
-function mapArgs (args, argMap) {
+function mapArgs (args, argMap, optionMap) {
   // Using a command's argMap, map the args to their proper names.
 
-  const mapped = {}
+  const mapped = {
+    options: {}
+  }
 
-  // TODO: Parse option flags and add values here
-  Object.defineProperty(mapped, 'options', {
-    value: {},
-    enumerable: false
-  })
+  const withoutFlags = []
+  for (let i = 0; i < args.length; i++) {
+    if (args[i].toLowerCase() === '--help') {
+      mapped.options.help = true
+    } else if (args[i][0] === '-') {
+      const arg = args[i].replace(/^-*/g, '')
+      const map = optionMap.find(op => op.name === arg || op.short === arg)
+      if (map) {
+        if (typeof map.type === 'string') {
+          if (map.type.toLowerCase() === 'boolean') {
+            mapped.options[map.name] = true
+          } else {
+            let value = args[i + 1]
+            switch (map.type.toLowerCase()) {
+              case 'string':
+                break
+              case 'number':
+                value = Number(value)
+                break
+              default:
+                console.log(`Type ${map.type} is not yet supported for options. Pass a function as the type to use it as a custom parser.`)
+                break
+            }
+            mapped.options[map.name] = value
+            i++
+          }
+        } else if (typeof map.type === 'function') {
+          if (map.type === Boolean) {
+            mapped.options[map.name] = true
+          } else {
+            mapped.options[map.name] = map.type(args[i + 1])
+            i++
+          }
+        } else {
+          console.log(`option.${map.name}: Type must be either a string or a function. Is ${typeof map.type}`)
+        }
+      }
+    } else {
+      withoutFlags.push(args[i])
+    }
+  }
+
+  args = withoutFlags
 
   argMap.forEach((arg, i) => {
     if (args[i]) {
@@ -238,32 +278,38 @@ function CLI (program) {
         parseSignature(signature),
         config.arguments
       ),
+      options: config.options || [],
       hidden: !!config.hidden,
       run
     }
   }
 
   const run = (args) => {
-    const command = args[0]
+    const command = args.shift()
     const cmd = commands[command]
 
     if (!cmd || command.toLowerCase() === 'help') {
       return console.log(makeGeneralHelp(program, commands))
     }
 
-    const mapped = mapArgs(args.slice(1), cmd.args)
+    const mapped = mapArgs(args, cmd.args, cmd.options)
 
-    for (let i = 0; i < cmd.args.length; i++) {
-      if (cmd.args[i]._error) {
-        return console.log(`There was a problem parsing '${cmd.args[i].name}':\n  ${chalk.red(cmd.args[i]._error.message)}`)
+    if (mapped.options.help) {
+      // Show help
+      console.log(`TODO: SHOW HELP FOR ${command}`)
+    } else {
+      for (let i = 0; i < cmd.args.length; i++) {
+        if (cmd.args[i]._error) {
+          return console.log(`There was a problem parsing '${cmd.args[i].name}':\n  ${chalk.red(cmd.args[i]._error.message)}`)
+        }
       }
-    }
 
-    if (!requiredArgsProvided(mapped, cmd.args)) {
-      return console.log(makeHelp(program.name, command, cmd.args, mapped))
-    }
+      if (!requiredArgsProvided(mapped, cmd.args)) {
+        return console.log(makeHelp(program.name, command, cmd.args, mapped))
+      }
 
-    return cmd.run.call(null, mapped)
+      return cmd.run.call(null, mapped)
+    }
   }
 
   const invoke = (command, args) => {
