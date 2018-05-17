@@ -102,19 +102,33 @@ function mapArgs (args, argMap, optionMap) {
     options: {}
   }
 
+  // Set default values
+  optionMap.filter(o => o.default).forEach(o => {
+    if (typeof o.default === 'function') {
+      mapped.options[o.name] = o.default()
+    } else {
+      mapped.options[o.name] = o.default
+    }
+  })
+
+  // Override default values with given ones.
   const withoutFlags = []
   for (let i = 0; i < args.length; i++) {
     if (args[i].toLowerCase() === '--help') {
       mapped.options.help = true
     } else if (args[i][0] === '-') {
-      const arg = args[i].replace(/^-*/g, '')
+      let [arg, value] = args[i].replace(/^-*/g, '').split('=')
       const map = optionMap.find(op => op.name === arg || op.short === arg)
       if (map) {
         if (typeof map.type === 'string') {
           if (map.type.toLowerCase() === 'boolean') {
             mapped.options[map.name] = true
           } else {
-            let value = args[i + 1]
+            if (!value) {
+              value = args[i + 1]
+              i++
+            }
+
             switch (map.type.toLowerCase()) {
               case 'string':
                 break
@@ -126,14 +140,16 @@ function mapArgs (args, argMap, optionMap) {
                 break
             }
             mapped.options[map.name] = value
-            i++
           }
         } else if (typeof map.type === 'function') {
           if (map.type === Boolean) {
             mapped.options[map.name] = true
           } else {
-            mapped.options[map.name] = map.type(args[i + 1])
-            i++
+            if (!value) {
+              value = args[i + 1]
+              i++
+            }
+            mapped.options[map.name] = map.type(value)
           }
         } else {
           console.log(`option.${map.name}: Type must be either a string or a function. Is ${typeof map.type}`)
@@ -201,38 +217,97 @@ function indent (depth = 1) {
   return str
 }
 
-function makeHelp (programName, command, argMap, mapped) {
+function argTable (args) {
+  let signatures = args.map(a => a[0])
+  let minSigLength = signatures.reduce((max, sig) => sig.length > max ? sig.length : max, 0)
+  let str = ''
+
+  args.forEach(([sig, desc]) => {
+    str += sig.padEnd(minSigLength + 5)
+    str += desc
+    str += '\n'
+  })
+
+  return str
+}
+
+function makeHelp (programName, command, argMap, mapped, options, highlightMissing = true) {
   let str = '\n'
 
   str += `Usage: ${programName} ${command}`
 
-  argMap.forEach(arg => {
-    let argStr = ' '
-    if (arg.variadic) {
-      arg.name += '...'
-    }
-
-    if (arg.required) {
-      argStr += `<${arg.name}>`
-    } else {
-      argStr += `[${arg.name}]`
-    }
-
-    if (arg._error) {
-      str += chalk.bold.red(argStr)
-    } else {
-      // Highlight in red if this arg was missed.
-      if (!mapped[arg.name]) {
-        if (arg.required) {
-          str += chalk.bold.red(argStr)
-        } else {
-          str += chalk.bold.yellow(argStr)
-        }
-      } else {
-        str += argStr
+  if (argMap.length > 0) {
+    argMap.forEach(arg => {
+      let argStr = ' '
+      let argName = arg.name
+      if (arg.variadic) {
+        argName += '...'
       }
+
+      if (arg.required) {
+        argStr += `<${argName}>`
+      } else {
+        argStr += `[${argName}]`
+      }
+
+      if (arg._error) {
+        str += chalk.bold.red(argStr)
+      } else {
+        // Highlight in red if this arg was missed.
+        if (!mapped[arg.name] && highlightMissing) {
+          if (arg.required) {
+            str += chalk.bold.red(argStr)
+          } else {
+            str += chalk.bold.yellow(argStr)
+          }
+        } else {
+          str += argStr
+        }
+      }
+    })
+  }
+
+  if (options.length > 0) {
+    str += ' [OPTIONS]'
+  }
+
+  str += '\n'
+
+  if (argMap.length > 0) {
+    str += `\nARGUMENTS\n`
+    str += argTable(argMap.map(a => [a.name, a.description]))
+  }
+
+  if (options.length > 0) {
+    str += '\nOPTIONS\n'
+    const signatures = []
+    const descriptions = []
+
+    options.forEach(o => {
+      let sig = ''
+      let desc = o.description || 'no description'
+
+      if (o.short) {
+        sig += `-${o.short}`
+        if (o.name) sig += ', '
+      }
+      if (o.name) {
+        sig += `--${o.name}`
+      }
+      if (o.type !== 'boolean' && o.type !== Boolean) {
+        sig += ' <value>'
+      }
+      signatures.push(sig)
+      descriptions.push(desc)
+    })
+
+    let args = []
+    for (let i = 0; i < signatures.length; i++) {
+      args.push([signatures[i], descriptions[i]])
     }
-  })
+
+    str += argTable(args)
+  }
 
   return str + '\n'
 }
@@ -296,7 +371,7 @@ function CLI (program) {
 
     if (mapped.options.help) {
       // Show help
-      console.log(`TODO: SHOW HELP FOR ${command}`)
+      console.log(makeHelp(program.name, command, cmd.args, mapped, cmd.options, false))
     } else {
       for (let i = 0; i < cmd.args.length; i++) {
         if (cmd.args[i]._error) {

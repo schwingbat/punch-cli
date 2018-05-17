@@ -132,6 +132,10 @@ command({
       const punch = new Punch({ project: args.project })
       punch.save()
 
+      const fs = require('fs')
+      const path = require('path')
+      fs.writeFileSync(path.join(path.dirname(config.configPath), 'current'), getLabelFor(args.project))
+
       // const time = format(new Date(), config.display.timeFormat)
       console.log(`Punched in on ${getLabelFor(args.project)}. ${getMessageFor('punched-in', { default: '' })}`)
 
@@ -168,6 +172,10 @@ command({
         str += ` and earned ${formatCurrency(pay)}`
       }
       console.log(str + '.')
+
+      const fs = require('fs')
+      const path = require('path')
+      fs.writeFileSync(path.join(path.dirname(config.configPath), 'current'), '')
 
       handleSync()
     } else {
@@ -234,8 +242,10 @@ command({
     description: 'print a stripped down output for scripting use',
     type: 'boolean'
   }, {
-    name: 'test',
-    type: 'number'
+    name: 'project-only',
+    short: 'p',
+    description: 'print only the project name',
+    type: 'boolean'
   }],
   run: async function (args) {
     const current = await Punch.current()
@@ -243,7 +253,11 @@ command({
 
     if (args.options.minimal) {
       if (current) {
-        console.log(`${getLabelFor(current.project)} ${formatDuration(current.duration())}`)
+        if (args.options['project-only']) {
+          console.log(getLabelFor(current.project))
+        } else {
+          console.log(`${getLabelFor(current.project)}: ${formatDuration(current.duration())}`)
+        }
       }
     } else {
       if (current) {
@@ -460,8 +474,10 @@ command({
     parse: words => words.join(' ')
   }],
   options: [{
-    signature: '--project, -p <name>',
-    description: 'show only punches for this project'
+    name: 'project',
+    short: 'p',
+    type: 'string',
+    description: 'show only punches for a given project'
   }],
   run: function (args) {
     const fuzzyParse = require('./utils/fuzzy-parse')
@@ -638,11 +654,13 @@ command({
 // })
 
 command({
-  signature: 'config [editor]',
-  description: 'open config file in editor - uses EDITOR env var unless an editor command is specified.',
-  arguments: [{
+  signature: 'config',
+  description: 'open config file in editor - uses EDITOR env var unless an editor flag is specified.',
+  options: [{
     name: 'editor',
+    short: 'e',
     description: 'editor command',
+    type: 'string',
     default: function () {
       return process.env.VISUAL ||
              process.env.EDITOR ||
@@ -656,25 +674,25 @@ command({
 })
 
 command({
-  signature: 'edit [date] [editor]',
-  description: 'edit punchfile for the given date - uses EDITOR env var unless and editor command is specified',
+  signature: 'edit [date]',
+  description: 'edit punchfile for the given date - uses EDITOR env var unless an editor is specified',
   arguments: [{
     name: 'date',
     description: 'date for the desired punchfile (MM-DD-YYYY format)',
     parse: parseDate,
     default: () => new Date()
-  }, {
+  }],
+  options: [{
     name: 'editor',
-    description: 'editor command',
-    default: function () {
-      return process.env.VISUAL ||
-             process.env.EDITOR ||
-             (/^win/.test(process.platform) ? 'notepad' : 'vim')
-    }
+    short: 'e',
+    type: 'string',
+    default: () => process.env.VISUAL ||
+                   process.env.EDITOR ||
+                   (/^win/.test(process.platform) ? 'notepad' : 'vim')
   }],
   hidden: true,
   run: function (args) {
-    const { date, editor } = args
+    const { date } = args
 
     const y = date.getFullYear()
     const m = date.getMonth() + 1
@@ -686,7 +704,7 @@ command({
       return console.log(require('chalk').red('File doesn\'t exist.'))
     }
 
-    require('child_process').spawn(editor, [file], { stdio: 'inherit' })
+    require('child_process').spawn(args.options.editor, [file], { stdio: 'inherit' })
   }
 })
 
