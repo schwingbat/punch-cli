@@ -154,14 +154,14 @@ command({
   }],
   options: [{
     name: 'git-commit',
-    short: 'g',
+    short: 'c',
     description: 'simultaneously add a git commit with the comment as the message',
     type: 'boolean'
   }, {
     name: 'git-add',
     short: 'a',
-    description: 'also run "git add ." before commit when -g is true',
-    type: 'boolean'
+    description: 'also run "git add <value>" before commit when -g is true',
+    type: 'string'
   }],
   run: async function (args) {
     const current = await Punch.current()
@@ -192,7 +192,7 @@ command({
         const { exec, spawn } = require('child_process')
 
         if (args.options['git-add']) {
-          exec('git add .', (err, stdout, stderr) => {
+          exec(`git add ${args.options['git-add']}`, (err, stdout, stderr) => {
             if (err || stderr) {
               return console.error(err || stderr)
             }
