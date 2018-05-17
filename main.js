@@ -152,6 +152,17 @@ command({
     description: 'a description of what you worked on',
     parse: words => words.join(' ')
   }],
+  options: [{
+    name: 'git-commit',
+    short: 'g',
+    description: 'simultaneously add a git commit with the comment as the message',
+    type: 'boolean'
+  }, {
+    name: 'git-add',
+    short: 'a',
+    description: 'also run "git add ." before commit when -g is true',
+    type: 'boolean'
+  }],
   run: async function (args) {
     const current = await Punch.current()
 
@@ -176,6 +187,22 @@ command({
       const fs = require('fs')
       const path = require('path')
       fs.writeFileSync(path.join(path.dirname(config.configPath), 'current'), '')
+
+      if (args.options['git-commit']) {
+        const { exec, spawn } = require('child_process')
+
+        if (args.options['git-add']) {
+          exec('git add .', (err, stdout, stderr) => {
+            if (err || stderr) {
+              return console.error(err || stderr)
+            }
+            console.log(stdout)
+            spawn('git', ['commit', '-m', args.comment], { stdio: 'inherit' })
+          })
+        } else {
+          spawn('git', ['commit', '-m', args.comment], { stdio: 'inherit' })
+        }
+      }
 
       handleSync()
     } else {
