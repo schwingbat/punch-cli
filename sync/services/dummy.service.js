@@ -24,6 +24,10 @@ class DummySyncService extends SyncService {
       }, Math.random() * 300 + 200)
     })
   }
+
+  getSyncingMessage () {
+    return 'Syncing with dummy service...'
+  }
 }
 
 module.exports = DummySyncService

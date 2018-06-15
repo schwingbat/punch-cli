@@ -20,23 +20,18 @@ class S3SyncService extends SyncService {
       }
 
       s3.getObject(params, (err, obj) => {
-        if (err) {
-          // If manifest doesn't exist, return a blank manifest.
-          // There are likely no files in the bucket.
-          return resolve({})
-        }
+        if (err) return reject(new Error('Error while downloading punch data: ' + err.message))
 
-        const manifest = JSON.parse(obj.Body.toString())
-        for (const id in manifest) {
-          manifest[id] = new Date(manifest[id])
-        }
+        console.log(obj)
 
-        return resolve(manifest)
+        return resolve({})
+
+        done()
       })
     })
   }
 
-  async upload (uploads = [], manifest = {}) {
+  upload (uploads = []) {
     const s3 = this._s3
     const config = this._config
 
@@ -49,19 +44,7 @@ class S3SyncService extends SyncService {
       const done = () => {
         uploaded += 1
         if (uploaded === uploads.length) {
-          const newManifest = { ...manifest }
-          uploads.forEach(punch => {
-            newManifest[punch.id] = punch.updated
-          })
-          const params = {
-            Bucket: config.bucket,
-            Key: 'punchmanifest.json',
-            Body: JSON.stringify(newManifest, null, 2)
-          }
-          s3.putObject(params, (err, data) => {
-            if (err) return reject(new Error('Error uploading new punchmanifest.json: ' + err.message))
-            return resolve(uploads)
-          })
+          return resolve(uploads)
         }
       }
 
@@ -69,7 +52,7 @@ class S3SyncService extends SyncService {
         const params = {
           Bucket: config.bucket,
           Key: `punches/${punch.id}.json`,
-          Body: JSON.stringify(punch.toJSON(true))
+          Body: JSON.stringify(punch.toJSON())
         }
 
         s3.putObject(params, (err, data) => {
@@ -106,6 +89,8 @@ class S3SyncService extends SyncService {
         s3.getObject(params, (err, obj) => {
           if (err) return reject(new Error('Error while downloading punch data: ' + err.message))
 
+          console.log(obj)
+
           const body = JSON.parse(obj.Body.toString())
 
           downloaded.push(new Punch(body))
@@ -113,10 +98,6 @@ class S3SyncService extends SyncService {
         })
       })
     })
-  }
-
-  getSyncingMessage () {
-    return `Syncing with Amazon S3 (${this._config.bucket})`
   }
 }
 

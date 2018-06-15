@@ -71,13 +71,13 @@ class Syncer {
       For now it's just single sync
     */
 
-    if (service instanceof SyncService || typeof service === 'string') {
+    if (typeof service === 'object' || typeof service === 'string') {
       service = this._loadService(service)
 
       const manifest = await service.getManifest()
       const { uploads, downloads } = await this._diff(manifest)
 
-      const uploaded = await service.upload(uploads)
+      const uploaded = await service.upload(uploads, manifest)
       const downloaded = await service.download(downloads)
 
       downloaded.forEach(punch => {

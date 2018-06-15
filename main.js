@@ -643,42 +643,39 @@ command({
   }
 })
 
-// command({
-//   signature: 'sync',
-//   description: 'synchronize with any providers in your config file',
-//   run: async function () {
-//     const chalk = require('chalk')
-//     const loader = require('./utils/loader')()
-//     const Syncer = require('./sync/syncer')
-//     const syncer = new Syncer(config, Punch)
+command({
+  signature: 'sync',
+  description: 'synchronize with any providers in your config file',
+  run: async function () {
+    const chalk = require('chalk')
+    const loader = require('./utils/loader')()
+    const Syncer = require('./sync/syncer')
+    const syncer = new Syncer(config, Punch)
 
-//     const sync = async (service) => {
-//       loader.start(`Syncing with ${service}...`)
-//       const results = await syncer.sync(service)
+    const sync = async (service) => {
+      loader.start(`Syncing with ${service}...`)
+      const results = await syncer.sync(service)
 
-//       let report = chalk.green('✓') + ` Synced with ${service}  `
-//       if (results.uploaded.length > 0) {
-//         report += `${chalk.grey('[')}${chalk.magenta('⬆')} ${results.uploaded.length}${chalk.grey(']')}`
+      let report = chalk.green('✓') + ` Synced with ${service}  `
+      if (results.uploaded.length > 0) {
+        report += `${chalk.grey('[')}${chalk.magenta('⬆')} ${results.uploaded.length}${chalk.grey(']')}`
 
-//         if (results.downloaded.length > 0) {
-//           report += ' '
-//         }
-//       }
-//       if (results.downloaded.length > 0) {
-//         report += `${chalk.grey('[')}${chalk.cyan('⬇')} ${results.downloaded.length}${chalk.grey(']')}`
-//       }
-//       loader.stop(report)
-//     }
+        if (results.downloaded.length > 0) {
+          report += ' '
+        }
+      }
+      if (results.downloaded.length > 0) {
+        report += `${chalk.grey('[')}${chalk.cyan('⬇')} ${results.downloaded.length}${chalk.grey(']')}`
+      }
+      loader.stop(report)
+    }
 
-//     Promise.all(config.sync.services.map(s => sync(s.name)))
-//       .then(results => {
-//         console.log(results)
-//       })
-//       .catch(err => {
-//         console.log(err)
-//       })
-//   }
-// })
+    Promise.all(config.sync.services.map(s => sync(s.name)))
+      .catch(err => {
+        console.error(err)
+      })
+  }
+})
 
 command({
   signature: 'config',
@@ -766,7 +763,7 @@ command({
     const { version } = args
     const fs = require('fs')
     const path = require('path')
-    const migrator = require('./utils/migrator')
+    const migrator = require('./utils/migrator')(config)
     const dir = fs.readdirSync(config.punchPath)
 
     dir.forEach(fileName => {
@@ -780,7 +777,7 @@ command({
         return
       }
 
-      const fileVersion = migrator.getPunchfileVersion(file)
+      const fileVersion = migrator.getPunchFileVersion(file)
       const migrated = migrator.migrate(fileVersion, version, file)
 
       migrated.updated = Date.now()

@@ -53,10 +53,14 @@ module.exports = function (config, Storage) {
 
     addComment (comment) {
       this.comments.push(new Comment(comment))
+
+      this.update()
     }
 
     punchOut (comment, options = {}) {
       this.out = options.time || new Date()
+      
+      this.update()
 
       if (comment) this.addComment(comment)
       if (options.autosave) this.save()
@@ -72,7 +76,7 @@ module.exports = function (config, Storage) {
     }
 
     toJSON (pretty = false) {
-      return {
+      const json = {
         id: this.id,
         project: this.project,
         in: this.in.getTime(),
@@ -82,6 +86,12 @@ module.exports = function (config, Storage) {
         created: this.created.getTime(),
         updated: this.updated.getTime()
       }
+      console.log(json)
+      return json
+    }
+
+    update () {
+      this.updated = new Date()
     }
 
     async save () {
@@ -90,8 +100,8 @@ module.exports = function (config, Storage) {
   }
 
   // Gotta love that function scope.
-  // Can't put it above the class, but
-  // it's used within the class.
+  // Can't put it above the class because classes can't be referenced
+  // before being defined, but it's used within the class.
   var storage = Storage(config, Punch)
 
   Punch.current = async function (project) {

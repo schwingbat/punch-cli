@@ -3,6 +3,8 @@
 // const schemas = require('./migrator-schemas.js')
 
 module.exports = function (config) {
+  const uuid = require('uuid/v1')
+
   function V1toV2 (obj) {
     // Add created
     let newCreated
@@ -33,6 +35,7 @@ module.exports = function (config) {
       updated: obj.updated,
       punches: obj.punches.map(punch => {
         return {
+          id: punch.id,
           project: punch.project,
           in: punch.in,
           out: punch.out || null,
@@ -44,7 +47,9 @@ module.exports = function (config) {
             .map(c => ({
               timestamp: punch.out || Date.now(),
               comment: c
-            }))
+            })),
+          created: punch.created || Date.now(),
+          updated: punch.updated || Date.now(),
         }
       })
     }
@@ -71,6 +76,25 @@ module.exports = function (config) {
   }
 
   function conformToV3 (obj) {
+    obj.version = 3
+    obj.created = obj.created || Date.now()
+    obj.updated = obj.updated || Date.now()
+    obj.punches = obj.punches.map(punch => ({
+      id: punch.id || uuid(),
+      project: punch.project,
+      in: punch.in,
+      out: punch.out || null,
+      rate: config.projects[punch.project]
+        ? config.projects[punch.project].hourlyRate || 0.0
+        : 0.0,
+      comments: punch.comments.map(comment => ({
+        comment: comment.comment || comment,
+        timestamp: comment.timestamp || punch.out || Date.now()
+      })),
+      created: punch.created || Date.now(),
+      updated: punch.updated || Date.now(),
+    }))
+    console.log(obj)
     return obj
   }
 
