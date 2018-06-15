@@ -671,6 +671,9 @@ command({
     }
 
     Promise.all(config.sync.services.map(s => sync(s.name)))
+      .then(() => {
+        // console.log('done syncing')
+      })
       .catch(err => {
         console.error(err)
       })
@@ -693,7 +696,7 @@ command({
   }],
   run: function (args) {
     require('child_process')
-      .spawn(args.editor, [config.configPath], { stdio: 'inherit' })
+      .spawn(args.options.editor, [config.configPath], { stdio: 'inherit' })
   }
 })
 

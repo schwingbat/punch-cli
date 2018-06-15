@@ -21,9 +21,13 @@ class S3SyncService extends SyncService {
 
       s3.getObject(params, (err, obj) => {
         if (err) {
-          // If manifest doesn't exist, return a blank manifest.
-          // There are likely no files in the bucket.
-          return resolve({})
+          if (err.code === 'NoSuchKey') {
+            // If manifest doesn't exist, return a blank manifest.
+            // There are likely no files in the bucket.
+            return resolve({})
+          } else {
+            return reject(err)
+          }
         }
 
         const manifest = JSON.parse(obj.Body.toString())

@@ -86,7 +86,6 @@ module.exports = function (config, Storage) {
         created: this.created.getTime(),
         updated: this.updated.getTime()
       }
-      console.log(json)
       return json
     }
 

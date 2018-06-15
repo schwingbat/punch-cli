@@ -94,7 +94,6 @@ module.exports = function (config) {
       created: punch.created || Date.now(),
       updated: punch.updated || Date.now(),
     }))
-    console.log(obj)
     return obj
   }
 
