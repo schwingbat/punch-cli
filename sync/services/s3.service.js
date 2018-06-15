@@ -48,7 +48,7 @@ class S3SyncService extends SyncService {
         const params = {
           Bucket: config.bucket,
           Key: `punches/${punch.id}.json`,
-          Body: punch.toJSON()
+          Body: JSON.stringify(punch.toJSON())
         }
 
         s3.putObject(params, (err, data) => {
@@ -85,7 +85,11 @@ class S3SyncService extends SyncService {
         s3.getObject(params, (err, obj) => {
           if (err) return reject(new Error('Error while downloading punch data: ' + err.message))
 
-          downloaded.push(new Punch(obj.Body))
+          console.log(obj)
+
+          const body = JSON.parse(obj.Body.toString())
+
+          downloaded.push(new Punch(body))
           done()
         })
       })

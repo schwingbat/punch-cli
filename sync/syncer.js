@@ -31,7 +31,7 @@ class Syncer {
       const modulePath = path.join(__dirname, 'services', service.toLowerCase() + '.service.js')
       if (fs.existsSync(modulePath)) {
         const Service = require(modulePath)
-        return new Service(conf)
+        return new Service(conf, this._punch)
       } else {
         throw new Error(`Service ${service} is not (yet) supported.`)
       }

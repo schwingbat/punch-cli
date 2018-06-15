@@ -95,7 +95,7 @@ function applyArgExtras (argMap, extras) {
   return argMap
 }
 
-function mapArgs (args, argMap, optionMap) {
+function mapArgs (args, argMap, optionMap = []) {
   // Using a command's argMap, map the args to their proper names.
 
   const mapped = {
@@ -231,13 +231,21 @@ function argTable (args) {
   return str
 }
 
-function makeHelp (programName, command, argMap, mapped, options, highlightMissing = true) {
+function makeHelp (programName, commandName, command, mapped, highlightMissing = true) {
   let str = '\n'
 
-  str += `Usage: ${programName} ${command}`
+  if (command.description) {
+    str += `${command.description}\n\n`
+  }
 
-  if (argMap.length > 0) {
-    argMap.forEach(arg => {
+  str += `Usage: ${programName} ${commandName}`
+
+  if (command.options.length > 0) {
+    str += ' [OPTIONS]'
+  }
+
+  if (command.args.length > 0) {
+    command.args.forEach(arg => {
       let argStr = ' '
       let argName = arg.name
       if (arg.variadic) {
@@ -267,23 +275,19 @@ function makeHelp (programName, command, argMap, mapped, options, highlightMissi
     })
   }
 
-  if (options.length > 0) {
-    str += ' [OPTIONS]'
-  }
-
   str += '\n'
 
-  if (argMap.length > 0) {
+  if (command.args.length > 0) {
     str += `\nARGUMENTS\n`
-    str += argTable(argMap.map(a => [a.name, a.description]))
+    str += argTable(command.args.map(a => [a.name, a.description]))
   }
 
-  if (options.length > 0) {
+  if (command.options.length > 0) {
     str += '\nOPTIONS\n'
     const signatures = []
     const descriptions = []
 
-    options.forEach(o => {
+    command.options.forEach(o => {
       let sig = ''
       let desc = o.description || 'no description'
 
@@ -371,7 +375,7 @@ function CLI (program) {
 
     if (mapped.options.help) {
       // Show help
-      console.log(makeHelp(program.name, command, cmd.args, mapped, cmd.options, false))
+      console.log(makeHelp(program.name, command, cmd, mapped, false))
     } else {
       for (let i = 0; i < cmd.args.length; i++) {
         if (cmd.args[i]._error) {
@@ -380,7 +384,7 @@ function CLI (program) {
       }
 
       if (!requiredArgsProvided(mapped, cmd.args)) {
-        return console.log(makeHelp(program.name, command, cmd.args, mapped))
+        return console.log(makeHelp(program.name, command, cmd, mapped))
       }
 
       return cmd.run.call(null, mapped)

@@ -55,8 +55,8 @@ if (flags.BENCHMARK) {
 }
 
 const bench = require('./utils/bench')({ disabled: !flags.BENCHMARK })
+const config = require('./config')()
 
-const config = require('./config')(process.env.PUNCH_CONFIG_PATH)
 bench.mark('config loaded')
 
 const Storage = require('./storage')(config)
@@ -69,7 +69,7 @@ const Punch = require('./punch/punch')(config, Storage)
 ||           Utils           ||
 \* ========================= */
 
-const getLabelFor = name => {
+const getLabelFor = (name) => {
   return config.projects[name]
     ? config.projects[name].name
     : name
@@ -77,19 +77,7 @@ const getLabelFor = name => {
 
 const getMessageFor = require('./utils/message-for')
 
-// const getMessageFor = (condition, opts = {}) => {
-//   // Returns a random message from the given file.
-//   // Assumes the file is a JSON file containing an array of strings in the resources/messages/ folder.
-//   try {
-//     const messages = require('./resources/messages/' + condition.toLowerCase().replace(/\s/g, '_') + '.json')
-//     const i = Math.round(Math.random() * (messages.length - 1))
-//     return messages[i]
-//   } catch (err) {
-//     return opts.default || `Message file not found for ${condition}...`
-//   }
-// }
-
-const confirm = question => {
+const confirm = (question) => {
   let response
 
   while (!['y', 'n', 'yes', 'no'].includes(response)) {
@@ -123,7 +111,6 @@ command({
     description: 'name of the project'
   }],
   run: async function (args) {
-    // const format = require('date-fns/format')
     const current = await Punch.current()
 
     if (current) {
@@ -150,7 +137,7 @@ command({
   arguments: [{
     name: 'comment',
     description: 'a description of what you worked on',
-    parse: words => words.join(' ')
+    parse: (words) => words.join(' ')
   }],
   options: [{
     name: 'git-commit',
@@ -160,7 +147,7 @@ command({
   }, {
     name: 'git-add',
     short: 'a',
-    description: 'also run "git add <value>" before commit when -g is true',
+    description: 'also run "git add <value>" before commit when --git-commit is true',
     type: 'string'
   }],
   run: async function (args) {
@@ -217,7 +204,7 @@ command({
   arguments: [{
     name: 'comment',
     description: 'a description of what you worked on',
-    parse: words => words.join(' ')
+    parse: (words) => words.join(' ')
   }],
   run: async function (args) {
     const current = await Punch.current()
@@ -331,7 +318,7 @@ command({
   }, {
     name: 'comment',
     description: 'a description of what you worked on',
-    parse: words => words.join(' ')
+    parse: (words) => words.join(' ')
   }],
   run: function (args) {
     const formatDuration = require('./format/duration')
@@ -659,24 +646,34 @@ command({
 //   run: async function () {
 //     const chalk = require('chalk')
 //     const loader = require('./utils/loader')()
+//     const Syncer = require('./sync/syncer')
 //     const syncer = new Syncer(config, Punch)
 
-//     loader.start(`Syncing with Dummy...`)
+//     const sync = async (service) => {
+//       loader.start(`Syncing with ${service}...`)
+//       const results = await syncer.sync(service)
 
-//     const results = await syncer.sync('dummy')
+//       let report = chalk.green('✓') + ` Synced with ${service}  `
+//       if (results.uploaded.length > 0) {
+//         report += `${chalk.grey('[')}${chalk.magenta('⬆')} ${results.uploaded.length}${chalk.grey(']')}`
 
-//     let report = chalk.green('✓') + ' Synced with Dummy  '
-//     if (results.uploaded.length > 0) {
-//       report += `${chalk.grey('[')}${chalk.magenta('⬆')} ${results.uploaded.length}${chalk.grey(']')}`
-
-//       if (results.downloaded.length > 0) {
-//         report += ' '
+//         if (results.downloaded.length > 0) {
+//           report += ' '
+//         }
 //       }
+//       if (results.downloaded.length > 0) {
+//         report += `${chalk.grey('[')}${chalk.cyan('⬇')} ${results.downloaded.length}${chalk.grey(']')}`
+//       }
+//       loader.stop(report)
 //     }
-//     if (results.downloaded.length > 0) {
-//       report += `${chalk.grey('[')}${chalk.cyan('⬇')} ${results.downloaded.length}${chalk.grey(']')}`
-//     }
-//     loader.stop(report)
+
+//     Promise.all(config.sync.services.map(s => sync(s.name)))
+//       .then(results => {
+//         console.log(results)
+//       })
+//       .catch(err => {
+//         console.log(err)
+//       })
 //   }
 // })
 
@@ -686,7 +683,7 @@ command({
   options: [{
     name: 'editor',
     short: 'e',
-    description: 'editor command',
+    description: 'editor command (vim, code, etc.)',
     type: 'string',
     default: function () {
       return process.env.VISUAL ||

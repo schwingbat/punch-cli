@@ -1,4 +1,4 @@
-module.exports = function PunchfileService (config, Punch) {
+module.exports = function (config, Punch) {
   const fs = require('fs')
   const path = require('path')
 

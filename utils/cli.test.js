@@ -83,7 +83,9 @@ describe('CLI', () => {
 
     describe('mapArgs', () => {
       it('maps args to empty object when no args are passed', () => {
-        expect(mapArgs([], [])).toEqual({})
+        expect(mapArgs([], [])).toEqual({
+          options: {}
+        })
       })
 
       it('maps args to proper names', () => {
@@ -108,6 +110,7 @@ describe('CLI', () => {
         ]
 
         expect(mapArgs(args.slice(1), argMap)).toEqual({
+          options: {},
           one: 'fish',
           two: 'potato',
           number: '5'
@@ -130,6 +133,7 @@ describe('CLI', () => {
         ]
 
         expect(mapArgs(args, argMap)).toEqual({
+          options: {},
           one: 'one',
           two: ['two', 'three', 'four']
         })
@@ -157,6 +161,7 @@ describe('CLI', () => {
         ]
 
         expect(mapArgs(args, argMap)).toEqual({
+          options: {},
           one: 'one',
           two: 'two',
           three: 'three'
@@ -182,6 +187,7 @@ describe('CLI', () => {
         ]
 
         expect(mapArgs(args, argMap)).toEqual({
+          options: {},
           one: 'one',
           two: 'TWO'
         })

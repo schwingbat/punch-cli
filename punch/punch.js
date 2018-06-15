@@ -1,4 +1,7 @@
 const uuid = require('uuid/v1')
+const extractObjects = require('./comment-objects/extract.js')
+const parseObjects = require('./comment-objects/parse.js')
+const chalk = require('chalk')
 
 module.exports = function (config, Storage) {
   class Punch {
@@ -64,14 +67,14 @@ module.exports = function (config, Storage) {
       return this.duration() / 3600000 * this.rate
     }
 
-    toJSON () {
+    toJSON (pretty = false) {
       return {
         id: this.id,
         project: this.project,
         in: this.in.getTime(),
         out: this.out ? this.out.getTime() : null,
         rate: this.rate,
-        comments: this.comments.map(comment => comment.toJSON()),
+        comments: this.comments.map(comment => comment.toJSON(pretty)),
         created: this.created.getTime(),
         updated: this.updated.getTime()
       }
@@ -105,17 +108,32 @@ module.exports = function (config, Storage) {
 
   class Comment {
     constructor (comment, timestamp = new Date()) {
-      this.comment = comment
+      const extracted = extractObjects(comment)
+      this.objects = parseObjects(extracted.objects)
+      this.comment = extracted.comment
       this.timestamp = new Date(timestamp)
     }
 
     toString () {
-      return this.comment
+      let comment = this.comment
+      if (this.objects.length > 0) {
+        comment += ' ' + chalk.green(this.objects.map(o => o.toLogString()).join(' '))
+      }
+      return comment
     }
 
-    toJSON () {
+    objects () {
+      return this.objects
+    }
+
+    toJSON (pretty = false) {
+      let comment = this.comment
+      if (this.objects.length > 0) {
+        comment += ' ' + this.objects.map(o => o.toString()).join(' ')
+      }
+
       return {
-        comment: this.comment,
+        comment,
         timestamp: this.timestamp.getTime()
       }
     }
