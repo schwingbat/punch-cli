@@ -120,7 +120,11 @@ class S3SyncService extends SyncService {
   }
 
   getSyncingMessage () {
-    return `Syncing with Amazon S3 (${this._config.bucket})`
+    return `Syncing with S3 (${this._config.bucket})`
+  }
+
+  getSyncCompleteMessage () {
+    return `Synced with S3 (${this._config.bucket})`
   }
 }
 

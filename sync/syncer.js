@@ -91,6 +91,33 @@ class Syncer {
       throw new Error('First parameter must be a string or an instance of SyncService')
     }
   }
+
+  async syncAll () {
+    const loader = require('../utils/loader')()
+    const chalk = require('chalk')
+
+    const sync = async (service) => {
+      loader.start(service.getSyncingMessage())
+      const results = await this.sync(service)
+
+      let report = chalk.green('✓') + ' ' + service.getSyncCompleteMessage() + ' '
+      if (results.uploaded.length > 0) {
+        report += `${chalk.grey('[')}${chalk.magenta('⬆')} ${results.uploaded.length}${chalk.grey(']')}`
+
+        if (results.downloaded.length > 0) {
+          report += ' '
+        }
+      }
+      if (results.downloaded.length > 0) {
+        report += `${chalk.grey('[')}${chalk.cyan('⬇')} ${results.downloaded.length}${chalk.grey(']')}`
+      }
+      loader.stop(report)
+    }
+
+    const services = this._config.sync.services.map(s => this._loadService(s.name))
+
+    return Promise.all(services.map(s => sync(s)))
+  }
 }
 
 module.exports = Syncer

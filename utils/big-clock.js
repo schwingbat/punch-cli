@@ -3,7 +3,7 @@ module.exports = function ({ style, letterSpacing }) {
   // const chalk = require('chalk')
   let clock
 
-  style = style || 'block-clock'
+  style = style || 'clockBlock'
   letterSpacing = letterSpacing || 1
 
   try {

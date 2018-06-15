@@ -1,13 +1,20 @@
 module.exports = function (configPath) {
   const fs = require('fs')
+  const mkdirp = require('mkdirp')
   const path = require('path')
   const home = require('os').homedir()
 
+  const punchPath = process.env.PUNCH_PATH || path.join(home, '.punch')
+
   if (!configPath) {
-    configPath = process.env.PUNCH_CONFIG_PATH || path.join(home, '.punch', 'punchconfig.json')
+    configPath = path.resolve(path.join(punchPath, 'punchconfig.json'))
   } else {
     configPath = path.resolve(configPath)
   }
+
+  mkdirp.sync(path.dirname(configPath))
+
+  // const configBase = fs.ensureSync(path.dirname(configPath))
 
   let config = require('./default.json')
 
@@ -41,8 +48,10 @@ module.exports = function (configPath) {
     projects[alias].alias = alias
   }
 
-  config.punchPath = config.punchPath.replace(/^~/, home)
   config.configPath = configPath
+  config.punchPath = punchPath
+  config.punchFilePath = path.join(punchPath, 'punches')
+  config.punchDBPath = path.join(punchPath, 'punch.db')
 
   if (config.display.textColors === false) {
     require('chalk').level = 0

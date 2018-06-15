@@ -3,6 +3,8 @@
 // const heapdump = require('heapdump')
 // heapdump.writeSnapshot()
 
+global.appRoot = __dirname
+
 const resolvePath = require('./utils/resolve-path')
 const { ascendingBy } = require('./utils/sort-factories')
 const parseDate = require('./utils/parse-date')
@@ -61,9 +63,8 @@ bench.mark('config loaded')
 
 const Storage = require('./storage')(config)
 const Punch = require('./punch/punch')(config, Storage)
-// const Syncer = require('./sync/syncer')
 
-// const { autoSync } = config.sync
+const { autoSync } = config.sync
 
 /* ========================= *\
 ||           Utils           ||
@@ -93,9 +94,12 @@ const confirm = (question) => {
   }
 }
 
-const handleSync = async () => {
+const handleSync = () => {
   if (autoSync && !flags.NO_SYNC) {
+    const Syncer = require('./sync/syncer')
     return new Syncer(config, Punch).syncAll()
+  } else {
+    return Promise.resolve()
   }
 }
 
@@ -111,6 +115,8 @@ command({
     description: 'name of the project'
   }],
   run: async function (args) {
+    await handleSync()
+
     const current = await Punch.current()
 
     if (current) {
@@ -151,6 +157,8 @@ command({
     type: 'string'
   }],
   run: async function (args) {
+    await handleSync()
+
     const current = await Punch.current()
 
     if (current) {
@@ -647,36 +655,8 @@ command({
   signature: 'sync',
   description: 'synchronize with any providers in your config file',
   run: async function () {
-    const chalk = require('chalk')
-    const loader = require('./utils/loader')()
     const Syncer = require('./sync/syncer')
-    const syncer = new Syncer(config, Punch)
-
-    const sync = async (service) => {
-      loader.start(`Syncing with ${service}...`)
-      const results = await syncer.sync(service)
-
-      let report = chalk.green('✓') + ` Synced with ${service}  `
-      if (results.uploaded.length > 0) {
-        report += `${chalk.grey('[')}${chalk.magenta('⬆')} ${results.uploaded.length}${chalk.grey(']')}`
-
-        if (results.downloaded.length > 0) {
-          report += ' '
-        }
-      }
-      if (results.downloaded.length > 0) {
-        report += `${chalk.grey('[')}${chalk.cyan('⬇')} ${results.downloaded.length}${chalk.grey(']')}`
-      }
-      loader.stop(report)
-    }
-
-    Promise.all(config.sync.services.map(s => sync(s.name)))
-      .then(() => {
-        // console.log('done syncing')
-      })
-      .catch(err => {
-        console.error(err)
-      })
+    await new Syncer(config, Punch).syncAll()
   }
 })
 
@@ -725,7 +705,7 @@ command({
     const m = date.getMonth() + 1
     const d = date.getDate()
     const filename = `punch_${y}_${m}_${d}.json`
-    const file = require('path').join(config.punchPath, filename)
+    const file = require('path').join(config.punchFilePath, filename)
 
     if (!require('fs').existsSync(file)) {
       return console.log(require('chalk').red('File doesn\'t exist.'))
@@ -767,10 +747,10 @@ command({
     const fs = require('fs')
     const path = require('path')
     const migrator = require('./utils/migrator')(config)
-    const dir = fs.readdirSync(config.punchPath)
+    const dir = fs.readdirSync(config.punchFilePath)
 
     dir.forEach(fileName => {
-      const filePath = path.join(config.punchPath, fileName)
+      const filePath = path.join(config.punchFilePath, fileName)
       let file
 
       try {

@@ -2,6 +2,12 @@ module.exports = function (config, Punch) {
   const fs = require('fs')
   const path = require('path')
   const chalk = require('chalk')
+  const mkdirp = require('mkdirp')
+
+  // Make sure path exists if we're using the service.
+  if (!fs.existsSync(config.punchFilePath)) {
+    mkdirp.sync(config.punchFilePath)
+  }
 
   class Punchfile {
     constructor (props = {}) {
@@ -38,8 +44,7 @@ module.exports = function (config, Punch) {
 
     save () {
       this.update()
-      const outPath = path.join(config.punchPath, `${this.fileName}.json`)
-      console.log('writing to ' + outPath)
+      const outPath = path.join(config.punchFilePath, `${this.fileName}.json`)
       return fs.writeFileSync(outPath, this.toJSON(true))
     }
   }
@@ -61,7 +66,6 @@ module.exports = function (config, Punch) {
       return this.read(filePath)
     } catch (err) {
       const [y, m, d] = filePath.match(/punch_(\d+)_(\d+)_(\d+)\.json$/).slice(1, 4).map(Number)
-      console.log(y, m, d)
       const date = new Date(y, m - 1, d)
       if (date.toString() === 'Invalid Date') {
         throw new Error('Failed to parse date from filename: ' + filePath)
@@ -79,11 +83,11 @@ module.exports = function (config, Punch) {
       return `${y}_${m}_${d}`
     }
 
-    const latest = fs.readdirSync(config.punchPath).sort((a, b) => {
+    const latest = fs.readdirSync(config.punchFilePath).sort((a, b) => {
       return dateString(a) < dateString(b) ? -1 : 1
     }).pop()
 
-    return Punchfile.read(path.join(config.punchPath, latest))
+    return Punchfile.read(path.join(config.punchFilePath, latest))
   }
 
   Punchfile.forDate = function (date = new Date()) {
@@ -92,14 +96,14 @@ module.exports = function (config, Punch) {
     const day = date.getDate()
 
     const fileName = `punch_${year}_${month}_${day}.json`
-    return this.readOrCreate(path.join(config.punchPath, fileName))
+    return this.readOrCreate(path.join(config.punchFilePath, fileName))
   }
 
   Punchfile.all = function () {
     // Loads all punch files into an array and returns it.
-    const files = fs.readdirSync(config.punchPath)
+    const files = fs.readdirSync(config.punchFilePath)
       .filter(f => path.extname(f).toLowerCase() === '.json')
-      .map(f => path.join(config.punchPath, f))
+      .map(f => path.join(config.punchFilePath, f))
 
     return files.map(this.read)
   }
@@ -107,9 +111,9 @@ module.exports = function (config, Punch) {
   Punchfile.each = function (func) {
     // Runs a given function on each punchfile, continuing by calling the next() function.
     // Similar to Punchfile.all, but only loads one punchfile at a time.
-    const files = fs.readdirSync(config.punchPath)
+    const files = fs.readdirSync(config.punchFilePath)
       .filter(f => path.extname(f).toLowerCase() === '.json')
-      .map(f => path.join(config.punchPath, f))
+      .map(f => path.join(config.punchFilePath, f))
     let index = -1
 
     const next = () => {
