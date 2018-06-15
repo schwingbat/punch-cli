@@ -78,10 +78,6 @@ class Syncer {
       const result = await this._diff(manifest)
 
       const { uploads, downloads } = result
-      console.log(manifest, uploads.length, downloads.length)
-
-      // const uploaded = []
-      // const downloaded = []
 
       const uploaded = await service.upload(uploads, manifest)
       const downloaded = await service.download(downloads)

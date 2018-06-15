@@ -94,9 +94,9 @@ const confirm = (question) => {
 }
 
 const handleSync = async () => {
-  // if (autoSync && !flags.NO_SYNC) {
-  //   return new Syncer(config, Punch).sync()
-  // }
+  if (autoSync && !flags.NO_SYNC) {
+    return new Syncer(config, Punch).syncAll()
+  }
 }
 
 /* ========================= *\
