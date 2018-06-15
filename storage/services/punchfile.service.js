@@ -17,7 +17,7 @@ module.exports = function (config, Punch) {
       this.punches = []
 
       if (props.punches) {
-        this.punches = props.punches.map(p => new Punch(p))
+        this.punches = props.punches.map(p => new Punch(p)).sort((a, b) => a.in > b.in)
       }
 
       const y = this.created.getFullYear()

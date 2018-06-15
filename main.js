@@ -285,6 +285,7 @@ command({
       if (current) {
         // Print current session stats.
         // Project name, current pay, time worked,
+        console.log(`You've been punched in on ${getLabelFor(current.project)} for ${formatDuration(Date.now() - current.in)}.`)
       } else {
         let message = "You're not punched in."
 
