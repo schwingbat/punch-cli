@@ -1,6 +1,7 @@
 module.exports = function (config, Punch) {
   const fs = require('fs')
   const path = require('path')
+  const chalk = require('chalk')
 
   class Punchfile {
     constructor (props = {}) {
@@ -50,7 +51,7 @@ module.exports = function (config, Punch) {
       const data = JSON.parse(fs.readFileSync(p))
       return new Punchfile(data)
     } catch (err) {
-      throw new Error(`Failed to read file from ${filePath}: ${err.message}`)
+      throw new Error(`Failed to read ${filePath} (${err.message})`)
     }
   }
 
@@ -104,8 +105,13 @@ module.exports = function (config, Punch) {
     const next = () => {
       index += 1
       if (files[index]) {
-        const read = this.read(files[index])
-        func(read, next)
+        try {
+          const read = this.read(files[index])
+          func(read, next)
+        } catch (err) {
+          console.log(chalk.yellow('Skipping file: ' + err.message))
+          next()
+        }
       }
     }
 

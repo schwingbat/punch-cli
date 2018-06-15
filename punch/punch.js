@@ -40,7 +40,11 @@ module.exports = function (config, Storage) {
       }
 
       if (this.out && this.out < this.in) {
-        throw new Error(`Punch out time cannot be earlier than punch in time. ${this.project} ${this.in} ${this.out}`)
+        const formatDate = require('date-fns/format')
+        const format = 'MMM Do YYYY [at] h:mm:ss A'
+        const inTime = formatDate(this.in, format)
+        const outTime = formatDate(this.out, format)
+        throw new Error(`Punch out occurs before punch in. Project: ${this.project}, in: ${inTime}, out: ${outTime}`)
       }
 
       this.created = new Date(props.created || new Date())
