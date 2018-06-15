@@ -86,9 +86,9 @@ class Syncer {
       const uploaded = await service.upload(uploads, manifest)
       const downloaded = await service.download(downloads)
 
-      downloaded.forEach(punch => {
-        punch.save()
-      })
+      for (let i = 0; i < downloaded.length; i++) {
+        await downloaded[i].save()
+      }
 
       return { uploaded, downloaded }
     } else {

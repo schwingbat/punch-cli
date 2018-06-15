@@ -39,6 +39,7 @@ module.exports = function (config, Punch) {
     save () {
       this.update()
       const outPath = path.join(config.punchPath, `${this.fileName}.json`)
+      console.log('writing to ' + outPath)
       return fs.writeFileSync(outPath, this.toJSON(true))
     }
   }
@@ -59,7 +60,16 @@ module.exports = function (config, Punch) {
     try {
       return this.read(filePath)
     } catch (err) {
-      return new Punchfile()
+      const [y, m, d] = filePath.match(/punch_(\d+)_(\d+)_(\d+)\.json$/).slice(1, 4).map(Number)
+      console.log(y, m, d)
+      const date = new Date(y, m - 1, d)
+      if (date.toString() === 'Invalid Date') {
+        throw new Error('Failed to parse date from filename: ' + filePath)
+      } else {
+        return new Punchfile({
+          created: date
+        })
+      }
     }
   }
 
@@ -121,6 +131,7 @@ module.exports = function (config, Punch) {
   return {
     async save (punch) {
       const file = Punchfile.forDate(punch.in)
+
       let added = false
       for (let i = 0; i < file.punches.length; i++) {
         if (file.punches[i].id === punch.id) {
