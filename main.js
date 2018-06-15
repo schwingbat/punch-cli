@@ -581,6 +581,8 @@ command({
       return
     }
 
+    console.log(args.outputFile)
+
     startDate.setHours(0, 0, 0, 0)
     endDate.setHours(23, 59, 59, 999)
 
@@ -634,6 +636,7 @@ command({
         })
         loader.stop(`${fileFormat} invoice generated!`)
       } catch (err) {
+        throw err
         loader.stop(`There was an error while generating the invoice: ${err.message}`)
       }
     }

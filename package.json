@@ -20,7 +20,7 @@
     "date-fns": "^1.29.0",
     "handlebars": "^4.0.11",
     "heapdump": "^0.3.9",
-    "html5-to-pdf": "^2.2.9",
+    "html5-to-pdf": "^3.1.1",
     "log-update": "^2.3.0",
     "readline-sync": "^1.4.9",
     "sqlite3": "^4.0.0",
@@ -29,7 +29,7 @@
   "devDependencies": {
     "browserify": "^16.2.2",
     "eslint": "^4.19.1",
-    "jest": "^22.4.3",
+    "jest": "^23.1.0",
     "nexe": "^2.0.0-rc.28",
     "standard": "^11.0.1",
     "time-require": "^0.1.2",
