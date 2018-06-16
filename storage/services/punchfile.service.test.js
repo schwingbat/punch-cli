@@ -16,6 +16,7 @@ describe('PunchfileStorageService', () => {
 
     beforeEach(() => {
       api = Storage(config, MockPunch)
+      console.log(api)
     })
 
     describe('save', () => {

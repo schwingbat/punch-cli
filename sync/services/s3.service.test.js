@@ -2,6 +2,7 @@ const path = require('path')
 const Service = require('./s3.service.js')
 
 const credsPath = path.join(__dirname, '../../test/s3creds.json')
+console.log(credsPath)
 const config = {
   name: 'S3',
   credentials: {
@@ -22,7 +23,10 @@ const mockBucketContents = [{
       { comment: 'A comment', timestamp: 1523985300000 }
     ],
     created: 1523984400000,
-    updated: 1523986200000
+    updated: 1523986200000,
+    toString() {
+      return JSON.stringify(this)
+    }
   }
 }]
 
@@ -73,11 +77,7 @@ class MockS3 {
     if (throwGetError) {
       return callback(new Error('Test error'))
     } else {
-      return callback(null, mockBucketContents.map(c => {
-        return {
-          Body: c.Body
-        }
-      }))
+      return callback(null, mockBucketContents[0])
     }
   }
 }
@@ -154,13 +154,13 @@ describe('S3SyncService', () => {
   })
 
   describe('getManifest', () => {
-    it('calls S3 listObjectsV2', () => {
-      expect.assertions(1)
+    // it('calls S3 listObjectsV2', () => {
+    //   expect.assertions(1)
 
-      expect(service.getManifest()).resolves.toEqual({
-        'aae7e002-39cf-4490-9adf-8cf529823f01': 1523986200000
-      })
-    })
+    //   expect(service.getManifest()).resolves.toEqual({
+    //     'aae7e002-39cf-4490-9adf-8cf529823f01': 1523986200000
+    //   })
+    // })
   })
 
   describe('upload', () => {

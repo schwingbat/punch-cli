@@ -6,7 +6,10 @@ class S3SyncService extends SyncService {
   constructor (config, Punch, S3 = require('aws-sdk').S3) {
     super(config)
     this._punch = Punch
-    this._s3 = new S3(new S3Credentials(config.credentials))
+    this._s3 = new S3(new S3Credentials({
+      region: config.region || 'us-west-2',
+      ...config.credentials
+    }))
   }
 
   getManifest () {
@@ -135,11 +138,12 @@ class S3Credentials {
     }
 
     if (typeof credentials === 'string') {
+      // Try to load it as a JSON file.
       let credPath = path.resolve(credentials.replace(/^~/, require('os').homedir()))
 
       if (fs.existsSync(credPath)) {
         try {
-          credentials = JSON.parse(fs.readFileSync(credPath))
+          credentials = JSON.parse(fs.readFileSync(credPath, 'utf8'))
         } catch (err) {
           throw new Error('There was a problem reading the S3 credentials file: ' + err)
         }

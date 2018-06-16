@@ -4,6 +4,11 @@ const parseObjects = require('./comment-objects/parse.js')
 const chalk = require('chalk')
 
 module.exports = function (config, Storage) {
+
+  /*=======================*\
+  ||         Punch         ||
+  \*=======================*/
+
   class Punch {
     /*
       id: string
@@ -103,6 +108,10 @@ module.exports = function (config, Storage) {
   // before being defined, but it's used within the class.
   var storage = Storage(config, Punch)
 
+  /*=======================*\
+  ||        Static         ||
+  \*=======================*/
+
   Punch.current = async function (project) {
     return storage.current(project)
   }
@@ -118,6 +127,10 @@ module.exports = function (config, Storage) {
   Punch.all = async function () {
     return storage.select(() => true)
   }
+
+  /*=======================*\
+  ||       Comments        ||
+  \*=======================*/
 
   class Comment {
     constructor (comment, timestamp = new Date()) {
