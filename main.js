@@ -5,6 +5,8 @@
 
 global.appRoot = __dirname
 
+const fs = require('fs')
+const path = require('path')
 const resolvePath = require('./utils/resolve-path')
 const { ascendingBy } = require('./utils/sort-factories')
 const parseDate = require('./utils/parse-date')
@@ -103,6 +105,20 @@ const handleSync = () => {
   }
 }
 
+const updateCurrentMarker = (current) => {
+  // Updates the ~/.punch/current file
+  let label = ''
+  if (typeof current === 'string') {
+    label = current
+  } else if (current instanceof Punch) {
+    label = getLabelFor(current.project)
+  }
+
+  // console.log('Updating current marker to:', label)
+
+  fs.writeFileSync(path.join(path.dirname(config.configPath), 'current'), label)
+}
+
 /* ========================= *\
 ||       Parse/Dispatch      ||
 \* ========================= */
@@ -125,9 +141,7 @@ command({
       const punch = new Punch({ project: args.project })
       punch.save()
 
-      const fs = require('fs')
-      const path = require('path')
-      fs.writeFileSync(path.join(path.dirname(config.configPath), 'current'), getLabelFor(args.project))
+      updateCurrentMarker(punch)
 
       // const time = format(new Date(), config.display.timeFormat)
       console.log(`Punched in on ${getLabelFor(args.project)}. ${getMessageFor('punched-in', { default: '' })}`)
@@ -179,9 +193,7 @@ command({
       }
       console.log(str + '.')
 
-      const fs = require('fs')
-      const path = require('path')
-      fs.writeFileSync(path.join(path.dirname(config.configPath), 'current'), '')
+      updateCurrentMarker('')
 
       if (args.options['git-commit']) {
         const { exec, spawn } = require('child_process')
@@ -272,6 +284,8 @@ command({
   run: async function (args) {
     const current = await Punch.current()
     const formatDuration = require('./format/duration')
+
+    updateCurrentMarker(current)
 
     if (args.options.minimal) {
       if (current) {
@@ -645,7 +659,6 @@ command({
         })
         loader.stop(`${fileFormat} invoice generated!`)
       } catch (err) {
-        throw err
         loader.stop(`There was an error while generating the invoice: ${err.message}`)
       }
     }
@@ -658,6 +671,8 @@ command({
   run: async function () {
     const Syncer = require('./sync/syncer')
     await new Syncer(config, Punch).syncAll()
+
+    updateCurrentMarker(await Punch.current())
   }
 })
 
