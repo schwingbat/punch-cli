@@ -425,23 +425,61 @@ command({
     if (active) {
       const formatCurrency = require('./format/currency')
       const formatDuration = require('./format/duration')
+      const { startOfMonth,
+              endOfMonth,
+              startOfDay,
+              endOfDay } = require('date-fns')
       const logUpdate = require('log-update')
+      const printLength = require('./utils/print-length')
       const clock = require('./utils/big-clock')({
-        style: 'clockBlockDots',
-        letterSpacing: 1
+        style: 'clock-block',
+        letterSpacing: 1,
+        animate: false
+      })
+
+      const now = new Date()
+
+      // Get total for month and day
+      let monthlyTotal = 0
+      let dailyTotal = 0
+
+      // Total daily and monthly amounts.
+      // Skip the active punch so we can just add its current pay() value
+      // to get correct amounts for daily and monthly earnings.
+      const punches = await Punch.select(p => p.in >= startOfMonth(now)
+                                           && p.in <= endOfMonth(now)
+                                           && p.id !== active.id)
+      
+      punches.forEach(p => {
+        if (p.in >= startOfDay(now) && p.in <= endOfDay(now)) {
+          dailyTotal += p.pay()
+        }
+        monthlyTotal += p.pay()
       })
 
       const update = () => {
         let duration = active.duration()
 
+        let activePay = active.pay()
         let working = `Working on ${getLabelFor(active.project)}`
-        let money = formatCurrency(active.pay())
+        let money = formatCurrency(activePay)
         let numbers = clock.display(formatDuration(duration, { style: 'clock' }))
-        let numbersLength = numbers.split('\n')[0].length
+        let numbersLength = printLength(numbers.split('\n')[0])
 
         let topLine = working.padEnd(numbersLength - money.length, ' ') + money
+        let bottomLine = ''
 
-        logUpdate('\n' + topLine + '\n' + numbers)
+        // Don't bother showing money stats for unpaid projects.
+        if (activePay > 0) {
+          let monthly = formatCurrency(monthlyTotal + activePay) + ' this month'
+          let daily = formatCurrency(dailyTotal + activePay) + ' today'
+
+          bottomLine = monthly + daily.padStart(numbersLength - monthly.length, ' ')
+        }
+
+        const printable = '\n' + topLine + '\n' + numbers + bottomLine
+        logUpdate(printable)
+        // console.log(printable)
       }
 
       update()
