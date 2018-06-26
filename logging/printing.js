@@ -7,6 +7,7 @@ const Table = require('../format/table')
 const formatCurrency = require('../format/currency')
 const formatDuration = require('../format/duration')
 const formatDate = require('date-fns/format')
+const printLength = require('../utils/print-length')
 
 function delimitedList (items, inners = ' / ', outers) {
   let joined = items.filter(i => i).join(chalk.grey(inners))
@@ -125,14 +126,22 @@ function summaryTable (projects) {
 }
 
 function projectDay ({ date, stats, punches, config }) {
+  let headerWidth = config.headerWidth || 70
   let str = ''
+  let headerLine = ''
 
-  str += '┏' + '━'.repeat(80) + '┓' + '\n'
-  str += '┃  ' + chalk.bold(formatDate(date, 'ddd, MMM Do'))
+  headerLine += '┃  ' + chalk.bold(formatDate(date, 'ddd, MMM Do'))
   if (stats) {
-    str += ' ' + delimitedList(stats, ' / ', ['(', ')']) + '\n'
+    headerLine += ' ' + delimitedList(stats, ' / ', ['(', ')'])
   }
-  str += '┗' + '━'.repeat(80) + '┛' + '\n'
+  while (printLength(headerLine) < headerWidth + 1) {
+    headerLine += ' '
+  }
+  headerLine += '┃'
+
+  str += '┏' + '━'.repeat(headerWidth) + '┓' + '\n'
+  str += headerLine + '\n'
+  str += '┗' + '━'.repeat(headerWidth) + '┛' + '\n'
 
   str += '  ' + dayPunches(punches, date, config).replace(/\n/g, '\n  ')
 
@@ -153,20 +162,20 @@ function dayPunches (punches, date, config, indent = 0) {
     let carryForward = 0
     let carryBack = 0
 
-    if (punch.in < dateStart) {
-      carryBack = dateStart.getTime() - punch.in.getTime()
-      start = dateStart
-    } else {
+    // if (punch.in < dateStart) {
+    //   carryBack = dateStart.getTime() - punch.in.getTime()
+    //   start = dateStart
+    // } else {
       start = punch.in
-    }
+    // }
 
     if (punch.out) {
-      if (punch.out > dateEnd) {
-        carryForward = punch.out.getTime() - dateEnd.getTime()
-        end = dateEnd
-      } else {
+      // if (punch.out > dateEnd) {
+      //   carryForward = punch.out.getTime() - dateEnd.getTime()
+      //   end = dateEnd
+      // } else {
         end = punch.out
-      }
+      // }
     }
 
     let timeSpan = ''
@@ -193,8 +202,16 @@ function dayPunches (punches, date, config, indent = 0) {
 
     const project = config.projects[punch.project]
     const projectName = project ? project.name : punch.project
+    let time
+    const hours = punch.duration() / 3600000
+    if (hours < 1) {
+      time = `${~~(hours * 60)}m`
+    } else {
+      time = `${(hours).toFixed(1)}h`
+    }
 
     str += timeSpan
+    str += chalk.blue(time.padStart(6))
     str += chalk.yellow(` [${projectName}]`)
     if (carryBack) {
       str += ' ' + chalk.magenta(`(+ ${formatDuration(carryBack)} yesterday)`)
