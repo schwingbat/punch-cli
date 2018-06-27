@@ -80,6 +80,15 @@ module.exports = function (config, Storage) {
       return this.duration() / 3600000 * this.rate
     }
 
+    hasCommentWithObject (obj) {
+      for (var i = 0; i < this.comments.length; i++) {
+        if (this.comments[i].hasObject(obj)) {
+          return true
+        }
+      }
+      return false
+    }
+
     toJSON (pretty = false) {
       const json = {
         id: this.id,
@@ -138,6 +147,20 @@ module.exports = function (config, Storage) {
       this.objects = parseObjects(extracted.objects)
       this.comment = extracted.comment
       this.timestamp = new Date(timestamp)
+    }
+
+    hasObject (obj) {
+      if (obj[0] === '@') {
+        obj = obj.slice(1)
+      }
+      const [key, val] = obj.split(':')
+      for (let i = 0; i < this.objects.length; i++) {
+        const o = this.objects[i]
+        if (o.key === key && o.value.toString() === val) {
+          return true
+        }
+      }
+      return false
     }
 
     toString () {

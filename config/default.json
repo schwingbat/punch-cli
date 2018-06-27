@@ -25,5 +25,6 @@
     "timeFormat": "h:mm A"
   },
   "punchPath": "~/.punch/punches",
-  "storageType": "punchfile"
+  "storageType": "punchfile",
+  "invoiceAPI": "https://invoice.api.punch.sh/v1/"
 }

@@ -419,7 +419,13 @@ command({
 command({
   signature: 'watch',
   description: 'continue running to show automatically updated stats of your current session',
-  run: async function () {
+  options: [{
+    name: 'animate',
+    short: 'a',
+    type: 'boolean',
+    description: 'enable animations for the clock'
+  }],
+  run: async function (args) {
     const active = await Punch.current()
 
     if (active) {
@@ -434,7 +440,7 @@ command({
       const clock = require('./utils/big-clock')({
         style: 'clock-block',
         letterSpacing: 1,
-        animate: false
+        animate: !!args.options.animate
       })
 
       const now = new Date()
@@ -483,7 +489,7 @@ command({
       }
 
       update()
-      setInterval(update, 1000)
+      setInterval(update, !!args.options.animate ? 64 : 1000)
     } else {
       console.log('You aren\'t punched in right now.')
     }
@@ -553,13 +559,18 @@ command({
     short: 'p',
     type: 'string',
     description: 'show only punches for a given project'
+  }, {
+    name: 'object',
+    short: 'o',
+    type: 'string',
+    description: 'show only punches tagged with a given comment object (e.g. @task:1669)'
   }],
   run: function (args) {
     const fuzzyParse = require('./utils/fuzzy-parse')
     const interval = fuzzyParse(args.when).interval()
 
     if (interval) {
-      require('./logging/log')(config, Punch).forInterval(interval, args.options.project)
+      require('./logging/log')(config, Punch).forInterval(interval, args.options)
     }
   }
 })
@@ -627,6 +638,12 @@ command({
     description: 'file to output to (extension determines format)',
     parse: resolvePath
   }],
+  options: [{
+    name: 'local',
+    short: 'l',
+    description: 'generate invoice locally (uses HTTP invoice API by default)',
+    type: 'boolean'
+  }],
   run: async function (args) {
     const active = await Punch.current()
 
@@ -641,8 +658,6 @@ command({
       console.log(`${getLabelFor(project)} has no hourly rate set}`)
       return
     }
-
-    console.log(args.outputFile)
 
     startDate.setHours(0, 0, 0, 0)
     endDate.setHours(23, 59, 59, 999)
@@ -694,7 +709,7 @@ command({
             path: resolvePath(outputFile),
             format: fileFormat
           }
-        })
+        }, !!args.options.local)
         loader.stop(`${fileFormat} invoice generated!`)
       } catch (err) {
         loader.stop(`There was an error while generating the invoice: ${err.message}`)

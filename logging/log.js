@@ -35,18 +35,34 @@ function summarize (config, punches) {
 }
 
 module.exports = function Logger (config, Punch) {
+  const padWithLines = require('../logging/pad-with-lines')
+  const messageFor = require('../utils/message-for')
   const printDay = require('./log-day')
   // const printWeek = require('./log-week')
   const printMonth = require('./log-month')
   // const printYear = require('./log-year')
 
   return {
-    async forInterval (interval, project) {
+    async forInterval (interval, criteria = {}) {
+      let { project, object } = criteria
+
       const punches = await Punch.select(p => {
-        return (!project || p.project === project) &&
-                p.in.getTime() >= interval.start.getTime() &&
-                p.in.getTime() <= interval.end.getTime()
+        // Reject if start date is out of the interval's range
+        if (p.in <= interval.start || p.in >= interval.end) {
+          return false
+        }
+        if (project && p.project !== project) {
+          return false
+        }
+        if (object && !p.hasCommentWithObject(object)) {
+          return false
+        }
+        return true
       })
+
+      if (punches.length === 0) {
+        return console.log(padWithLines(messageFor('no-search-results'), 1))
+      }
 
       const logData = {
         config,

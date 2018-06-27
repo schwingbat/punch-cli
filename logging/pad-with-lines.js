@@ -11,9 +11,11 @@ module.exports = function (string, top = 1, bottom, char = '\n') {
   string = string.trim()
   while (top > 0) {
     string = char + string
+    top -= 1
   }
   while (bottom > 0) {
     string = string + char
+    bottom -= 1
   }
 
   return string
