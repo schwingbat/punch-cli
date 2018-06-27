@@ -467,16 +467,20 @@ command({
         let duration = active.duration()
 
         let activePay = active.pay()
-        let working = `Working on ${getLabelFor(active.project)}`
-        let money = formatCurrency(activePay)
-        let numbers = clock.display(formatDuration(duration, { style: 'clock' }))
-        let numbersLength = printLength(numbers.split('\n')[0])
 
-        let topLine = working.padEnd(numbersLength - money.length, ' ') + money
+        let numbers = clock.display(formatDuration(duration, { style: 'clock' }))
+
+        let topLine = `Working on ${getLabelFor(active.project)}`
         let bottomLine = ''
 
         // Don't bother showing money stats for unpaid projects.
         if (activePay > 0) {
+          let money = formatCurrency(activePay)
+
+          let numbersLength = printLength(numbers.split('\n')[0])
+
+          topLine += money.padStart(numbersLength - topLine.length, ' ')
+
           let monthly = formatCurrency(monthlyTotal + activePay) + ' this month'
           let daily = formatCurrency(dailyTotal + activePay) + ' today'
 
@@ -489,7 +493,7 @@ command({
       }
 
       update()
-      setInterval(update, !!args.options.animate ? 64 : 1000)
+      setInterval(update, args.options.animate ? 64 : 1000)
     } else {
       console.log('You aren\'t punched in right now.')
     }
