@@ -449,7 +449,7 @@ command({
       const punches = await Punch.select(p => p.in >= startOfMonth(now)
                                            && p.in <= endOfMonth(now)
                                            && p.id !== active.id)
-      
+
       punches.forEach(p => {
         if (p.in >= startOfDay(now) && p.in <= endOfDay(now)) {
           dailyTotal += p.pay()
