@@ -488,7 +488,7 @@ command({
       update()
       setInterval(update, args.options.animate ? 64 : 1000)
     } else {
-      console.log('You aren\'t punched in right now.')
+      console.log(messageFor('not-punched-in'))
     }
   }
 })
