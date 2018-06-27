@@ -465,9 +465,7 @@ command({
 
       const update = () => {
         let duration = active.duration()
-
         let activePay = active.pay()
-
         let numbers = clock.display(formatDuration(duration, { style: 'clock' }))
 
         let topLine = `Working on ${getLabelFor(active.project)}`
@@ -476,20 +474,15 @@ command({
         // Don't bother showing money stats for unpaid projects.
         if (activePay > 0) {
           let money = formatCurrency(activePay)
-
           let numbersLength = printLength(numbers.split('\n')[0])
-
-          topLine += money.padStart(numbersLength - topLine.length, ' ')
-
           let monthly = formatCurrency(monthlyTotal + activePay) + ' this month'
           let daily = formatCurrency(dailyTotal + activePay) + ' today'
 
+          topLine += money.padStart(numbersLength - topLine.length, ' ')
           bottomLine = monthly + daily.padStart(numbersLength - monthly.length, ' ')
         }
 
-        const printable = '\n' + topLine + '\n' + numbers + bottomLine
-        logUpdate(printable)
-        // console.log(printable)
+        logUpdate('\n' + topLine + '\n' + numbers + bottomLine)
       }
 
       update()
