@@ -1,8 +1,5 @@
 #!/usr/bin/env node
 
-// const heapdump = require('heapdump')
-// heapdump.writeSnapshot()
-
 global.appRoot = __dirname
 
 const fs = require('fs')

@@ -48,7 +48,7 @@ module.exports = function (config) {
         }))
       }
 
-      const url = new URL(`generate?format=${props.output.format}&template=standard`, config.invoiceAPI)
+      const url = new URL(`generate/${props.output.format}/standard`, config.invoiceAPI)
       console.log('requesting from ', url.toString())
       fetch(url, {
         method: 'POST',

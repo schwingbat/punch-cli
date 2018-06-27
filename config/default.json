@@ -26,5 +26,5 @@
   },
   "punchPath": "~/.punch/punches",
   "storageType": "punchfile",
-  "invoiceAPI": "https://invoice.api.punch.sh/v1/"
+  "invoiceAPI": "http://invoice.api.punch.sh/v1/"
 }
