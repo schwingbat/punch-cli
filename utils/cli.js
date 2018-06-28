@@ -99,6 +99,7 @@ function mapArgs (args, argMap, optionMap = []) {
   // Using a command's argMap, map the args to their proper names.
 
   const mapped = {
+    raw: args,
     options: {}
   }
 

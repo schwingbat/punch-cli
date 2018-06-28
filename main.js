@@ -9,6 +9,7 @@ const { ascendingBy } = require('./utils/sort-factories')
 const parseDate = require('./utils/parse-date')
 const parseDateTime = require('./utils/parse-datetime')
 const CLI = require('./utils/cli.js')
+const messageFor = require('./utils/message-for')
 
 const { command, run, invoke } = CLI({
   name: 'punch',
@@ -135,35 +136,44 @@ command({
     if (current) {
       console.log(`You're already punched in on ${getLabelFor(current.project)}! Punch out first.`)
     } else {
-      const punch = new Punch({ project: args.project })
-      punch.save()
+      // Check if project is in config file
+      if (config.projects[args.project]) {
+        const punch = new Punch({ project: args.project })
+        punch.save()
 
-      updateCurrentMarker(punch)
+        updateCurrentMarker(punch)
 
-      // const time = format(new Date(), config.display.timeFormat)
-      console.log(`Punched in on ${getLabelFor(args.project)}. ${getMessageFor('punched-in', { default: '' })}`)
+        // const time = format(new Date(), config.display.timeFormat)
+        console.log(`Punched in on ${getLabelFor(args.project)}. ${getMessageFor('punched-in', { default: '' })}`)
 
-      handleSync()
+        handleSync() 
+      } else {
+        const chalk = require('chalk')
+        console.log(`\n${chalk.bold(args.project)} is not a project in your config file. You'll have to add it first.\nEnter '${chalk.bold('punch config')}' to edit your configuration.\n`)
+      }
     }
   }
 })
 
 command({
-  signature: 'out [comment...]',
-  description: 'stop tracking time and record an optional description of tasks completed',
+  signature: 'out',
+  description: 'stop tracking time',
   arguments: [{
     name: 'comment',
     description: 'a description of what you worked on',
     parse: (words) => words.join(' ')
   }],
   options: [{
-    name: 'git-commit',
+    name: 'comment',
     short: 'c',
+    description: 'add a description of what you worked on',
+    type: 'string'
+  }, {
+    name: 'git-commit',
     description: 'simultaneously add a git commit with the comment as the message',
     type: 'boolean'
   }, {
     name: 'git-add',
-    short: 'a',
     description: 'also run "git add <value>" before commit when --git-commit is true',
     type: 'string'
   }],
@@ -173,11 +183,16 @@ command({
     const current = await Punch.current()
 
     if (current) {
+
+      if (args.raw.length > 0 && !args.options.comment) {
+        return console.log(`If you want to add a comment, use the --comment or -c flags:\n  usage: punch out -c "This is a comment."`)
+      }
+      
       const formatDate = require('date-fns/format')
       const formatDuration = require('./format/duration')
       const formatCurrency = require('./format/currency')
 
-      current.punchOut(args.comment, { autosave: true })
+      current.punchOut(args.options.comment, { autosave: true })
 
       const label = getLabelFor(current.project)
       const duration = formatDuration(current.duration())
@@ -201,10 +216,10 @@ command({
               return console.error(err || stderr)
             }
             console.log(stdout)
-            spawn('git', ['commit', '-m', args.comment], { stdio: 'inherit' })
+            spawn('git', ['commit', '-m', args.options.comment], { stdio: 'inherit' })
           })
         } else {
-          spawn('git', ['commit', '-m', args.comment], { stdio: 'inherit' })
+          spawn('git', ['commit', '-m', args.options.comment], { stdio: 'inherit' })
         }
       }
 
