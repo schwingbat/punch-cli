@@ -158,23 +158,22 @@ command({
 command({
   signature: 'out',
   description: 'stop tracking time',
-  arguments: [{
-    name: 'comment',
-    description: 'a description of what you worked on',
-    parse: (words) => words.join(' ')
-  }],
   options: [{
     name: 'comment',
     short: 'c',
     description: 'add a description of what you worked on',
     type: 'string'
   }, {
+    name: 'no-comment',
+    description: 'punch out without warning about a lack of comment',
+    type: 'boolean'
+  }, {
     name: 'git-commit',
     description: 'simultaneously add a git commit with the comment as the message',
     type: 'boolean'
   }, {
     name: 'git-add',
-    description: 'also run "git add <value>" before commit when --git-commit is true',
+    description: 'also run "git add <value>" before commit when --git-commit is present',
     type: 'string'
   }],
   run: async function (args) {
@@ -184,8 +183,15 @@ command({
 
     if (current) {
 
+      if (args.raw.length === 0 && !args.options['no-comment']) {
+        const conf = confirm(`Are you sure you want to punch out with no comment?`)
+        if (!conf) {
+          return console.log(`Use the --comment or -c flags to add a comment:\n  usage: punch out -c "This is a comment."\n`)
+        }
+      }
+
       if (args.raw.length > 0 && !args.options.comment) {
-        return console.log(`If you want to add a comment, use the --comment or -c flags:\n  usage: punch out -c "This is a comment."`)
+        return console.log(`If you want to add a comment, use the --comment or -c flags:\n  usage: punch out -c "This is a comment."\n`)
       }
       
       const formatDate = require('date-fns/format')
