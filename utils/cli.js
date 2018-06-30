@@ -278,6 +278,18 @@ function makeHelp (programName, commandName, command, mapped, highlightMissing =
 
   str += '\n'
 
+  if (command.examples && command.examples.length > 0) {
+    str += '\n'
+    str += '  e.g. '
+
+    command.examples.forEach((ex, i) => {
+      str += ex + '\n'
+      if (command.examples[i + 1]) {
+        str += '       '
+      }
+    })
+  }
+
   if (command.args.length > 0) {
     str += `\nARGUMENTS\n`
     str += argTable(command.args.map(a => [a.name, a.description]))
@@ -322,6 +334,7 @@ function makeGeneralHelp (program, commands) {
 
   str += indent() + program.name + ' v' + program.version + '\n'
   str += paramExplanation + '\n'
+  str += `  Run ${chalk.green('punch <command> --help')} with any of the following commands for more information.\n\n`
   str += chalk.bold('  Commands:') + '\n'
 
   for (const cmd in commands) {
@@ -354,6 +367,7 @@ function CLI (program) {
     commands[command] = {
       signature,
       description,
+      examples: config.examples || [],
       args: applyArgExtras(
         parseSignature(signature),
         config.arguments
