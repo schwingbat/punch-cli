@@ -2,6 +2,16 @@ module.exports = function formatDuration (milliseconds, opts = {}) {
   let resolution = resolutions[opts.resolution]
   if (resolution == null) { resolution = 1 }
 
+  if (opts.fractional) {
+    if (resolution === resolutions.hour) {
+      return (milliseconds / 3600000).toFixed(1) + (opts.long ? ' hours' : 'h')
+    } else if (resolution === resolutions.minute) {
+      return (milliseconds / 60000).toFixed(1) + (opts.long ? ' minutes' : 'm')
+    } else if (resolution === resolutions.second) {
+      return (milliseconds / 1000).toFixed(1) + (opts.long ? ' seconds' : 's')
+    }
+  }
+
   let hours = milliseconds / 3600000
   let minutes = 0
   let seconds = 0
