@@ -542,6 +542,7 @@ command({
 
         summaries.push({
           fullName,
+          description: projectData.description,
           totalTime,
           totalPay,
           hourlyRate,
@@ -658,6 +659,11 @@ command({
     short: 'l',
     description: 'generate invoice locally (uses HTTP invoice API by default)',
     type: 'boolean'
+  }, {
+    name: 'yes',
+    short: 'y',
+    description: 'generation without confirming details',
+    type: 'boolean'
   }],
   run: async function (args) {
     const active = await Punch.current()
@@ -702,7 +708,7 @@ command({
       { label: 'Output To', value: resolvePath(outputFile) }
     ]))
 
-    if (confirm('Create invoice?')) {
+    if (args.options.yes || confirm('Create invoice?')) {
       const loader = require('./utils/loader')({ text: 'Generating invoice...' })
       loader.start()
 
@@ -852,6 +858,77 @@ command({
       fs.writeFileSync(filePath, JSON.stringify(migrated, null, 2))
       console.log(`Converted ${fileName} from version ${fileVersion} to version ${Math.max(fileVersion, version)}`)
     })
+  }
+})
+
+command({
+  signature: 'alias-rename <from> <to>',
+  description: 'move all punches with project alias <from> to <to>',
+  //hidden: true,
+  examples: [
+    'punch alias-rename oldname newname'
+  ],
+  arguments: [{
+    name: 'from',
+    description: 'project alias to target'
+  }, {
+    name: 'to',
+    description: 'project alias to rename to'
+  }],
+  run: async function (args) {
+    const { from, to } = args
+
+    const punches = await Punch.select(p => p.project === from)
+    punches.forEach(punch => {
+      punch.project = to
+      punch.update()
+      punch.save()
+    })
+
+    console.log(`${punches.length} punches updated`)
+  }
+})
+
+command({
+  signature: 'comment-object-rename <from> <to>',
+  description: 'rename comment objects with name <from> to name <to>',
+  //hidden: true,
+  examples: [
+    'punch alias-rename task vsts'
+  ],
+  arguments: [{
+    name: 'from',
+    description: 'starting name (e.g. "task" for @task:1500)'
+  }, {
+    name: 'to',
+    description: 'ending name (e.g. "vsts" to get @vsts:1500)'
+  }],
+  run: async function (args) {
+    const { from, to } = args
+
+    const punches = await Punch.select(p => {
+      for (let c = 0; c < p.comments.length; c++) {
+        for (let o = 0; o < p.comments[c].objects.length; o++) {
+          if (p.comments[c].objects[o].key === from) {
+            return true
+          }
+        }
+      }
+    })
+
+    punches.forEach(punch => {
+      punch.comments.forEach(comment => {
+        comment.objects.forEach(object => {
+          if (object.key === from) {
+            object.key = to
+          }
+        })
+      })
+      punch.update()
+      punch.save()
+    })
+
+    console.log(`${punches.length} punches updated`)
   }
 })
 

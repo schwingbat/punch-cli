@@ -7,11 +7,8 @@ module.exports = function ({ key, value }) {
     toString () {
       return `@${this.key}:${this.value}`
     },
-    toHTML () {
-      return `<span class="comment-object task">#${this.value}</span>`
-    },
     toLogString () {
-      return `[Task ${this.value}]`
+      return `[VSTS ${this.value}]`
     }
   }
 }

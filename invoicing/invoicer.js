@@ -27,7 +27,12 @@ module.exports = function (config) {
 
         days[key].time += punch.duration()
         days[key].pay += punch.pay()
-        days[key].comments.push(...punch.comments.map(c => c.toString()))
+        days[key].comments.push(...punch.comments.map(c => {
+          return {
+            comment: c.comment,
+            objects: c.objects.map(o => ({ key: o.key, value: o.value })),
+          }
+        }))
       })
       days = Object.values(days).sort(ascendingBy('date'))
 
@@ -93,6 +98,8 @@ module.exports = function (config) {
       days[key].comments.push(...punch.comments.map(c => c.toString()))
     })
     days = Object.values(days).sort(ascendingBy('date'))
+
+
 
     const data = {
       template: 'standard',

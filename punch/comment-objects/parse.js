@@ -1,5 +1,5 @@
 const parsers = {
-  task: require('./parsers/vsts-task.js')
+  vsts: require('./parsers/vsts.js')
 }
 const noopParser = require('./parsers/noop.js')
 

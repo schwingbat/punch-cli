@@ -9,6 +9,7 @@ module.exports = function (config, project) {
 
   const {
     fullName,
+    description,
     totalTime,
     totalPay,
     hourlyRate,
@@ -23,6 +24,7 @@ module.exports = function (config, project) {
 
   return {
     name: fullName,
+    description: description || chalk.grey('No description'),
     pay: totalPay ? formatCurrency(totalPay) : null,
     time: formatDuration(totalTime),
     rate: hourlyRate ? formatCurrency(hourlyRate) + '/hr' : null,
