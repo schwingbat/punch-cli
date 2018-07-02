@@ -2,7 +2,6 @@ const path = require('path')
 const Service = require('./s3.service.js')
 
 const credsPath = path.join(__dirname, '../../test/s3creds.json')
-console.log(credsPath)
 const config = {
   name: 'S3',
   credentials: {
@@ -113,6 +112,10 @@ describe('S3SyncService', () => {
       expect(service instanceof Service).toBe(true)
     })
 
+    /*========================*\
+    ||   Credential Loading   ||
+    \*========================*/
+
     it('uses S3 credentials object from config', () => {
       expect(service._s3.credentials.accessKeyId).toEqual(config.credentials.accessKeyId)
       expect(service._s3.credentials.secretAccessKey).toEqual(config.credentials.secretAccessKey)
@@ -177,15 +180,14 @@ describe('S3SyncService', () => {
     })
 
     it('calls putObject', () => {
-      expect.assertions(3)
+      expect.assertions(2)
 
       service.upload([ new MockPunch({ id: 'asdf', project: 'test' }) ]).then(uploaded => {
         expect(S3Calls.putObject).toBeTruthy()
-        expect(S3Calls.putObject.length).toBe(1)
         expect(S3Calls.putObject[0].props).toEqual({
           Bucket: config.bucket,
           Key: 'punches/asdf.json',
-          Body: { id: 'asdf', project: 'test' }
+          Body: JSON.stringify({ id: 'asdf', project: 'test' })
         })
       })
     })

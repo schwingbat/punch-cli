@@ -1,6 +1,7 @@
 const parseDate = require('./parse-date')
 
-const timePattern = /^(\d+)[:](\d+)[:]?(\d*)\s*(.*)$/
+const timePattern = /^(\d+)[:](\d+)[:]?(\d*)\s*([ap]m)?$/i
+const datePattern = parseDate.pattern
 
 function parseTime (timeString) {
   let hours
@@ -31,17 +32,19 @@ function parseTime (timeString) {
 
 module.exports = function (str) {
   if (str.indexOf('@') === -1) {
-    if (/\d+[:]\d+([ap]m?)/i.test(str)) {
+    if (timePattern.test(str.trim())) {
       // Check if it's just a time
       const date = new Date()
       date.setHours(...parseTime(str))
       return date
-    } else {
+    } else if (datePattern.test(str.trim())) {
       // Just a date?
-      try {
-        return parseDate(str)
-      } catch (err) {}
-      throw new Error('Datetime string should be in the format DATE@TIME[AM/PM]')
+      const parsed = parseDate(str)
+      if (parsed) {
+        return parsed
+      } else {
+        throw new Error('Datetime string should be in the format DATE@TIME[AM/PM]')
+      }
     }
   }
 

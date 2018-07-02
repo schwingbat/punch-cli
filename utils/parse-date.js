@@ -1,7 +1,9 @@
-module.exports = function (str, today = new Date()) {
+const datePattern = /^(\d+)[-/.](\d+)[-/.](\d+)$/
+
+function parseDate (str, today = new Date()) {
   // Parses dates in format MM/DD/YYYY or YYYY/MM/DD format
   // Accepts any combination of slash, dash or period as delimiters
-  const parts = str.match(/(\d+)[-/.](\d+)[-/.](\d+)/)
+  const parts = str.match(datePattern)
   if (parts) {
     let year, month, day
 
@@ -34,3 +36,7 @@ module.exports = function (str, today = new Date()) {
     return null
   }
 }
+
+parseDate.pattern = datePattern
+
+module.exports = parseDate

@@ -82,10 +82,9 @@ describe('CLI', () => {
     \* ======================= */
 
     describe('mapArgs', () => {
-      it('maps args to empty object when no args are passed', () => {
-        expect(mapArgs([], [])).toEqual({
-          options: {}
-        })
+      it('stores the list of raw arguments in the "raw" array', () => {
+        const mapped = mapArgs(['one', 'two', 'three'], [])
+        expect(mapped.raw).toEqual(['one', 'two', 'three'])
       })
 
       it('maps args to proper names', () => {
@@ -109,12 +108,11 @@ describe('CLI', () => {
           }
         ]
 
-        expect(mapArgs(args.slice(1), argMap)).toEqual({
-          options: {},
-          one: 'fish',
-          two: 'potato',
-          number: '5'
-        })
+        const mapped = mapArgs(args.slice(1), argMap)
+        expect(mapped.one).toBe('fish')
+        expect(mapped.two).toBe('potato')
+        expect(mapped.number).toBe('5')
+        expect(mapped.shark).toBe(undefined)
       })
 
       it('maps remaining items to variadic arguments as an array', () => {
@@ -132,11 +130,9 @@ describe('CLI', () => {
           }
         ]
 
-        expect(mapArgs(args, argMap)).toEqual({
-          options: {},
-          one: 'one',
-          two: ['two', 'three', 'four']
-        })
+        const mapped = mapArgs(args, argMap)
+        expect(mapped.one).toBe('one')
+        expect(mapped.two).toEqual(['two', 'three', 'four'])
       })
 
       it('uses a default value if provided and argument is not given', () => {
@@ -160,12 +156,10 @@ describe('CLI', () => {
           }
         ]
 
-        expect(mapArgs(args, argMap)).toEqual({
-          options: {},
-          one: 'one',
-          two: 'two',
-          three: 'three'
-        })
+        const mapped = mapArgs(args, argMap)
+        expect(mapped.one).toBe('one')
+        expect(mapped.two).toBe('two')
+        expect(mapped.three).toBe('three')
       })
 
       it('calls the parse function on an argument if given', () => {
@@ -186,11 +180,9 @@ describe('CLI', () => {
           }
         ]
 
-        expect(mapArgs(args, argMap)).toEqual({
-          options: {},
-          one: 'one',
-          two: 'TWO'
-        })
+        const mapped = mapArgs(args, argMap)
+        expect(mapped.one).toBe('one')
+        expect(mapped.two).toBe('TWO')
       })
 
       it('stores error object as arg._error if parse function throws', () => {

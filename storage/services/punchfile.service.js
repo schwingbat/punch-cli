@@ -5,7 +5,7 @@ module.exports = function (config, Punch) {
   const mkdirp = require('mkdirp')
 
   // Make sure path exists if we're using the service.
-  if (!fs.existsSync(config.punchFilePath)) {
+  if (config.punchFilePath && !fs.existsSync(config.punchFilePath)) {
     mkdirp.sync(config.punchFilePath)
   }
 

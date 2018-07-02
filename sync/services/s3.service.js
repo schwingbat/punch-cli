@@ -1,15 +1,13 @@
 const fs = require('fs')
 const path = require('path')
+const resolvePath = require('../../utils/resolve-path')
 const SyncService = require('../syncservice.js')
 
 class S3SyncService extends SyncService {
   constructor (config, Punch, S3 = require('aws-sdk').S3) {
     super(config)
     this._punch = Punch
-    this._s3 = new S3(new S3Credentials({
-      region: config.region || 'us-west-2',
-      ...config.credentials
-    }))
+    this._s3 = new S3(new S3Credentials(config.credentials))
   }
 
   getManifest () {
@@ -139,7 +137,7 @@ class S3Credentials {
 
     if (typeof credentials === 'string') {
       // Try to load it as a JSON file.
-      let credPath = path.resolve(credentials.replace(/^~/, require('os').homedir()))
+      let credPath = resolvePath(credentials)
 
       if (fs.existsSync(credPath)) {
         try {

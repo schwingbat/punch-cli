@@ -8,7 +8,7 @@ describe('extract', () => {
     expect(result).toEqual({
       comment: 'This is a comment with objects',
       objects: [
-        { key: 'vsts', value: '1234' },
+        { key: 'task', value: '1234' },
         { key: 'pickle', value: 'flarf' }
       ]
     })

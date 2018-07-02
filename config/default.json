@@ -24,7 +24,6 @@
     "dateFormat": "dddd, MMMM Do YYYY",
     "timeFormat": "h:mm A"
   },
-  "punchPath": "~/.punch/punches",
   "storageType": "punchfile",
   "invoiceAPI": "http://invoice.api.punch.sh/v1/"
 }
