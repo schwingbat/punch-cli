@@ -1,4 +1,6 @@
 const { descendingBy } = require('../utils/sort-factories')
+const isSameDay = require('date-fns/is_same_day')
+const addDays = require('date-fns/add_days')
 
 function summarize (config, punches) {
   const projects = {}
@@ -46,6 +48,10 @@ module.exports = function Logger (config, Punch) {
     async forInterval (interval, criteria = {}) {
       let { project, object } = criteria
 
+      if (interval.start > new Date()) {
+        return console.log(messageFor('future-punch-log'))
+      }
+
       const punches = await Punch.select(p => {
         // Reject if start date is out of the interval's range
         if (p.in <= interval.start || p.in >= interval.end) {
@@ -61,7 +67,18 @@ module.exports = function Logger (config, Punch) {
       })
 
       if (punches.length === 0) {
-        return console.log(padWithLines(messageFor('no-search-results'), 1))
+        // Figure out what to say if there are no results
+        if (Object.keys(criteria).length > 0) {
+          return console.log(messageFor('no-sessions-with-criteria'))
+        } else {
+          if (isSameDay(interval.start, new Date())) {
+            return console.log(messageFor('no-sessions-today'))
+          } else if (isSameDay(interval.start, addDays(new Date(), -1))) {
+            return console.log(messageFor('no-sessions-yesterday'))
+          } else {
+            return console.log(messageFor('no-sessions'))
+          }
+        }
       }
 
       const logData = {

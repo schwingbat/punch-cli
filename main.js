@@ -614,7 +614,7 @@ command({
   }],
   run: function (args) {
     const fuzzyParse = require('./utils/fuzzy-parse')
-    const interval = fuzzyParse(args.when).interval()
+    const interval = fuzzyParse(args.when)
 
     if (interval) {
       require('./logging/log')(config, Punch).forInterval(interval, args.options)

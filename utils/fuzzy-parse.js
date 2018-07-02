@@ -21,7 +21,12 @@ const {
 
 const parseDate = require('./parse-date')
 
-module.exports = function (string, now = new Date()) {
+module.exports = function (string, opts = {}) {
+  const { now, pastTendency } = Object.assign({
+    now: new Date(),
+    pastTendency: true
+  }, opts)
+
   let start
   let end
   let unit
@@ -50,6 +55,13 @@ module.exports = function (string, now = new Date()) {
       end = endOfDay(addDays(now, -1))
     }
 
+    if (parts[0] === 'tomorrow') {
+      unit = 'day'
+      modifier = 1
+      start = startOfDay(addDays(now, 1))
+      end = endOfDay(start)
+    }
+
     if (!start || !end) {
       let first = parts[0]
       unit = parts[1]
@@ -60,14 +72,28 @@ module.exports = function (string, now = new Date()) {
       } else if (first === 'next') {
         modifier = 1
       } else if (numbers.includes(first)) {
-        modifier = -numbers.indexOf(first)
+        modifier = numbers.indexOf(first)
+        if (pastTendency) {
+          modifier *= -1
+        }
       } else if (weekdays.includes(first) || months.includes(first)) {
-        modifier = -1
+        modifier = pastTendency ? -1 : 1
+        unit = first
+      } else if (/^\d{4,}$/.test(first)) {
+        modifier = pastTendency
+          ? parseInt(first) - now.getFullYear()
+          : now.getFullYear() - parseInt(first)
+        unit = 'year'
       } else if (parseInt(first)) {
-        modifier = -parseInt(first) || 0
+        modifier = parseInt(first) || 0
+        if (pastTendency) {
+          modifier *= -1
+        }
       } else {
         unit = parts[0]
       }
+
+      // console.log({ string, unit, modifier })
 
       unit = unit.replace(/[s|ies]$/, '')
 
@@ -84,35 +110,49 @@ module.exports = function (string, now = new Date()) {
         } else if (unit === 'year') {
           start = startOfYear(addYears(now, modifier))
           end = endOfYear(addYears(now, modifier))
+        } else if (/^\d+$/.test(unit)) {
+          start = new Date(Number(unit))
+          end = endOfYear(start)
+          unit = 'year'
         } else if (weekdays.includes(unit)) {
           let dayIndex = weekdays.indexOf(unit)
+          let distance = 0
           start = startOfDay(now)
           while (start.getDay() !== dayIndex) {
             start = addDays(start, modifier)
+            distance += modifier
           }
           end = endOfDay(start)
+          unit = 'day'
+          modifier = distance
         } else if (months.includes(unit)) {
           let monthIndex = months.indexOf(unit)
+          let distance = 0
           start = startOfMonth(now)
           while (start.getMonth() !== monthIndex) {
             start = addMonths(start, modifier)
+            distance += modifier
           }
           end = endOfMonth(start)
+          unit = 'month'
+          modifier = distance
         }
       }
     }
   }
 
+  // console.log({
+  //   start,
+  //   end,
+  //   unit: unit || '???',
+  //   modifier: modifier || 0
+  // })
+
   return {
-    modifier () {
-      return modifier || 0
-    },
-    unit () {
-      return unit || '???'
-    },
-    interval () {
-      return { start, end }
-    }
+    start,
+    end,
+    unit: unit || '???',
+    modifier: modifier || 0
   }
 }
 
