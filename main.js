@@ -152,12 +152,12 @@ command({
         })
         punch.save()
 
-        // updateCurrentMarker(punch)
+        updateCurrentMarker(punch)
 
         // const time = format(new Date(), config.display.timeFormat)
         console.log(`Punched in on ${getLabelFor(args.project)}. ${getMessageFor('punched-in', { default: '' })}`)
 
-        // handleSync()
+        handleSync()
       } else {
         const chalk = require('chalk')
         console.log(`\n${chalk.bold(args.project)} is not a project in your config file. You'll have to add it first.\nEnter '${chalk.bold('punch config')}' to edit your configuration.\n`)
