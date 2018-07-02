@@ -34,4 +34,17 @@ describe('parseDateTime', () => {
       parseDateTime('10.10.2018@4.12l3klsdf')
     }).toThrow()
   })
+
+  it('parses just the time', () => {
+    const expected = new Date()
+    expected.setHours(22, 30, 0)
+    expect(parseDateTime('10:30PM')).toEqual(expected)
+  })
+
+  it('parses date without a time', () => {
+    const expected = new Date(2016, 2, 5)
+    expect(parseDateTime('2016-3-5')).toEqual(expected)
+    expect(parseDateTime('3/5/2016')).toEqual(expected)
+    expect(parseDateTime('3.5.2016')).toEqual(expected)
+  })
 })

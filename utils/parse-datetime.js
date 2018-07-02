@@ -1,20 +1,8 @@
 const parseDate = require('./parse-date')
 
-module.exports = function (str) {
-  if (str.indexOf('@') === -1) {
-    throw new Error('Datetime string should be in the format DATE@TIME[AM/PM]')
-  }
+const timePattern = /^(\d+)[:](\d+)[:]?(\d*)\s*(.*)$/
 
-  const [dateString, timeString] = str.split('@').map(s => s.trim())
-
-  const date = parseDate(dateString)
-  if (!date) {
-    throw new Error('Failed to parse date part of datetime string')
-  }
-
-  // Date is parsed. Figure out time.
-  let timePattern = /^(\d+)[:](\d+)[:]?(\d*)\s*(.*)$/
-
+function parseTime (timeString) {
   let hours
   let minutes
   let seconds
@@ -37,6 +25,35 @@ module.exports = function (str) {
       throw new Error('Hours should not be greater than 12 when PM is present.')
     }
   }
+
+  return [hours, minutes, seconds]
+}
+
+module.exports = function (str) {
+  if (str.indexOf('@') === -1) {
+    if (/\d+[:]\d+([ap]m?)/i.test(str)) {
+      // Check if it's just a time
+      const date = new Date()
+      date.setHours(...parseTime(str))
+      return date
+    } else {
+      // Just a date?
+      try {
+        return parseDate(str)
+      } catch (err) {}
+      throw new Error('Datetime string should be in the format DATE@TIME[AM/PM]')
+    }
+  }
+
+  const [dateString, timeString] = str.split('@').map(s => s.trim())
+
+  const date = parseDate(dateString)
+  if (!date) {
+    throw new Error('Failed to parse date part of datetime string')
+  }
+
+  // Date is parsed. Figure out time.
+  const [hours, minutes, seconds] = parseTime(timeString)
   date.setHours(hours, minutes, seconds)
 
   return date

@@ -16,3 +16,67 @@
   TOTAL (2,365h 51m 8s / $72,536.10 / 1,124 punches)
 
 */
+
+const monthNames = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December'
+]
+
+module.exports = function ({ config, punches, date, summary }, summarizeFn) {
+  const { summaryTable, delimitedList } = require('./printing')
+  const { ascendingBy } = require('../utils/sort-factories')
+  const formatCurrency = require('../format/currency')
+  const formatDuration = require('../format/duration')
+  const chalk = require('chalk')
+
+  const months = {}
+
+  punches.forEach(punch => {
+    const key = punch.in.getMonth()
+    if (!months[key]) {
+      months[key] = []
+    }
+    months[key].push(punch)
+  })
+
+  const monthArray = []
+
+  for (const key in months) {
+    monthArray.push([key, months[key]])
+  }
+
+  console.log()
+
+  monthArray
+    .sort(ascendingBy(m => m[0]))
+    .forEach(([key, punches]) => {
+      const monthSummary = summarizeFn(config, punches)
+
+      const monthPay = monthSummary.reduce((sum, project) => sum + project.pay, 0)
+      const monthTime = monthSummary.reduce((sum, project) => sum + project.time, 0)
+      const monthPunches = monthSummary.reduce((sum, project) => sum + project.punches.length, 0)
+
+      let headingText = chalk.bold(monthNames[Number(key)] + ' ' + date.getFullYear()) + ' '
+      headingText += delimitedList([
+        formatDuration(monthTime),
+        formatCurrency(monthPay),
+        monthPunches + ' punch' + (monthPunches === 1 ? '' : 'es')
+      ], ' / ', ['(', ')'])
+      console.log(headingText + '\n')
+      console.log('  ' + summaryTable(monthSummary, { total: false }).replace(/\n/g, '\n  '))
+    })
+
+  // console.log(months)
+
+  console.log(summaryTable(summary) + '\n')
+}

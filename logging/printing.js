@@ -72,8 +72,12 @@ function projectHeader (text, stats) {
   }]
 }
 */
-function summaryTable (projects) {
+function summaryTable (projects, opts = {}) {
   let str = ''
+
+  opts = Object.assign({
+    total: true
+  }, opts)
 
   let total = {
     time: 0,
@@ -116,12 +120,14 @@ function summaryTable (projects) {
 
   str += table.toString()
 
-  str += '\n' + chalk.bold.cyan('TOTAL') + ' '
-  str += delimitedList([
-    formatDuration(total.time),
-    formatCurrency(total.pay),
-    total.punchCount + ' punch' + (total.punchCount === 1 ? '' : 'es')
-  ], ' / ', ['(', ')'])
+  if (opts.total) {
+    str += '\n' + chalk.bold.cyan('TOTAL') + ' '
+    str += delimitedList([
+      formatDuration(total.time),
+      formatCurrency(total.pay),
+      total.punchCount + ' punch' + (total.punchCount === 1 ? '' : 'es')
+    ], ' / ', ['(', ')'])
+  }
 
   return str
 }
@@ -245,7 +251,7 @@ function projectSummary ({ name, description, pay, time, rate, stats }) {
   if (rate) statList.push(rate)
 
   str += projectHeader(name) + ' ' + delimitedList(statList, ' / ', ['(', ')']) + '\n'
-  str += `  ${wordWrap(description, 50, 2)}\n\n`
+  str += `${chalk.grey(' >')} ${wordWrap(description, 60, chalk.grey('\n > '))}\n\n`
 
   if (stats) {
     str += labelTable(stats)

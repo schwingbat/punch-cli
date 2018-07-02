@@ -40,7 +40,7 @@ module.exports = function Logger (config, Punch) {
   const printDay = require('./log-day')
   // const printWeek = require('./log-week')
   const printMonth = require('./log-month')
-  // const printYear = require('./log-year')
+  const printYear = require('./log-year')
 
   return {
     async forInterval (interval, criteria = {}) {
@@ -75,8 +75,7 @@ module.exports = function Logger (config, Punch) {
       let days = (interval.end.getTime() / 86400000) - (interval.start.getTime() / 86400000)
 
       if (days > 31) {
-        console.log('Yearly logs are not implemented yet.')
-        // printYear(logData)
+        printYear(logData, summarize)
       } else if (days > 7) {
         printMonth(logData)
       } else if (days > 1) {

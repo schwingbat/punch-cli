@@ -10,6 +10,7 @@ const parseDate = require('./utils/parse-date')
 const parseDateTime = require('./utils/parse-datetime')
 const CLI = require('./utils/cli.js')
 const messageFor = require('./utils/message-for')
+const padWithLines = require('./logging/pad-with-lines')
 
 const { command, run, invoke } = CLI({
   name: 'punch',
@@ -34,7 +35,6 @@ for (let i = 0; i < ARGS.length; i++) {
       case '-v':
         console.log('punch v' + require('./package.json').version)
         process.exit()
-        break
       case '--verbose':
         flags.VERBOSE = true
         break
@@ -124,9 +124,17 @@ const updateCurrentMarker = (current) => {
 command({
   signature: 'in <project>',
   description: 'start tracking time on a project',
+  examples: ['punch in punch-cli',
+             'punch in tps-reports'],
   arguments: [{
     name: 'project',
     description: 'name of the project'
+  }],
+  options: [{
+    name: 'time',
+    short: 't',
+    description: 'time to set as punch in time (defaults to current time)',
+    type: parseDateTime 
   }],
   run: async function (args) {
     await handleSync()
@@ -138,15 +146,18 @@ command({
     } else {
       // Check if project is in config file
       if (config.projects[args.project]) {
-        const punch = new Punch({ project: args.project })
+        const punch = new Punch({
+          project: args.project,
+          in: args.options.time
+        })
         punch.save()
 
-        updateCurrentMarker(punch)
+        // updateCurrentMarker(punch)
 
         // const time = format(new Date(), config.display.timeFormat)
         console.log(`Punched in on ${getLabelFor(args.project)}. ${getMessageFor('punched-in', { default: '' })}`)
 
-        handleSync() 
+        // handleSync()
       } else {
         const chalk = require('chalk')
         console.log(`\n${chalk.bold(args.project)} is not a project in your config file. You'll have to add it first.\nEnter '${chalk.bold('punch config')}' to edit your configuration.\n`)
@@ -163,6 +174,11 @@ command({
     short: 'c',
     description: 'add a description of what you worked on',
     type: 'string'
+  }, {
+    name: 'time',
+    short: 't',
+    description: 'time to set as punch out time (defaults to current time)',
+    type: parseDateTime
   }, {
     name: 'no-comment',
     description: 'punch out without warning about a lack of comment',
@@ -198,11 +214,14 @@ command({
       const formatDuration = require('./format/duration')
       const formatCurrency = require('./format/currency')
 
-      current.punchOut(args.options.comment, { autosave: true })
+      current.punchOut(args.options.comment, {
+        autosave: true,
+        time: args.options.time
+      })
 
       const label = getLabelFor(current.project)
       const duration = formatDuration(current.duration())
-      const time = formatDate(new Date(), config.display.timeFormat)
+      const time = formatDate(args.options.time || new Date(), config.display.timeFormat)
       const pay = current.pay()
 
       let str = `Punched out on ${label} at ${time}. Worked for ${duration}`
@@ -335,7 +354,7 @@ command({
 })
 
 command({
-  signature: 'create <project> <timeIn> <timeOut> [comment...]',
+  signature: 'create <project>',
   description: 'create a punch',
   arguments: [{
     name: 'project',
@@ -348,27 +367,34 @@ command({
         throw new Error('Project does not exist in your config file')
       }
     }
+  }],
+  options: [{
+    name: 'time-in',
+    short: 'i',
+    description: 'start time and date (e.g. MM/DD/YYYY@12:00PM)',
+    type: parseDateTime
   }, {
-    name: 'timeIn',
-    description: 'session starting time',
-    parse: parseDateTime
-  }, {
-    name: 'timeOut',
-    description: 'session ending time',
-    parse: parseDateTime
+    name: 'time-out',
+    short: 'o',
+    description: 'end time and date',
+    type: parseDateTime
   }, {
     name: 'comment',
+    short: 'c',
     description: 'a description of what you worked on',
-    parse: (words) => words.join(' ')
+    type: 'string'
   }],
   run: function (args) {
     const formatDuration = require('./format/duration')
     const formatCurrency = require('./format/currency')
     const formatDate = require('date-fns/format')
 
-    const { project, timeIn, timeOut, comment } = args
+    const { project } = args
+    const timeIn = args.options['time-in']
+    const timeOut = args.options['time-out']
+    const comment = args.options['comment']
 
-    const duration = timeIn.getTime() - timeOut.getTime()
+    const duration = timeOut.getTime() - (timeIn || new Date()).getTime()
     let pay
     if (project.hourlyRate) {
       pay = formatCurrency(duration / 3600000 * project.hourlyRate)
@@ -376,8 +402,8 @@ command({
       pay = 'N/A'
     }
 
-    let str = ''
-    str += `   Project: ${project.name}\n`
+    let str = '\n'
+    str += `   Project: ${project.name} (${project.alias})\n`
     str += `   Time In: ${formatDate(timeIn, 'dddd, MMM Do YYYY [@] h:mma')}\n`
     str += `  Time Out: ${formatDate(timeOut, 'dddd, MMM Do YYYY [@] h:mma')}\n`
     str += `  Duration: ${formatDuration(duration)}\n`
@@ -387,16 +413,17 @@ command({
       str += `   Comment: ${comment}\n\n`
     }
 
-    str += '\nCreate this punch?'
+    str += 'Create this punch?'
 
     if (confirm(str)) {
       const punch = new Punch({
-        project,
+        project: project.alias,
         in: timeIn.getTime(),
-        out: timeOut.getTime()
+        out: timeOut.getTime(),
+        rate: project.hourlyRate || 0
       })
       if (args.comment) {
-        punch.addComment(args.comment)
+        punch.addComment(comment)
       }
       punch.save()
 
@@ -553,11 +580,15 @@ command({
       }
     }
 
-    console.log()
+    let str = ''
+
     summaries
       .sort(ascendingBy('fullName'))
-      .forEach(s => console.log(projectSummary(formatSummary(config, s))))
-    console.log()
+      .forEach(s => {
+        str += projectSummary(formatSummary(config, s)) + '\n\n'
+      })
+
+    console.log(padWithLines(str, 1))
   }
 })
 
@@ -806,12 +837,17 @@ command({
 })
 
 command({
-  signature: 'timestamp <time>',
+  signature: 'timestamp [time]',
   description: 'get a millisecond timestamp for a given time (mm/dd/yyyy@hh:mm:ss)',
+  examples: [
+    'punch timestamp 6/5/2018@10:31am',
+    'punch timestamp'
+  ],
   arguments: [{
     name: 'time',
     description: 'datetime string to get a timestamp for',
-    parse: parseDateTime
+    parse: parseDateTime,
+    default: () => new Date()
   }],
   hidden: true,
   run: function (args) {
@@ -826,6 +862,9 @@ command({
 command({
   signature: 'migrate <version>',
   description: 'migrate punchfiles with older schemas up to the specified version',
+  examples: [
+    'punch migrate 3'
+  ],
   hidden: true,
   arguments: [{
     name: 'version',
