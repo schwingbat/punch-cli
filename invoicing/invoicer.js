@@ -6,6 +6,7 @@ module.exports = function (config) {
   const formatCurrency = require('../format/currency')
   const fetch = require('node-fetch')
   const fs = require('fs')
+  const util = require('util')
 
   function generateWithAPI (props) {
     return new Promise((resolve, reject) => {
@@ -52,6 +53,22 @@ module.exports = function (config) {
           pay: formatCurrency(day.pay)
         }))
       }
+
+      if (props.project.plugins) {
+        for (const key in props.project.plugins) {
+          days.forEach(day => {
+            day.comments.forEach(comment => {
+              comment.objects.forEach(object => {
+                if (object.key === key) {
+                  object.config = props.project.plugins[key]
+                }
+              })
+            })
+          })
+        }
+      }
+
+      // console.log(util.inspect(data, { depth: null, colors: true }))
 
       const url = new URL(`generate/${props.output.format}/standard`, config.invoiceAPI)
       console.log('requesting from ', url.toString())

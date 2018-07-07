@@ -14,7 +14,7 @@ Thanks to the stateless nature of Punch, nothing actually runs in the background
 
 - [ ] Add quick setup for fresh installs (generate directories, create skeleton config)
 - [ ] Implement weekly log
-- [ ] Implement yearly log
+- [X] Implement yearly log
 - [ ] Generate logs for specific month/year (currently just relative - `this month`, `last month`)
 
 ## Configuration

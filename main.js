@@ -94,6 +94,15 @@ const confirm = (question) => {
   }
 }
 
+// const questionnaire = (questions) => {
+//   const rl = require('readline-sync')
+
+//   for (let i = 0; i < questions.length; i++) {
+//     const q = questions[i]
+    
+//   }
+// }
+
 const handleSync = () => {
   if (autoSync && !flags.NO_SYNC) {
     const Syncer = require('./sync/syncer')
@@ -156,7 +165,6 @@ command({
 
         // const time = format(new Date(), config.display.timeFormat)
         console.log(`Punched in on ${getLabelFor(args.project)}. ${getMessageFor('punched-in', { default: '' })}`)
-
         handleSync()
       } else {
         const chalk = require('chalk')
@@ -968,6 +976,96 @@ command({
     })
 
     console.log(`${punches.length} punches updated`)
+  }
+})
+
+command({
+  signature: 'export',
+  description: 'exports punch data',
+  hidden: true,
+  examples: [],
+  options: [{
+    name: 'start',
+    short: 's',
+    description: 'start date for punch selection',
+    type: parseDateTime
+  }, {
+    name: 'end',
+    short: 'e',
+    description: 'end date for punch selection',
+    type: parseDateTime
+  }, {
+    name: 'project',
+    short: 'p',
+    description: 'project name for punch selection',
+    type: 'string'
+  }, {
+    name: 'tag',
+    short: 't',
+    description: 'comment tag values for punch selection',
+    type: 'string'
+  }, {
+    name: 'format',
+    short: 'f',
+    description: 'formatting style of punches (e.g. tfs-tracker)',
+    type: 'string'
+  }, {
+    name: 'destination',
+    short: 'd',
+    description: 'file path to save to (prints to console by default)',
+    type: 'string'
+  }],
+  run: async function(args) {
+    const { start, end, project, tag, format, destination } = args.options
+    const resolvePath = require('./utils/resolve-path')
+    const path = require('path')
+    const chalk = require('chalk')
+
+    let formatter
+    let formatterPath = path.join(config.punchPath, 'formatters', 'export', format + '.js')
+    try {
+      formatter = require(formatterPath)
+    } catch (err) {
+      console.log(chalk.red(`\nNo formatter for '${format}'`))
+      console.log(`You can create ${chalk.green(formatterPath)} to define it.`)
+      console.log('Formatters should be a single exported function that takes an array of punch objects and returns a string.\n')
+      console.log(`Here's a good starting point:`)
+      console.log(`
+module.exports = function (punches) {
+  let str = ''
+
+  // Do your thing!
+
+  return str
+}
+`)
+      return
+    }
+
+    const punches = await Punch.select(p => {
+      if (start && p.in < start) {
+        return false
+      }
+      if (end && p.in > end) {
+        return false
+      }
+      if (project && p.project !== project) {
+        return false
+      }
+      if (tag && !p.hasCommentObject(tag)) {
+        return false
+      }
+      return true
+    })
+
+    const formatted = formatter(config, punches)
+
+    if (destination) {
+      fs.writeFileSync(resolvePath(destination), formatted)
+      console.log('Exported punches were saved to ' + destination)
+    } else {
+      console.log(formatted)
+    }
   }
 })
 
