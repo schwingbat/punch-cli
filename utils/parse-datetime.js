@@ -20,9 +20,9 @@ function parseTime (timeString) {
   }
 
   if (meridian && meridian.toUpperCase() === 'PM') {
-    if (hours <= 12) {
+    if (hours <= 11) {
       hours += 12
-    } else {
+    } else if (hours > 12) {
       throw new Error('Hours should not be greater than 12 when PM is present.')
     }
   }

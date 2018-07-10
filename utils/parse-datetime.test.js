@@ -39,6 +39,12 @@ describe('parseDateTime', () => {
     const expected = new Date()
     expected.setHours(22, 30, 0)
     expect(parseDateTime('10:30PM')).toEqual(expected)
+
+    // Same day
+    expect(parseDateTime('11:51pm').getDate()).toEqual(new Date().getDate())
+    expect(parseDateTime('12:24PM').getDate()).toEqual(new Date().getDate())
+    expect(parseDateTime('12:44AM').getDate()).toEqual(new Date().getDate())
+    expect(parseDateTime('12:59PM').getDate()).toEqual(new Date().getDate())
   })
 
   it('parses date without a time', () => {
