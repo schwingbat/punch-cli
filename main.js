@@ -103,10 +103,19 @@ const confirm = (question) => {
 //   }
 // }
 
-const handleSync = () => {
+const handleSync = async ({ syncMessage, completeMessage } = {}) => {
   if (autoSync && !flags.NO_SYNC) {
     const Syncer = require('./sync/syncer')
-    return new Syncer(config, Punch).syncAll()
+    const s = new Syncer(config, Punch).syncAll({ silent: syncMessage && completeMessage })
+    if (syncMessage && completeMessage) {
+      const loader = require('./utils/loader')()
+      loader.start(syncMessage)
+      await s
+      loader.stop(completeMessage)
+      return s
+    } else {
+      return s
+    }
   } else {
     return Promise.resolve()
   }
@@ -120,8 +129,6 @@ const updateCurrentMarker = (current) => {
   } else if (current instanceof Punch) {
     label = getLabelFor(current.project)
   }
-
-  // console.log('Updating current marker to:', label)
 
   fs.writeFileSync(path.join(path.dirname(config.configPath), 'current'), label)
 }
@@ -189,16 +196,8 @@ command({
     type: parseDateTime
   }, {
     name: 'no-comment',
-    description: 'punch out without warning about a lack of comment',
+    description: 'punch out without warning about a lack of comments',
     type: 'boolean'
-  }, {
-    name: 'git-commit',
-    description: 'simultaneously add a git commit with the comment as the message',
-    type: 'boolean'
-  }, {
-    name: 'git-add',
-    description: 'also run "git add <value>" before commit when --git-commit is present',
-    type: 'string'
   }],
   run: async function (args) {
     await handleSync()
@@ -206,16 +205,15 @@ command({
     const current = await Punch.current()
 
     if (current) {
-
-      if (args.raw.length === 0 && !args.options['no-comment']) {
+      if (current.comments.length === 0 && args.raw.length === 0 && !args.options['no-comment']) {
         const conf = confirm(`Are you sure you want to punch out with no comment?`)
         if (!conf) {
           return console.log(`Use the --comment or -c flags to add a comment:\n  usage: punch out -c "This is a comment."\n`)
         }
       }
 
-      if (args.raw.length > 0 && !args.options.comment) {
-        return console.log(`If you want to add a comment, use the --comment or -c flags:\n  usage: punch out -c "This is a comment."\n`)
+      if (current.comments.length === 0 && !args.options.comment) {
+        return console.log(`If you want to add a comment, you still can.\n Use: 'punch comment "this is a comment"'`)
       }
       
       const formatDate = require('date-fns/format')
@@ -239,23 +237,6 @@ command({
       console.log(str + '.')
 
       updateCurrentMarker('')
-
-      if (args.options['git-commit']) {
-        const { exec, spawn } = require('child_process')
-
-        if (args.options['git-add']) {
-          exec(`git add ${args.options['git-add']}`, (err, stdout, stderr) => {
-            if (err || stderr) {
-              return console.error(err || stderr)
-            }
-            console.log(stdout)
-            spawn('git', ['commit', '-m', args.options.comment], { stdio: 'inherit' })
-          })
-        } else {
-          spawn('git', ['commit', '-m', args.options.comment], { stdio: 'inherit' })
-        }
-      }
-
       handleSync()
     } else {
       console.log(`You're not punched in!`)

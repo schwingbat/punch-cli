@@ -85,6 +85,16 @@ module.exports = function (config, Punch) {
 
     const latest = fs.readdirSync(config.punchFilePath).sort((a, b) => {
       return dateString(a) < dateString(b) ? -1 : 1
+    }).filter(f => {
+      // Filter out any future punchfiles that might have been created.
+      const [y, m, d] = f.split(/[_\.]/g).slice(1, 4).map(Number)
+      const fileDate = new Date(y, m - 1, d)
+      const now = new Date()
+      const inFuture = fileDate > now
+      if (inFuture) {
+        console.log('⚠️  ' + chalk.yellow('Punchfile exists for a future date: ' + f))
+      }
+      return !inFuture
     }).pop()
 
     return Punchfile.read(path.join(config.punchFilePath, latest))
