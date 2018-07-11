@@ -3,11 +3,12 @@ module.exports = function (configPath) {
   const mkdirp = require('mkdirp')
   const path = require('path')
   const home = require('os').homedir()
+  const MON = require('@schwingbat/mon')
 
   const punchPath = process.env.PUNCH_PATH || path.join(home, '.punch')
 
   if (!configPath) {
-    configPath = path.resolve(path.join(punchPath, 'punchconfig.json'))
+    configPath = path.resolve(path.join(punchPath, 'punchconfig'))
   } else {
     configPath = path.resolve(configPath)
   }
@@ -17,10 +18,17 @@ module.exports = function (configPath) {
   // const configBase = fs.ensureSync(path.dirname(configPath))
 
   let config = require('./default.json')
+  let configFormat
 
-  if (fs.existsSync(configPath)) {
+  if (fs.existsSync(configPath + '.mon')) {
+    const file = fs.readFileSync(configPath + '.mon').toString('utf8')
+    const parsed = MON.parse(file)
+    config = Object.assign(config, parsed)
+    configFormat = '.mon'
+  } else if (fs.existsSync(configPath + '.json')) {
     try {
       config = Object.assign(config, require(configPath))
+      configFormat = '.json'
     } catch (err) {}
   } else {
     console.log('No config file found!')
@@ -48,7 +56,7 @@ module.exports = function (configPath) {
     projects[alias].alias = alias
   }
 
-  config.configPath = configPath
+  config.configPath = configPath + (configFormat || '.mon')
   config.punchPath = punchPath
   config.punchFilePath = path.join(punchPath, 'punches')
   config.punchDBPath = path.join(punchPath, 'punch.db')
