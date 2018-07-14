@@ -9,7 +9,7 @@ module.exports = function (configPath) {
 
   if (!configPath) {
     configPath = path.resolve(path.join(punchPath, 'punchconfig'))
-  } else {
+  } else { 
     configPath = path.resolve(configPath)
   }
 
@@ -21,16 +21,22 @@ module.exports = function (configPath) {
   let configFormat
 
   if (fs.existsSync(configPath + '.mon')) {
+    // Try to load config from MON file first.
+
     const file = fs.readFileSync(configPath + '.mon').toString('utf8')
     const parsed = MON.parse(file)
     config = Object.assign(config, parsed)
     configFormat = '.mon'
   } else if (fs.existsSync(configPath + '.json')) {
+    // If that doesn't work, try to load from JSON file.
+
     try {
       config = Object.assign(config, require(configPath))
       configFormat = '.json'
     } catch (err) {}
   } else {
+      // If THAT doesn't work, yer screwed.
+
     console.log('No config file found!')
   }
 

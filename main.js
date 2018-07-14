@@ -11,6 +11,8 @@ const parseDateTime = require('./utils/parse-datetime')
 const CLI = require('./utils/cli.js')
 const messageFor = require('./utils/message-for')
 const padWithLines = require('./logging/pad-with-lines')
+const Loader = require('./utils/loader')
+const chalk = require('chalk')
 
 const { command, run, invoke } = CLI({
   name: 'punch',
@@ -50,10 +52,6 @@ for (let i = 0; i < ARGS.length; i++) {
         break
     }
   }
-}
-
-if (flags.BENCHMARK) {
-  require('time-require')
 }
 
 const bench = require('./utils/bench')({ disabled: !flags.BENCHMARK })
@@ -103,19 +101,10 @@ const confirm = (question) => {
 //   }
 // }
 
-const handleSync = async ({ syncMessage, completeMessage } = {}) => {
+const handleSync = async ({ silent } = {}) => {
   if (autoSync && !flags.NO_SYNC) {
     const Syncer = require('./sync/syncer')
-    const s = new Syncer(config, Punch).syncAll({ silent: syncMessage && completeMessage })
-    if (syncMessage && completeMessage) {
-      const loader = require('./utils/loader')()
-      loader.start(syncMessage)
-      await s
-      loader.stop(completeMessage)
-      return s
-    } else {
-      return s
-    }
+    return new Syncer(config, Punch).syncAll({ silent })
   } else {
     return Promise.resolve()
   }
@@ -153,12 +142,14 @@ command({
     type: parseDateTime 
   }],
   run: async function (args) {
-    await handleSync()
+    const loader = Loader()
+    loader.start('Punching in...')
+    await handleSync({ silent: true })
 
     const current = await Punch.current()
 
     if (current) {
-      console.log(`You're already punched in on ${getLabelFor(current.project)}! Punch out first.`)
+      loader.stop(chalk.red('❌') + ` You're already punched in on ${getLabelFor(current.project)}! Punch out first.`)
     } else {
       // Check if project is in config file
       if (config.projects[args.project]) {
@@ -171,11 +162,10 @@ command({
         updateCurrentMarker(punch)
 
         // const time = format(new Date(), config.display.timeFormat)
-        console.log(`Punched in on ${getLabelFor(args.project)}. ${getMessageFor('punched-in', { default: '' })}`)
+        loader.stop(chalk.green('✔️') + ` Punched in on ${getLabelFor(args.project)}. ${getMessageFor('punched-in', { default: '' })}`)
         handleSync()
       } else {
-        const chalk = require('chalk')
-        console.log(`\n${chalk.bold(args.project)} is not a project in your config file. You'll have to add it first.\nEnter '${chalk.bold('punch config')}' to edit your configuration.\n`)
+        loader.stop(`\n${chalk.bold(args.project)} is not a project in your config file. You'll have to add it first.\nEnter '${chalk.bold('punch config')}' to edit your configuration.\n`)
       }
     }
   }
@@ -200,7 +190,9 @@ command({
     type: 'boolean'
   }],
   run: async function (args) {
-    await handleSync()
+    const loader = Loader()
+    loader.start('Punching out...')
+    await handleSync({ silent: true })
 
     const current = await Punch.current()
 
@@ -234,12 +226,12 @@ command({
       if (pay > 0) {
         str += ` and earned ${formatCurrency(pay)}`
       }
-      console.log(str + '.')
+      loader.stop(chalk.green('✔️') + ' ' + str + '.')
 
       updateCurrentMarker('')
       handleSync()
     } else {
-      console.log(`You're not punched in!`)
+      loader.stop(chalk.yellow('⚠️') + ` You're not punched in!`)
     }
   }
 })

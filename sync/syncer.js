@@ -102,7 +102,7 @@ class Syncer {
       }
       const results = await this.sync(service)
       if (!silent) {
-        let report = chalk.green('✓') + ' ' + service.getSyncCompleteMessage() + ' '
+        let report = chalk.green('✔️') + ' ' + service.getSyncCompleteMessage() + ' '
         if (results.uploaded.length > 0) {
           report += `${chalk.grey('[')}${chalk.magenta('⬆')} ${results.uploaded.length}${chalk.grey(']')}`
 

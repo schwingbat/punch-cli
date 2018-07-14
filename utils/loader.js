@@ -27,7 +27,6 @@ module.exports = function ({ text = 'Loading...', animation = 'braille', stopTex
     start (startText = text) {
       if (!interval) {
         i = 0
-        console.log()
         interval = setInterval(() => {
           logUpdate(chalk.yellow(frames[i]) + ' ' + startText)
           i = (i + 1) % frames.length
