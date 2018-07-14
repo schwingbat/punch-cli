@@ -810,7 +810,7 @@ command({
     const file = require('path').join(config.punchFilePath, filename)
 
     if (!require('fs').existsSync(file)) {
-      return console.log(require('chalk').red('File doesn\'t exist.'))
+      return console.log(chalk.red('File doesn\'t exist.'))
     }
 
     require('child_process').spawn(args.options.editor, [file], { stdio: 'inherit' })
@@ -833,7 +833,6 @@ command({
   hidden: true,
   run: function (args) {
     const formatDate = require('date-fns/format')
-    const chalk = require('chalk')
     const timestamp = args.time.getTime()
 
     console.log(timestamp + chalk.grey(' << ') + formatDate(args.time, 'MMM Do YYYY, hh:mm:ssa'))
@@ -992,7 +991,6 @@ command({
     const { start, end, project, tag, format, destination } = args.options
     const resolvePath = require('./utils/resolve-path')
     const path = require('path')
-    const chalk = require('chalk')
 
     let formatter
     let formatterPath = path.join(config.punchPath, 'formatters', 'export', format + '.js')

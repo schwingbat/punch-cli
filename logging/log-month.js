@@ -25,5 +25,5 @@ module.exports = function ({ config, punches, date, summary }) {
     }))
   })
 
-  console.log(summaryTable(summary))
+  console.log(summaryTable(summary) + '\n')
 }

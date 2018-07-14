@@ -95,6 +95,7 @@ class Syncer {
   async syncAll ({ silent } = {}) {
     const loader = require('../utils/loader')()
     const chalk = require('chalk')
+    const { symbols } = this._config
 
     const sync = async (service) => {
       if (!silent) {
@@ -102,16 +103,16 @@ class Syncer {
       }
       const results = await this.sync(service)
       if (!silent) {
-        let report = chalk.green('✔️') + ' ' + service.getSyncCompleteMessage() + ' '
+        let report = chalk.green(symbols.syncSuccess) + ' ' + service.getSyncCompleteMessage() + ' '
         if (results.uploaded.length > 0) {
-          report += `${chalk.grey('[')}${chalk.magenta('⬆')} ${results.uploaded.length}${chalk.grey(']')}`
+          report += `${chalk.grey('[')}${chalk.magenta(symbols.syncUpload)} ${results.uploaded.length}${chalk.grey(']')}`
 
           if (results.downloaded.length > 0) {
             report += ' '
           }
         }
         if (results.downloaded.length > 0) {
-          report += `${chalk.grey('[')}${chalk.cyan('⬇')} ${results.downloaded.length}${chalk.grey(']')}`
+          report += `${chalk.grey('[')}${chalk.cyan(symbols.syncDownload)} ${results.downloaded.length}${chalk.grey(']')}`
         }
         loader.stop(report)
       }

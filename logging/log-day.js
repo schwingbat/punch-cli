@@ -12,7 +12,7 @@
 
 module.exports = function ({ config, punches, date, summary, project }) {
   const { ascendingBy } = require('../utils/sort-factories')
-  const { dayPunches, summaryTable } = require('./printing')
+  const { dayPunches, summaryTable, daySummaryHeader } = require('./printing')
   const formatDate = require('date-fns/format')
 
   if (punches.length === 0) {
@@ -36,8 +36,8 @@ module.exports = function ({ config, punches, date, summary, project }) {
     .filter(punch => !project || punch.project !== project)
     .sort(ascendingBy('in'))
 
-  console.log(`\n${formatDate(date, config.display.dateFormat)}\n`)
-  console.log(dayPunches(punches, summary, config))
+  console.log(`\n${daySummaryHeader({ date, dateFormat: config.display.dateFormat })}`)
+  console.log('  ' + dayPunches(punches, summary, config).replace(/\n/g, '\n  '))
   console.log(summaryTable(summary))
   console.log()
 }

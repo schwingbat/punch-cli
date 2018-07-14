@@ -33,7 +33,7 @@ const monthNames = [
 ]
 
 module.exports = function ({ config, punches, date, summary }, summarizeFn) {
-  const { summaryTable, delimitedList } = require('./printing')
+  const { summaryTable, monthSummaryHeader } = require('./printing')
   const { ascendingBy } = require('../utils/sort-factories')
   const formatCurrency = require('../format/currency')
   const formatDuration = require('../format/duration')
@@ -66,13 +66,14 @@ module.exports = function ({ config, punches, date, summary }, summarizeFn) {
       const monthTime = monthSummary.reduce((sum, project) => sum + project.time, 0)
       const monthPunches = monthSummary.reduce((sum, project) => sum + project.punches.length, 0)
 
-      let headingText = chalk.bold(monthNames[Number(key)] + ' ' + date.getFullYear()) + ' '
-      headingText += delimitedList([
-        formatDuration(monthTime),
-        formatCurrency(monthPay),
-        monthPunches + ' punch' + (monthPunches === 1 ? '' : 'es')
-      ], ' / ', ['(', ')'])
-      console.log(headingText + '\n')
+      console.log(monthSummaryHeader({
+        date: new Date(date.getFullYear(), Number(key)),
+        stats: [
+          formatDuration(monthTime),
+          formatCurrency(monthPay),
+          monthPunches + ' punch' + (monthPunches === 1 ? '' : 'es')
+        ]
+      }))
       console.log('  ' + summaryTable(monthSummary, { total: false }).replace(/\n/g, '\n  '))
     })
 

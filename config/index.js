@@ -20,52 +20,57 @@ module.exports = function (configPath) {
   let config = require('./default.json')
   let configFormat
 
+  // Try to load config from MON file first.
   if (fs.existsSync(configPath + '.mon')) {
-    // Try to load config from MON file first.
 
     const file = fs.readFileSync(configPath + '.mon').toString('utf8')
     const parsed = MON.parse(file)
     config = Object.assign(config, parsed)
     configFormat = '.mon'
+
+  // If that doesn't work, try to load from JSON file.
   } else if (fs.existsSync(configPath + '.json')) {
-    // If that doesn't work, try to load from JSON file.
 
     try {
       config = Object.assign(config, require(configPath))
       configFormat = '.json'
-    } catch (err) {}
-  } else {
-      // If THAT doesn't work, yer screwed.
 
-    console.log('No config file found!')
-  }
+      // Match @client references to their client objects.
+      // MON handles this automatically with references.
+      const { projects, clients } = config
 
-  // Match @client references to their client objects
+      for (const alias in projects) {
+        const { client, name } = projects[alias]
 
-  const { projects, clients } = config
+        if (typeof client === 'string' && client[0] === '@') {
+          const clientName = client.slice(1)
 
-  for (const alias in projects) {
-    const { client, name } = projects[alias]
+          if (clients[clientName]) {
+            // Transpose the client data straight into the project object.
+            projects[alias].client = clients[clientName]
+          } else {
+            throw Error(`Project '${name}' references '${client}', but no client with that name exists.`)
+          }
+        }
 
-    if (typeof client === 'string' && client[0] === '@') {
-      const clientName = client.slice(1)
-
-      if (clients[clientName]) {
-        // Transpose the client data straight into the project object.
-        projects[alias].client = clients[clientName]
-      } else {
-        throw Error(`Project '${name}' references '${client}', but no client with that name exists.`)
+        // Also store the alias in the object
+        projects[alias].alias = alias
       }
-    }
+    } catch (err) {}
 
-    // Also store the alias in the object
-    projects[alias].alias = alias
+  // If THAT doesn't work, yer screwed.
+  } else {
+    console.log('No config file found!')
+
+    const config = require('./setup')()
+    console.log(config)
   }
 
   config.configPath = configPath + (configFormat || '.mon')
   config.punchPath = punchPath
   config.punchFilePath = path.join(punchPath, 'punches')
   config.punchDBPath = path.join(punchPath, 'punch.db')
+  config.symbols = require('../utils/symbols')(config)
 
   if (config.display.textColors === false) {
     require('chalk').level = 0

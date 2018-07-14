@@ -1,5 +1,6 @@
 module.exports = function formatDuration (milliseconds, opts = {}) {
   let resolution = resolutions[opts.resolution]
+  let padded = opts.padded || false
   if (resolution == null) { resolution = 1 }
 
   if (opts.fractional) {
@@ -69,19 +70,29 @@ module.exports = function formatDuration (milliseconds, opts = {}) {
     let out = []
 
     if ('hours' in parts) {
-      out.push(parts.hours + (opts.long ? ' hours' : 'h'))
+      let hours = parts.hours + (opts.long ? ' hours' : 'h')
+      out.push(hours)
     }
 
     if ('minutes' in parts) {
-      out.push(parts.minutes + (opts.long ? ' minutes' : 'm'))
+      let minutes = parts.minutes + (opts.long ? ' minutes' : 'm')
+      if (padded && 'hours' in parts) {
+        minutes = minutes.padStart(3)
+      }
+      out.push(minutes)
     }
 
     if ('seconds' in parts) {
-      out.push(parts.seconds + (opts.long ? ' seconds' : 's'))
+      let seconds = parts.seconds + (opts.long ? ' seconds' : 's')
+      if (padded && 'minutes' in parts || 'hours' in parts) {
+        seconds = seconds.padStart(3)
+      }
+      out.push(seconds)
     }
 
     if ('milliseconds' in parts) {
-      out.push(parts.milliseconds + (opts.long ? ' milliseconds' : 'ms'))
+      let milliseconds = parts.milliseconds + (opts.long ? ' milliseconds' : 'ms')
+      out.push(milliseconds)
     }
 
     if (opts.long) {

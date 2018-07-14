@@ -19,6 +19,11 @@ module.exports = function ({ text = 'Loading...', animation = 'braille', stopTex
   const chalk = require('chalk')
   const logUpdate = require('log-update')
 
+  // Use an ASCII-compatible loader when --no-unicode is passed.
+  if (process.argv.includes('--no-unicode') && !['spinner', 'transfer'].includes(animation)) {
+    animation = 'spinner'
+  }
+
   let interval
   let frames = loaders[animation]
   let i = 0

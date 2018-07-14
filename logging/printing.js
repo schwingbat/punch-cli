@@ -123,7 +123,7 @@ function summaryTable (projects, opts = {}) {
   if (opts.total) {
     str += '\n' + chalk.bold.cyan('TOTAL') + ' '
     str += delimitedList([
-      formatDuration(total.time),
+      formatDuration(total.time, { padded: true }),
       formatCurrency(total.pay),
       total.punchCount + ' punch' + (total.punchCount === 1 ? '' : 'es')
     ], ' / ', ['(', ')'])
@@ -132,30 +132,35 @@ function summaryTable (projects, opts = {}) {
   return str
 }
 
-function projectDay ({ date, stats, punches, config }) {
-  let headerWidth = config.headerWidth || 70
-  let str = ''
-  let headerLine = ''
-
-  headerLine += '┃  ' + chalk.bold(formatDate(date, 'ddd, MMM Do'))
+function monthSummaryHeader ({ date, stats, dateFormat }) {
+  let header = ''
+  header += chalk.bold.underline(formatDate(date, dateFormat || 'MMMM YYYY'))
   if (stats) {
-    headerLine += ' ' + delimitedList(stats, ' / ', ['(', ')'])
+    header += ' ' + delimitedList(stats, ' / ', ['(', ')'])
   }
-  while (printLength(headerLine) < headerWidth + 1) {
-    headerLine += ' '
+  return header + '\n'
+}
+
+function daySummaryHeader ({ date, stats, dateFormat }) {
+  let header = ''
+  header += chalk.bold.underline(formatDate(date, dateFormat || 'ddd, MMM Do'))
+  if (stats) {
+    header += ' ' + delimitedList(stats, ' / ', ['(', ')'])
   }
-  headerLine += '┃'
+  return header + '\n'
+}
 
-  str += '┏' + '━'.repeat(headerWidth) + '┓' + '\n'
-  str += headerLine + '\n'
-  str += '┗' + '━'.repeat(headerWidth) + '┛' + '\n'
+function projectDay ({ date, stats, punches, config }) {
+  let str = ''
 
+  str += '' + daySummaryHeader({ date, stats, dateFormat: config.display.dateFormat }) + '\n'
   str += '  ' + dayPunches(punches, date, config).replace(/\n/g, '\n  ')
 
   return str
 }
 
 function dayPunches (punches, date, config, indent = 0) {
+  const symbols = config.symbols
   let str = ''
 
   const dateStart = new Date(date)
@@ -230,7 +235,7 @@ function dayPunches (punches, date, config, indent = 0) {
 
     if (punch.comments.length > 0) {
       punch.comments.forEach((comment, i) => {
-        str += chalk.grey('   ⸭ ') + wordWrap(comment.toString(), 65, 5)
+        str += chalk.grey(`   ${symbols.logSessionBullet} `) + wordWrap(comment.toString(), 65, 5)
 
         if (punch.comments[i + 1]) {
           str += '\n'
@@ -266,6 +271,8 @@ module.exports = {
   reportHeader,
   dayPunches,
   summaryTable,
+  daySummaryHeader,
+  monthSummaryHeader,
   projectHeader,
   projectDay,
   projectSummary

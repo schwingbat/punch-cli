@@ -3,21 +3,19 @@
   and makes it into a useful Interval.
 */
 
-const {
-  startOfDay,
-  endOfDay,
-  addDays,
-  differenceInDays,
-  startOfWeek,
-  endOfWeek,
-  addWeeks,
-  startOfMonth,
-  endOfMonth,
-  addMonths,
-  startOfYear,
-  endOfYear,
-  addYears
-} = require('date-fns')
+const startOfDay = require('date-fns/start_of_day')
+const endOfDay = require('date-fns/end_of_day')
+const addDays = require('date-fns/add_days')
+const differenceInDays = require('date-fns/difference_in_days')
+const startOfWeek = require('date-fns/start_of_week')
+const endOfWeek = require('date-fns/end_of_week')
+const addWeeks = require('date-fns/add_weeks')
+const startOfMonth = require('date-fns/start_of_month')
+const endOfMonth = require('date-fns/end_of_month')
+const addMonths = require('date-fns/add_months')
+const startOfYear = require('date-fns/start_of_year')
+const endOfYear = require('date-fns/end_of_year')
+const addYears = require('date-fns/add_years')
 
 const parseDate = require('./parse-date')
 
