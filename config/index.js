@@ -28,6 +28,11 @@ module.exports = function (configPath) {
     config = Object.assign(config, parsed)
     configFormat = '.mon'
 
+    // Store project alias in project object
+    for (const alias in config.projects) {
+      config.projects[alias].alias = alias
+    }
+
   // If that doesn't work, try to load from JSON file.
   } else if (fs.existsSync(configPath + '.json')) {
 
@@ -57,6 +62,20 @@ module.exports = function (configPath) {
         projects[alias].alias = alias
       }
     } catch (err) {}
+
+    // Turn addresses into strings
+    if (typeof config.user.address === 'object') {
+      const { street, city, state, zip } = config.user.address
+      config.user.address = `${street}\n${city}, ${state} ${zip}`
+    }
+
+    for (const client in config.clients) {
+      const c = config.clients[client]
+      if (typeof c.address === 'object') {
+        const { street, city, state, zip } = c.address
+        c.address = `${street}\n${city}, ${state} ${zip}`
+      }
+    }
 
   // If THAT doesn't work, yer screwed.
   } else {
