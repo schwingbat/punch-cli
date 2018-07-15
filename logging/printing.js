@@ -7,7 +7,7 @@ const Table = require('../format/table')
 const formatCurrency = require('../format/currency')
 const formatDuration = require('../format/duration')
 const formatDate = require('date-fns/format')
-const printLength = require('../utils/print-length')
+// const printLength = require('../utils/print-length')
 const wordWrap = require('./word-wrap')
 
 function delimitedList (items, inners = ' / ', outers) {
