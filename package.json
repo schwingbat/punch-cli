@@ -1,6 +1,6 @@
 {
   "name": "@schwingbat/punch",
-  "version": "1.13.0",
+  "version": "2.0.0",
   "description": "A CLI time tracker that syncs.",
   "main": "main.js",
   "bin": {
@@ -16,20 +16,18 @@
   "repository": "github:schwingbat/punch",
   "license": "MIT",
   "dependencies": {
+    "@schwingbat/mon": "^1.0.0",
     "ansi-regex": "^3.0.0",
     "aws-sdk": "^2.264.1",
     "chalk": "^2.4.1",
     "date-fns": "^1.29.0",
-    "handlebars": "^4.0.11",
-    "html5-to-pdf": "^3.1.1",
     "log-update": "^2.3.0",
     "mkdirp": "^0.5.1",
     "node-fetch": "^2.1.2",
     "readline-sync": "^1.4.9",
     "sqlite3": "^4.0.1",
     "time-require": "^0.1.2",
-    "uuid": "^3.3.0",
-    "@schwingbat/mon": "github:schwingbat/MON"
+    "uuid": "^3.3.0"
   },
   "standard": {
     "globals": [
@@ -42,7 +40,6 @@
     ]
   },
   "devDependencies": {
-    "jest": "^23.4.0",
-    "nodemon": "^1.17.5"
+    "jest": "^23.4.0"
   }
 }

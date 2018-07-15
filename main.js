@@ -56,6 +56,7 @@ for (let i = 0; i < ARGS.length; i++) {
 
 const bench = require('./utils/bench')({ disabled: !flags.BENCHMARK })
 const config = require('./config')()
+config.flags = flags
 
 bench.mark('config loaded')
 
@@ -399,11 +400,11 @@ command({
     if (confirm(str)) {
       const punch = new Punch({
         project: project.alias,
-        in: timeIn.getTime(),
-        out: timeOut.getTime(),
+        in: timeIn,
+        out: timeOut,
         rate: project.hourlyRate || 0
       })
-      if (args.comment) {
+      if (comment) {
         punch.addComment(comment)
       }
       punch.save()
@@ -666,17 +667,20 @@ command({
     description: 'file to output to (extension determines format)',
     parse: resolvePath
   }],
-  options: [{
-    name: 'local',
-    short: 'l',
-    description: 'generate invoice locally (uses HTTP invoice API by default)',
-    type: 'boolean'
-  }, {
-    name: 'yes',
-    short: 'y',
-    description: 'generation without confirming details',
-    type: 'boolean'
-  }],
+  options: [
+    // {
+    //   name: 'local',
+    //   short: 'l',
+    //   description: 'generate invoice locally (uses HTTP invoice API by default)',
+    //   type: 'boolean'
+    // },
+    {
+      name: 'yes',
+      short: 'y',
+      description: 'generation without confirming details',
+      type: 'boolean'
+    }
+  ],
   run: async function (args) {
     const active = await Punch.current()
 
@@ -742,7 +746,7 @@ command({
             path: resolvePath(outputFile),
             format: fileFormat
           }
-        }, !!args.options.local)
+        }, false /*!!args.options.local*/)
         loader.stop(`${fileFormat} invoice generated!`)
       } catch (err) {
         loader.stop(`There was an error while generating the invoice: ${err.message}`)
