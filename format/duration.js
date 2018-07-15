@@ -84,7 +84,7 @@ module.exports = function formatDuration (milliseconds, opts = {}) {
 
     if ('seconds' in parts) {
       let seconds = parts.seconds + (opts.long ? ' seconds' : 's')
-      if (padded && 'minutes' in parts || 'hours' in parts) {
+      if (padded && ('minutes' in parts || 'hours' in parts)) {
         seconds = seconds.padStart(3)
       }
       out.push(seconds)
