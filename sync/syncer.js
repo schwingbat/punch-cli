@@ -29,7 +29,7 @@ function Syncer (config, Punch) {
     }
 
     const modulePath = path.join(__dirname, 'services', nameMap[name])
-    return new (require(modulePath))(serviceConf, Punch)
+    return new (require(modulePath))(config, serviceConf, Punch)
   }
 
   async function diff (manifest) {

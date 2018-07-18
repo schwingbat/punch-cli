@@ -1,4 +1,4 @@
-module.exports = function (p) {
+module.exports = function (p, root) {
   const path = require('path')
   const os = require('os')
 
@@ -7,6 +7,10 @@ module.exports = function (p) {
     // ~/path -> /home/user/path
     return path.join(os.homedir(), p.slice(1))
   } else {
-    return path.resolve(p)
+    if (root) {
+      return path.resolve(root, p)
+    } else {
+      return path.resolve(p)
+    }
   }
 }

@@ -5,14 +5,14 @@ const SyncService = require('../syncservice.js')
 const MON = require('@schwingbat/mon')
 
 class S3SyncService extends SyncService {
-  constructor (config, Punch, S3 = require('aws-sdk').S3) {
-    let creds = new S3Credentials(config.credentials)
-    // creds.region = config.region || 'us-west-2'
-    creds.endpoint = config.endpoint || 's3.amazonaws.com'
+  constructor (appConfig, serviceConfig, Punch, S3 = require('aws-sdk').S3) {
+    let creds = new S3Credentials(serviceConfig.credentials, appConfig)
+    creds.region = serviceConfig.region || 'us-west-2'
+    creds.endpoint = serviceConfig.endpoint || 's3.amazonaws.com'
     
-    super(config)
-    this._punch = Punch
+    super(serviceConfig)
 
+    this._punch = Punch
     this._s3 = new S3(creds)
   }
 
@@ -136,13 +136,13 @@ class S3SyncService extends SyncService {
 }
 
 class S3Credentials {
-  constructor (credentials) {
+  constructor (credentials, appConfig) {
     if (!credentials) {
       throw new Error('S3 config has no credentials')
     }
 
     if (typeof credentials === 'string') {
-      let credPath = resolvePath(credentials)
+      let credPath = resolvePath(credentials, path.dirname(appConfig.configPath))
 
       if (fs.existsSync(credPath)) {
         const ext = path.extname(credentials).toLowerCase()

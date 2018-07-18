@@ -3,13 +3,14 @@ module.exports = function (configPath) {
   const mkdirp = require('mkdirp')
   const path = require('path')
   const home = require('os').homedir()
+  const merge = require('../utils/deep-merge.js')
   const MON = require('@schwingbat/mon')
 
   const punchPath = process.env.PUNCH_PATH || path.join(home, '.punch')
 
   if (!configPath) {
     configPath = path.resolve(path.join(punchPath, 'punchconfig'))
-  } else { 
+  } else {
     configPath = path.resolve(configPath)
   }
 
@@ -25,7 +26,7 @@ module.exports = function (configPath) {
 
     const file = fs.readFileSync(configPath + '.mon').toString('utf8')
     const parsed = MON.parse(file)
-    config = Object.assign(config, parsed)
+    config = merge(config, parsed)
     configFormat = '.mon'
 
     // Store project alias in project object
@@ -37,7 +38,7 @@ module.exports = function (configPath) {
   } else if (fs.existsSync(configPath + '.json')) {
 
     try {
-      config = Object.assign(config, require(configPath))
+      config = merge(config, require(configPath))
       configFormat = '.json'
 
       // Match @client references to their client objects.
