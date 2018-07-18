@@ -150,7 +150,7 @@ command({
     const current = await Punch.current()
 
     if (current) {
-      loader.stop(chalk.red('❌') + ` You're already punched in on ${getLabelFor(current.project)}! Punch out first.`)
+      loader.stop(chalk.red(config.symbols.error) + ` You're already punched in on ${getLabelFor(current.project)}! Punch out first.`)
     } else {
       // Check if project is in config file
       if (config.projects[args.project]) {
@@ -163,10 +163,10 @@ command({
         updateCurrentMarker(punch)
 
         // const time = format(new Date(), config.display.timeFormat)
-        loader.stop(chalk.green('✔️') + ` Punched in on ${getLabelFor(args.project)}. ${getMessageFor('punched-in', { default: '' })}`)
+        loader.stop(chalk.green(config.symbols.success) + ` Punched in on ${getLabelFor(args.project)}. ${getMessageFor('punched-in', { default: '' })}`)
         handleSync()
       } else {
-        loader.stop(`\n${chalk.bold(args.project)} is not a project in your config file. You'll have to add it first.\nEnter '${chalk.bold('punch config')}' to edit your configuration.\n`)
+        loader.stop(`\n${chalk.yellow(config.symbols.warning)} ${chalk.bold(args.project)} is not a project in your config file. You'll have to add it first.\nEnter '${chalk.bold('punch config')}' to edit your configuration.\n`)
       }
     }
   }
@@ -232,7 +232,7 @@ command({
       updateCurrentMarker('')
       handleSync()
     } else {
-      loader.stop(chalk.yellow('⚠️') + ` You're not punched in!`)
+      loader.stop(chalk.yellow(config.symbols.warning) + ` You're not punched in!`)
     }
   }
 })

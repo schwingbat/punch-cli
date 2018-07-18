@@ -9,9 +9,11 @@ module.exports = function (config) {
   const sym = {
     syncUpload: '↗',
     syncDownload: '↘',
-    syncSuccess: '✔',
-    syncFail: '❌',
-    warning: '⚠',
+    syncSuccess: '✓',
+    syncFail: '✕',
+    success: '✓',
+    error: '✕',
+    warning: '⚠️',
     logSessionBullet: '⸭'
   }
 
@@ -20,7 +22,9 @@ module.exports = function (config) {
     sym.syncDownload = 'v'
     sym.syncSuccess = ':)'
     sym.syncFail = ':('
-    sym.warning = '!!',
+    sym.success = ':)'
+    sym.error = ':('
+    sym.warning = '!!'
     sym.logSessionBullet = '>'
   }
   
