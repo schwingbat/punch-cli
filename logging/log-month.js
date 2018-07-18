@@ -14,12 +14,19 @@ module.exports = function ({ config, punches, date, summary }) {
 
   console.log()
   days.forEach(day => {
+    // console.log(day)
+    let start = new Date(day.date)
+    let end = new Date(day.date)
+
+    start.setHours(0, 0, 0, 0)
+    end.setHours(23, 59, 59, 999)
+
     console.log(projectDay({
       config,
       date: day.date,
       stats: [
-        formatDuration(day.punches.reduce((sum, p) => p.duration() + sum, 0)),
-        formatCurrency(day.punches.reduce((sum, p) => p.pay() + sum, 0))
+        formatDuration(day.punches.reduce((sum, p) => p.durationWithinInterval({ start, end }) + sum, 0)),
+        formatCurrency(day.punches.reduce((sum, p) => p.payWithinInterval({ start, end }) + sum, 0))
       ],
       punches: day.punches
     }))
