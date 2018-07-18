@@ -8,7 +8,7 @@ module.exports = function merge (one, two) {
   }
 
   for (const key in two) {
-    if (typeof two[key] === 'object' && !Array.isArray('object')) {
+    if (typeof two[key] === 'object' && !Array.isArray(two[key])) {
       out[key] = merge(out[key], two[key])
     } else {
       out[key] = two[key]
