@@ -1,47 +1,39 @@
-const fs = require('fs')
 const path = require('path')
-const SyncService = require('./syncservice')
+const chalk = require('chalk')
 
-class Syncer {
-  constructor (config, Punch) {
-    if (!config) {
-      throw new Error('Syncer requires a config object as the first parameter')
-    }
-    if (!Punch) {
-      throw new Error('Syncer requires the Punch class to be passed as the second parameter')
-    }
+const nameMap = {
+  'dummy':      'dummy.service.js',
+  's3':         's3.service.js',
+  // 'b2':         'b2.service.js',
+  'spaces':     'spaces.service.js',
+}
 
-    this._config = config
-    this._punch = Punch
+function Syncer (config, Punch) {
+  if (!config) {
+    throw new Error('Syncer requires a config object as the first parameter')
+  }
+  if (!Punch) {
+    throw new Error('Syncer requires the Punch constructor to be passed as the second parameter')
   }
 
-  _loadService (service) {
-    if (service instanceof SyncService) {
-      return service
+  function loadService (serviceName) {
+    let name = serviceName.toLowerCase()
+    const serviceConf = config.sync.services
+      .find(s => s.name.toLowerCase() === name)
+
+    if (!serviceConf) {
+      throw new Error(`Service ${serviceName} is not configured in config.sync.services`)
+    }
+    if (!nameMap[name]) {
+      throw new Error(`Service ${serviceName} is not supported (yet?).`)
     }
 
-    if (typeof service !== 'string') {
-      throw new Error('_loadService requires either a string or instance of SyncService')
-    }
-
-    const conf = this._config.sync.services
-      .find(s => s.name.toLowerCase() === service.toLowerCase())
-
-    if (conf) {
-      const modulePath = path.join(__dirname, 'services', service.toLowerCase() + '.service.js')
-      if (fs.existsSync(modulePath)) {
-        const Service = require(modulePath)
-        return new Service(conf, this._punch)
-      } else {
-        throw new Error(`Service ${service} is not (yet) supported.`)
-      }
-    } else {
-      throw new Error(`Service ${service} is not configured in config.sync.services`)
-    }
+    const modulePath = path.join(__dirname, 'services', nameMap[name])
+    return new (require(modulePath))(serviceConf, Punch)
   }
 
-  async _diff (manifest) {
-    const punches = await this._punch.all()
+  async function diff (manifest) {
+    const punches = await Punch.all()
 
     const uploads = punches.filter(punch => {
       // Upload if punch doesn't exist remotely or if local copy is newer.
@@ -60,7 +52,7 @@ class Syncer {
     return { uploads, downloads }
   }
 
-  async sync (service) {
+  async function sync (service) {
     /*
       Multi-sync
       - Get all manifests
@@ -71,11 +63,13 @@ class Syncer {
       For now it's just single sync
     */
 
-    if (typeof service === 'object' || typeof service === 'string') {
-      service = this._loadService(service)
+   if (typeof service !== 'object' || typeof service.getManifest !== 'function') {
+     throw new Error('sync() takes an instance of a sync service as a parameter.\nUse loadService to obtain one.')
+   }
 
+   try {
       const manifest = await service.getManifest()
-      const result = await this._diff(manifest)
+      const result = await diff(manifest)
 
       const { uploads, downloads } = result
 
@@ -87,41 +81,67 @@ class Syncer {
       }
 
       return { uploaded, downloaded }
-    } else {
-      throw new Error('First parameter must be a string or an instance of SyncService')
+
+    } catch (err) {
+      const label = service._config.label || service._config.name
+      const message = `[${label}] Sync Error: ${err.message}`
+      throw new Error(message)
     }
   }
 
-  async syncAll ({ silent } = {}) {
+  async function syncAll ({ silent } = {}) {
     const loader = require('../utils/loader')()
-    const chalk = require('chalk')
-    const { symbols } = this._config
+    const { symbols } = config
 
-    const sync = async (service) => {
+    const syncIt = async (service) => {
       if (!silent) {
         loader.start(service.getSyncingMessage())
       }
-      const results = await this.sync(service)
-      if (!silent) {
-        let report = chalk.green(symbols.syncSuccess) + ' ' + service.getSyncCompleteMessage() + ' '
-        if (results.uploaded.length > 0) {
-          report += `${chalk.grey('[')}${chalk.magenta(symbols.syncUpload)} ${results.uploaded.length}${chalk.grey(']')}`
+      try {
+        const results = await sync(service)
+      
+        if (!silent) {
+          let report = chalk.green(symbols.syncSuccess) + ' ' + service.getSyncCompleteMessage() + ' '
+          if (results.uploaded.length > 0) {
+            report += `${chalk.grey('[')}${chalk.magenta(symbols.syncUpload)} ${results.uploaded.length}${chalk.grey(']')}`
 
-          if (results.downloaded.length > 0) {
-            report += ' '
+            if (results.downloaded.length > 0) {
+              report += ' '
+            }
           }
+          if (results.downloaded.length > 0) {
+            report += `${chalk.grey('[')}${chalk.cyan(symbols.syncDownload)} ${results.downloaded.length}${chalk.grey(']')}`
+          }
+          loader.stop(report)
         }
-        if (results.downloaded.length > 0) {
-          report += `${chalk.grey('[')}${chalk.cyan(symbols.syncDownload)} ${results.downloaded.length}${chalk.grey(']')}`
+      } catch (err) {
+        if (!silent) {
+          loader.stop(chalk.red(symbols.error) + ' ' + err.message)
+        } else {
+          console.log(chalk.red(symbols.error) + ' ' + err.message)
         }
-        loader.stop(report)
       }
     }
 
-    const services = this._config.sync.services.map(s => this._loadService(s.name))
+    const services = config.sync.services.map((service, i) => {
+      try {
+        return loadService(service.name)
+      } catch (err) {
+        const label = service.label || service.name
+        console.log(chalk.yellow(symbols.warning) + ` [${label}] Sync Warning: ${err.message}`)
+      }
+    }).filter(s => s != null)
 
-    return Promise.all(services.map(s => sync(s)))
+    return Promise.all(services.map(s => syncIt(s)))
   }
+
+  return {
+    sync,
+    syncAll,
+    diff,
+    loadService,
+  }
+
 }
 
 module.exports = Syncer

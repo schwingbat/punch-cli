@@ -68,68 +68,58 @@ beforeEach(() => {
 
 describe('Syncer', () => {
   describe('constructor', () => {
-    it('instantiates', () => {
-      const syncer = new Syncer(config, MockPunch)
-      expect(syncer instanceof Syncer).toBe(true)
-    })
-
-    it('uses Punch passed as second parameter', () => {
-      const syncer = new Syncer(config, MockPunch)
-      expect(syncer._punch).toBe(MockPunch)
-    })
-
     it('throws an error if a config object is not passed as the first parameter', () => {
       expect(() => {
-        const syncer = new Syncer()
+        Syncer()
       }).toThrow()
     })
 
     it('throws an error if a Punch constructor is not passed as the second parameter', () => {
       expect(() => {
-        const syncer = new Syncer(config)
+        Syncer(config)
       }).toThrow()
     })
   })
 
-  describe('_loadService', () => {
+  describe('loadService', () => {
     let syncer
 
     beforeEach(() => {
-      syncer = new Syncer(config, MockPunch)
+      syncer = Syncer(config, MockPunch)
     })
 
     it('loads a service module by name', () => {
-      expect(syncer._loadService('dummy') instanceof DummyService).toBe(true)
+      expect(syncer.loadService('dummy') instanceof DummyService).toBe(true)
     })
 
     it('throws an error if service is not configured in config file', () => {
-      expect(() => syncer._loadService('asdf')).toThrow()
+      expect(() => syncer.loadService('asdf')).toThrow()
     })
 
     it('throws an error if service is configured but has no module', () => {
-      expect(() => syncer._loadService('nonexistent')).toThrow()
+      expect(() => syncer.loadService('nonexistent')).toThrow()
     })
 
     it('throws an error if service is not a SyncService or a string', () => {
-      expect(() => syncer._loadService(5)).toThrow()
+      expect(() => syncer.loadService(5)).toThrow()
     })
   })
 
-  describe('_diff', () => {
+  describe('diff', () => {
     let syncer
 
     beforeEach(() => {
-      syncer = new Syncer(config, MockPunch)
+      syncer = Syncer(config, MockPunch)
     })
 
     it('returns a promise', () => {
-      expect(syncer._diff(manifest) instanceof Promise).toBe(true)
+      expect(syncer.diff(manifest) instanceof Promise).toBe(true)
     })
 
     it('diffs properly', () => {
       expect.assertions(2)
 
-      syncer._diff(manifest).then(({ uploads, downloads }) => {
+      syncer.diff(manifest).then(({ uploads, downloads }) => {
         expect(uploads).toEqual([{
           id: 'two',
           project: 'test2',
@@ -151,11 +141,13 @@ describe('Syncer', () => {
       expect(syncer.sync('dummy') instanceof Promise).toBe(true)
     })
 
-    it('throws an error if the first parameter is not a string or a SyncService', () => {
-      expect.assertions(1)
+    it('throws an error if the first parameter is not a sync service', () => {
+      expect.assertions(4)
 
-      expect(syncer.sync(5)).rejects.toEqual(
-        new Error('First parameter must be a string or an instance of SyncService'))
+      expect(syncer.sync(5)).rejects.toBeTruthy()
+      expect(syncer.sync('blah')).rejects.toBeTruthy()
+      expect(syncer.sync({})).rejects.toBeTruthy()
+      expect(syncer.sync(/test/)).rejects.toBeTruthy()
     })
 
     it('calls .save() on downloaded punches', async () => {

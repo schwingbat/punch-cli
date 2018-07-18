@@ -2,12 +2,18 @@ const fs = require('fs')
 const path = require('path')
 const resolvePath = require('../../utils/resolve-path')
 const SyncService = require('../syncservice.js')
+const MON = require('@schwingbat/mon')
 
 class S3SyncService extends SyncService {
   constructor (config, Punch, S3 = require('aws-sdk').S3) {
+    let creds = new S3Credentials(config.credentials)
+    // creds.region = config.region || 'us-west-2'
+    creds.endpoint = config.endpoint || 's3.amazonaws.com'
+    
     super(config)
     this._punch = Punch
-    this._s3 = new S3(new S3Credentials(config.credentials))
+
+    this._s3 = new S3(creds)
   }
 
   getManifest () {
@@ -136,12 +142,23 @@ class S3Credentials {
     }
 
     if (typeof credentials === 'string') {
-      // Try to load it as a JSON file.
       let credPath = resolvePath(credentials)
 
       if (fs.existsSync(credPath)) {
+        const ext = path.extname(credentials).toLowerCase()
+        const read = fs.readFileSync(credPath, 'utf8')
+
         try {
-          credentials = JSON.parse(fs.readFileSync(credPath, 'utf8'))
+          switch (ext) {
+          case '.json':
+            credentials = JSON.parse(read)
+            break
+          case '.mon':
+            credentials = MON.parse(read)
+            break
+          default:
+            throw new Error(`${ext} files are not supported as credential sources - use .json or .mon`)
+          }
         } catch (err) {
           throw new Error('There was a problem reading the S3 credentials file: ' + err)
         }
