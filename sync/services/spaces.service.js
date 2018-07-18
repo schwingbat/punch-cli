@@ -1,5 +1,6 @@
 // Digital Ocean Spaces sync service. Spaces is S3 compatible,
-// so we'll use the S3 service behind the scenes.
+// so we'll use the S3 service behind the scenes. We just need
+// to tweak the configuration first.
 
 const S3SyncService = require('./s3.service.js')
 
