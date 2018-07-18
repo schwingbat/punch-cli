@@ -80,6 +80,17 @@ module.exports = function (config, Storage) {
       return this.duration() / 3600000 * this.rate
     }
 
+    durationWithinInterval (interval) {
+      let start = Math.max(this.in, interval.start)
+      let end = Math.min(this.out || Date.now(), interval.end)
+
+      return end - start
+    }
+
+    payWithinInterval (interval) {
+      return this.durationWithinInterval(interval) / 3600000 * this.rate
+    }
+
     hasCommentWithObject (obj) {
       for (var i = 0; i < this.comments.length; i++) {
         if (this.comments[i].hasObject(obj)) {

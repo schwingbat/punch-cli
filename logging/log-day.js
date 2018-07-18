@@ -10,7 +10,7 @@
     ...
 */
 
-module.exports = function ({ config, punches, date, summary, project }) {
+module.exports = function ({ config, punches, date, summary, project, interval }) {
   const { ascendingBy } = require('../utils/sort-factories')
   const { dayPunches, summaryTable, daySummaryHeader } = require('./printing')
   const formatDate = require('date-fns/format')
@@ -37,7 +37,7 @@ module.exports = function ({ config, punches, date, summary, project }) {
     .sort(ascendingBy('in'))
 
   console.log(`\n${daySummaryHeader({ date, dateFormat: config.display.dateFormat })}`)
-  console.log('  ' + dayPunches(punches, summary, config).replace(/\n/g, '\n  '))
+  console.log('  ' + dayPunches(punches, date, config).replace(/\n/g, '\n  '))
   console.log(summaryTable(summary))
   console.log()
 }

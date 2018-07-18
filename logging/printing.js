@@ -159,7 +159,7 @@ function projectDay ({ date, stats, punches, config }) {
   return str
 }
 
-function dayPunches (punches, date, config, indent = 0) {
+function dayPunches (punches, date, config) {
   const symbols = config.symbols
   let str = ''
 
@@ -174,30 +174,30 @@ function dayPunches (punches, date, config, indent = 0) {
     let carryForward = 0
     let carryBack = 0
 
-    // if (punch.in < dateStart) {
-    //   carryBack = dateStart.getTime() - punch.in.getTime()
-    //   start = dateStart
-    // } else {
-      start = punch.in
-    // }
+    let out = punch.out || new Date()
 
-    if (punch.out) {
-      // if (punch.out > dateEnd) {
-      //   carryForward = punch.out.getTime() - dateEnd.getTime()
-      //   end = dateEnd
-      // } else {
-        end = punch.out
-      // }
+    if (punch.in < dateStart) {
+      carryBack = dateStart.getTime() - punch.in.getTime()
+      start = dateStart
+    } else {
+      start = punch.in
+    }
+
+    if (out > dateEnd) {
+      carryForward = out.getTime() - dateEnd.getTime()
+      end = dateEnd
+    } else {
+      end = out
     }
 
     let timeSpan = ''
     if (carryBack) {
-      timeSpan += 'MIDNIGHT - '
+      timeSpan += ''.padStart(8) + ' - '
     } else {
       timeSpan += formatDate(start, config.display.timeFormat).padStart(8) + ' - '
     }
     if (carryForward) {
-      timeSpan += 'MIDNIGHT'
+      timeSpan += ''.padStart(8)
     } else {
       if (end) {
         timeSpan += formatDate(end, config.display.timeFormat).padStart(8)
@@ -215,23 +215,50 @@ function dayPunches (punches, date, config, indent = 0) {
     const project = config.projects[punch.project]
     const projectName = project ? project.name : punch.project
     let time
-    const hours = punch.duration() / 3600000
+    const hours = punch.durationWithinInterval({ start: dateStart, end: dateEnd }) / 3600000
     if (hours < 1) {
       time = `${~~(hours * 60)}m`
     } else {
       time = `${(hours).toFixed(1)}h`
     }
 
+    if (carryBack) {
+      let s = ''
+      let hrs = punch.durationWithinInterval({ start: punch.in, end: dateStart }) / 3600000
+
+      s += formatDate(punch.in, config.display.timeFormat).padStart(8) + ' - '
+      s += ''.padEnd(8)
+      if (hrs < 1) {
+        s += `${~~(hrs * 60)}m`.padStart(6)
+      } else {
+        s += `${(hrs).toFixed(1)}h`.padStart(6)
+      }
+      s += ` [${projectName}]`
+      s += ' (yesterday)'
+      str += chalk.grey(s) + '\n'
+    }
+
     str += timeSpan
     str += chalk.blue(time.padStart(6))
     str += chalk.yellow(` [${projectName}]`)
-    if (carryBack) {
-      str += ' ' + chalk.magenta(`(+ ${formatDuration(carryBack)} yesterday)`)
-    }
-    if (carryForward) {
-      str += ' ' + chalk.magenta(`(+ ${formatDuration(carryForward)} tomorrow)`)
-    }
     str += '\n'
+
+    if (carryForward) {
+      let s = ''
+      let hrs = punch.durationWithinInterval({ start: dateEnd, end: out }) / 3600000
+
+      s += ''.padStart(8) + ' - '
+      s += formatDate(out, config.display.timeFormat).padStart(8)
+      if (hrs < 1) {
+        s += `${~~(hrs * 60)}m`.padStart(6)
+      } else {
+        s += `${(hrs).toFixed(1)}h`.padStart(6)
+      }
+      s += ` [${projectName}]`
+      s += ' (tomorrow)'
+      s += '\n'
+      str += chalk.grey(s)
+    }
 
     if (punch.comments.length > 0) {
       punch.comments.forEach((comment, i) => {

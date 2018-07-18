@@ -2,7 +2,7 @@ const { descendingBy } = require('../utils/sort-factories')
 const isSameDay = require('date-fns/is_same_day')
 const addDays = require('date-fns/add_days')
 
-function summarize (config, punches) {
+function summarize (config, punches, interval) {
   const projects = {}
 
   for (let i = 0; i < punches.length; i++) {
@@ -19,8 +19,8 @@ function summarize (config, punches) {
       }
     }
 
-    projects[name].pay += punch.pay()
-    projects[name].time += punch.duration()
+    projects[name].pay += punch.payWithinInterval(interval)
+    projects[name].time += punch.durationWithinInterval(interval)
     projects[name].punches.push(punch)
   }
 
@@ -47,6 +47,7 @@ module.exports = function Logger (config, Punch) {
   return {
     async forInterval (interval, criteria = {}) {
       let { project, object } = criteria
+      const now = Date.now()
 
       if (interval.start > new Date()) {
         return console.log(messageFor('future-punch-log'))
@@ -54,7 +55,7 @@ module.exports = function Logger (config, Punch) {
 
       const punches = await Punch.select(p => {
         // Reject if start date is out of the interval's range
-        if (p.in <= interval.start || p.in >= interval.end) {
+        if (!((p.out || now) >= interval.start && p.in <= interval.end)) {
           return false
         }
         if (project && p.project !== project) {
@@ -86,7 +87,8 @@ module.exports = function Logger (config, Punch) {
         punches,
         date: interval.start,
         project,
-        summary: summarize(config, punches)
+        summary: summarize(config, punches, interval),
+        interval
       }
 
       let days = (interval.end.getTime() / 86400000) - (interval.start.getTime() / 86400000)
