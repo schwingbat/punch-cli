@@ -3,7 +3,7 @@
 module.exports = function ({ key, value }) {
   return {
     key,
-    value: Number(value),
+    value,
     toString () {
       return `@${this.key}:${this.value}`
     },

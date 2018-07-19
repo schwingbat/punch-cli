@@ -81,6 +81,8 @@ module.exports = function (config, Storage) {
     }
 
     durationWithinInterval (interval) {
+      // Get the total amount of time that this punch overlaps
+      // with the dates in the interval.
       let start = Math.max(this.in, interval.start)
       let end = Math.min(this.out || Date.now(), interval.end)
 
@@ -88,6 +90,8 @@ module.exports = function (config, Storage) {
     }
 
     payWithinInterval (interval) {
+      // Figure out how much money was earned on this punch within
+      // the dates of the interval.
       return this.durationWithinInterval(interval) / 3600000 * this.rate
     }
 

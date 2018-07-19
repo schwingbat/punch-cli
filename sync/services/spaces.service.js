@@ -33,10 +33,12 @@ module.exports = class SpacesSyncService extends S3SyncService {
   }
 
   getSyncingMessage () {
-    return `Syncing with Spaces (${this._config.bucket})`
+    let label = this._config.label || `Spaces (${this._config.bucket})`
+    return `Syncing with ${label}`
   }
 
   getSyncCompleteMessage () {
-    return `Synced with Spaces (${this._config.bucket})`
+    let label = this._config.label || `Spaces (${this._config.bucket})`
+    return `Synced with ${label}`
   }
 }

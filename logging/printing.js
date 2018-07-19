@@ -196,17 +196,17 @@ function dayPunches (punches, date, config) {
     } else {
       timeSpan += formatDate(start, config.display.timeFormat).padStart(8) + ' - '
     }
-    if (carryForward) {
-      timeSpan += ''.padStart(8)
-    } else {
-      if (end) {
-        timeSpan += formatDate(end, config.display.timeFormat).padStart(8)
+    if (punch.out) {
+      if (carryForward) {
+        timeSpan += ''.padStart(8)
       } else {
-        timeSpan += 'NOW'.padStart(8)
+        timeSpan += formatDate(end, config.display.timeFormat).padStart(8)
       }
+    } else {
+      timeSpan += 'NOW'.padStart(8)
     }
 
-    if (end) {
+    if (punch.out) {
       timeSpan = chalk.cyan(timeSpan)
     } else {
       timeSpan = chalk.bold.green(timeSpan)

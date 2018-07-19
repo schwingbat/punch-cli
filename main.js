@@ -756,11 +756,15 @@ command({
 })
 
 command({
-  signature: 'sync',
+  signature: 'sync [services...]',
   description: 'synchronize with any providers in your config file',
-  run: async function () {
+  arguments: [{
+    name: 'services',
+    description: 'list of services to sync with (matches label or service name)'
+  }],
+  run: async function (args) {
     const Syncer = require('./sync/syncer')
-    await new Syncer(config, Punch).syncAll()
+    await new Syncer(config, Punch).syncAll({ services: args.services })  
 
     updateCurrentMarker(await Punch.current())
   }

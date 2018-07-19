@@ -4,7 +4,7 @@ const chalk = require('chalk')
 const nameMap = {
   'dummy':      'dummy.service.js',
   's3':         's3.service.js',
-  // 'b2':         'b2.service.js',
+  'b2':         'b2.service.js',
   'spaces':     'spaces.service.js',
 }
 
@@ -17,15 +17,23 @@ function Syncer (config, Punch) {
   }
 
   function loadService (serviceName) {
-    let name = serviceName.toLowerCase()
-    const serviceConf = config.sync.services
-      .find(s => s.name.toLowerCase() === name)
+    let serviceConf
+    let name
+
+    if (typeof serviceName === 'object') {
+      serviceConf = serviceName
+      name = serviceConf.name.toLowerCase()
+    } else {
+      name = serviceName.toLowerCase()
+      serviceConf = config.sync.services
+        .find(s => s.name.toLowerCase() === name)
+    }
 
     if (!serviceConf) {
-      throw new Error(`Service ${serviceName} is not configured in config.sync.services`)
+      throw new Error(`Service ${name} is not configured in config.sync.services`)
     }
     if (!nameMap[name]) {
-      throw new Error(`Service ${serviceName} is not supported (yet?).`)
+      throw new Error(`Service ${name} is not supported (yet?).`)
     }
 
     const modulePath = path.join(__dirname, 'services', nameMap[name])
@@ -89,19 +97,23 @@ function Syncer (config, Punch) {
     }
   }
 
-  async function syncAll ({ silent } = {}) {
+  async function syncAll ({ silent, services } = {}) {
     const loader = require('../utils/loader')()
     const { symbols } = config
 
     const syncIt = async (service) => {
+      const start = Date.now()
+
       if (!silent) {
         loader.start(service.getSyncingMessage())
       }
+
       try {
         const results = await sync(service)
       
         if (!silent) {
-          let report = chalk.green(symbols.syncSuccess) + ' ' + service.getSyncCompleteMessage() + ' '
+          let elapsed = (Date.now() - start) / 1000
+          let report = chalk.green(symbols.syncSuccess) + ' ' + service.getSyncCompleteMessage() + ' ' + `(${elapsed.toFixed(2)}s)`
           if (results.uploaded.length > 0) {
             report += `${chalk.grey('[')}${chalk.magenta(symbols.syncUpload)} ${results.uploaded.length}${chalk.grey(']')}`
 
@@ -113,26 +125,55 @@ function Syncer (config, Punch) {
             report += `${chalk.grey('[')}${chalk.cyan(symbols.syncDownload)} ${results.downloaded.length}${chalk.grey(']')}`
           }
           loader.stop(report)
+          // console.log()
         }
       } catch (err) {
         if (!silent) {
           loader.stop(chalk.red(symbols.error) + ' ' + err.message)
+          // console.log()
         } else {
           console.log(chalk.red(symbols.error) + ' ' + err.message)
         }
       }
     }
 
-    const services = config.sync.services.map((service, i) => {
-      try {
-        return loadService(service.name)
-      } catch (err) {
-        const label = service.label || service.name
-        console.log(chalk.yellow(symbols.warning) + ` [${label}] Sync Warning: ${err.message}`)
-      }
-    }).filter(s => s != null)
+    if (services) {
+      services = services.map(s => {
+        const key = s.toLowerCase()
+        const service = config.sync.services.find(service => {
+          return service.name.toLowerCase() === key
+              || service.label.toLowerCase() === key
+        })
 
-    return Promise.all(services.map(s => syncIt(s)))
+        if (service) {
+          try {
+            return loadService(service)
+          } catch (err) {
+            const label = service.label || service.name
+            console.log(chalk.yellow(symbols.warning) + ` [${label}] Sync Warning: ${err.message}`)
+          }
+        } else {
+          console.log(chalk.yellow(symbols.warning) + ` Service "${s}" is not in your config file`)
+        }
+      }).filter(s => s != null)
+    } else {
+      services = config.sync.services.map((service, i) => {
+        try {
+          return loadService(service)
+        } catch (err) {
+          const label = service.label || service.name
+          console.log(chalk.yellow(symbols.warning) + ` [${label}] Sync Warning: ${err.message}`)
+        }
+      }).filter(s => s != null)
+    }
+
+    for (let i = 0; i < services.length; i++) {
+      await syncIt(services[i])
+      console.log()
+    }
+
+    return Promise.resolve()
+    // return Promise.all(services.map(async s => await syncIt(s)))
   }
 
   return {

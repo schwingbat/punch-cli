@@ -19,6 +19,7 @@
     "@schwingbat/mon": "^1.0.0",
     "ansi-regex": "^3.0.0",
     "aws-sdk": "^2.264.1",
+    "backblaze-b2": "^1.0.4",
     "chalk": "^2.4.1",
     "date-fns": "^1.29.0",
     "log-update": "^2.3.0",
