@@ -20,7 +20,7 @@ module.exports = function ({ text = 'Loading...', animation = 'braille', stopTex
   const logUpdate = require('log-update')
 
   // Use an ASCII-compatible loader when --no-unicode is passed.
-  if (process.argv.includes('--no-unicode') && !['spinner', 'transfer'].includes(animation)) {
+  if (process.argv.includes('--no-unicode') && !['spinner', 'transfer'].includes(animation) || require('os').platform() === 'win32') {
     animation = 'spinner'
   }
 
