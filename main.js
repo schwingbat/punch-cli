@@ -762,9 +762,15 @@ command({
     name: 'services',
     description: 'list of services to sync with (matches label or service name)'
   }],
+  options: [{
+    name: 'check',
+    short: 'c',
+    description: 'check for differences but don\'t upload or download',
+    type: 'boolean'
+  }],
   run: async function (args) {
     const Syncer = require('./sync/syncer')
-    await new Syncer(config, Punch).syncAll({ services: args.services })  
+    await new Syncer(config, Punch).syncAll({ services: args.services, check: args.options.check || false })  
 
     updateCurrentMarker(await Punch.current())
   }

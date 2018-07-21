@@ -127,11 +127,13 @@ class S3SyncService extends SyncService {
   }
 
   getSyncingMessage () {
-    return `Syncing with S3 (${this._config.bucket})`
+    let label = this._config.label || `S3 (${this._config.bucket})`
+    return `Syncing with ${label}`
   }
 
   getSyncCompleteMessage () {
-    return `Synced with S3 (${this._config.bucket})`
+    let label = this._config.label || `S3 (${this._config.bucket})`
+    return `Synced with ${label}`
   }
 }
 

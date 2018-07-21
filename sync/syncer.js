@@ -60,7 +60,7 @@ function Syncer (config, Punch) {
     return { uploads, downloads }
   }
 
-  async function sync (service) {
+  async function sync (service, check = false) {
     /*
       Multi-sync
       - Get all manifests
@@ -75,17 +75,25 @@ function Syncer (config, Punch) {
      throw new Error('sync() takes an instance of a sync service as a parameter.\nUse loadService to obtain one.')
    }
 
-   try {
+    try {
       const manifest = await service.getManifest()
       const result = await diff(manifest)
 
       const { uploads, downloads } = result
+      let uploaded
+      let downloaded
 
-      const uploaded = await service.upload(uploads, manifest)
-      const downloaded = await service.download(downloads)
+      if (check) {
+        // If 'check' is true, only check for differences and don't actually upload anything
+        uploaded = uploads
+        downloaded = downloads
+      } else {
+        uploaded = await service.upload(uploads, manifest)
+        downloaded = await service.download(downloads)
 
-      for (let i = 0; i < downloaded.length; i++) {
-        await downloaded[i].save()
+        for (let i = 0; i < downloaded.length; i++) {
+          await downloaded[i].save()
+        }
       }
 
       return { uploaded, downloaded }
@@ -97,7 +105,7 @@ function Syncer (config, Punch) {
     }
   }
 
-  async function syncAll ({ silent, services } = {}) {
+  async function syncAll ({ silent, services, check } = {}) {
     const loader = require('../utils/loader')()
     const { symbols } = config
 
@@ -112,20 +120,19 @@ function Syncer (config, Punch) {
         const results = await sync(service)
       
         if (!silent) {
-          let elapsed = (Date.now() - start) / 1000
-          let report = chalk.green(symbols.syncSuccess) + ' ' + service.getSyncCompleteMessage() + ' ' + `(${elapsed.toFixed(2)}s)`
-          if (results.uploaded.length > 0) {
-            report += `${chalk.grey('[')}${chalk.magenta(symbols.syncUpload)} ${results.uploaded.length}${chalk.grey(']')}`
+          const elapsed = (Date.now() - start) / 1000
+          const up = `${chalk.grey('[')}${chalk.magenta(symbols.syncUpload)} ${results.uploaded.length}${chalk.grey(']')}`
+          const down = `${chalk.grey('[')}${chalk.cyan(symbols.syncDownload)} ${results.uploaded.length}${chalk.grey(']')}`
+          let message
 
-            if (results.downloaded.length > 0) {
-              report += ' '
-            }
+          if (check) {
+            let label = service._config.label || service._config.name
+            message = `${chalk.bold('Checked')} ${label}`
+          } else {
+            message = service.getSyncCompleteMessage()
           }
-          if (results.downloaded.length > 0) {
-            report += `${chalk.grey('[')}${chalk.cyan(symbols.syncDownload)} ${results.downloaded.length}${chalk.grey(']')}`
-          }
-          loader.stop(report)
-          // console.log()
+
+          loader.stop(`${chalk.green(symbols.syncSuccess)} ${up}${down} ${message} (${elapsed.toFixed(2)}s)`)
         }
       } catch (err) {
         if (!silent) {
