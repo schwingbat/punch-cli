@@ -757,7 +757,7 @@ command({
 
 command({
   signature: 'sync [services...]',
-  description: 'synchronize with any providers in your config file',
+  description: 'synchronize with any services in your config file',
   arguments: [{
     name: 'services',
     description: 'list of services to sync with (matches label or service name)'
