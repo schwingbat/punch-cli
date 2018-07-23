@@ -122,7 +122,7 @@ function Syncer (config, Punch) {
         if (!silent) {
           const elapsed = (Date.now() - start) / 1000
           const up = `${chalk.grey('[')}${chalk.magenta(symbols.syncUpload)} ${results.uploaded.length}${chalk.grey(']')}`
-          const down = `${chalk.grey('[')}${chalk.cyan(symbols.syncDownload)} ${results.uploaded.length}${chalk.grey(']')}`
+          const down = `${chalk.grey('[')}${chalk.cyan(symbols.syncDownload)} ${results.downloaded.length}${chalk.grey(']')}`
           let message
 
           if (check) {
