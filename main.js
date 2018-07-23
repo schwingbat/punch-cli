@@ -105,7 +105,7 @@ const confirm = (question) => {
 const handleSync = async ({ silent } = {}) => {
   if (autoSync && !flags.NO_SYNC) {
     const Syncer = require('./sync/syncer')
-    return new Syncer(config, Punch).syncAll({ silent })
+    return new Syncer(config, Punch).syncAll({ silent, auto: true })
   } else {
     return Promise.resolve()
   }
@@ -198,15 +198,18 @@ command({
     const current = await Punch.current()
 
     if (current) {
-      if (current.comments.length === 0 && args.raw.length === 0 && !args.options['no-comment']) {
-        const conf = confirm(`Are you sure you want to punch out with no comment?`)
-        if (!conf) {
+      if (current.comments.length === 0 && !args.options.comment) {
+        let noComment
+
+        if (args.options['no-comment']) {
+          noComment = true
+        } else {
+          noComment = confirm('Are you sure you want to punch out with no comment?')
+        }
+
+        if (!noComment) {
           return console.log(`Use the --comment or -c flags to add a comment:\n  usage: punch out -c "This is a comment."\n`)
         }
-      }
-
-      if (current.comments.length === 0 && !args.options.comment) {
-        return console.log(`If you want to add a comment, you still can.\n Use: 'punch comment "this is a comment"'`)
       }
       
       const formatDate = require('date-fns/format')
@@ -215,7 +218,7 @@ command({
 
       current.punchOut(args.options.comment, {
         autosave: true,
-        time: args.options.time
+        time: args.options.time || new Date()
       })
 
       const label = getLabelFor(current.project)
@@ -227,7 +230,7 @@ command({
       if (pay > 0) {
         str += ` and earned ${formatCurrency(pay)}`
       }
-      loader.stop(chalk.green('✔️') + ' ' + str + '.')
+      loader.stop(chalk.green(config.symbols.success) + ' ' + str + '.')
 
       updateCurrentMarker('')
       handleSync()
@@ -770,7 +773,10 @@ command({
   }],
   run: async function (args) {
     const Syncer = require('./sync/syncer')
-    await new Syncer(config, Punch).syncAll({ services: args.services, check: args.options.check || false })  
+    await new Syncer(config, Punch).syncAll({
+      services: args.services,
+      check: args.options.check || false
+    })  
 
     updateCurrentMarker(await Punch.current())
   }

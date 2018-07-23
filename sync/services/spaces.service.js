@@ -20,6 +20,9 @@ module.exports = class SpacesSyncService extends S3SyncService {
     conf.bucket = serviceConfig.bucket || serviceConfig.space
     conf.name = serviceConfig.name
     conf.label = serviceConfig.label
+    conf.auto = serviceConfig.auto == null
+      ? true 
+      : serviceConfig.auto
     
     if (serviceConfig.region) {
       conf.endpoint = `${serviceConfig.region}.digitaloceanspaces.com`

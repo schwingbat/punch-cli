@@ -10,6 +10,10 @@ class S3SyncService extends SyncService {
     creds.region = serviceConfig.region || 'us-west-2'
     creds.endpoint = serviceConfig.endpoint || 's3.amazonaws.com'
     
+    serviceConfig.auto = serviceConfig.auto == null
+      ? true
+      : serviceConfig.auto
+
     super(serviceConfig)
 
     this._punch = Punch

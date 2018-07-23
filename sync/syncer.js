@@ -105,7 +105,7 @@ function Syncer (config, Punch) {
     }
   }
 
-  async function syncAll ({ silent, services, check } = {}) {
+  async function syncAll ({ silent, services, check, auto } = {}) {
     const loader = require('../utils/loader')()
     const { symbols } = config
 
@@ -148,8 +148,7 @@ function Syncer (config, Punch) {
       services = services.map(s => {
         const key = s.toLowerCase()
         const service = config.sync.services.find(service => {
-          return service.name.toLowerCase() === key
-              || service.label.toLowerCase() === key
+          return (service.name.toLowerCase() === key || service.label.toLowerCase() === key)
         })
 
         if (service) {
@@ -171,7 +170,8 @@ function Syncer (config, Punch) {
           const label = service.label || service.name
           console.log(chalk.yellow(symbols.warning) + ` [${label}] Sync Warning: ${err.message}`)
         }
-      }).filter(s => s != null)
+      }).filter(s => s != null && (!auto || s._config.auto))
+      // Filter services if 'auto' prop is off during autosync
     }
 
     for (let i = 0; i < services.length; i++) {
