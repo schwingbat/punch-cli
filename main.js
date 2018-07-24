@@ -776,7 +776,7 @@ command({
     await new Syncer(config, Punch).syncAll({
       services: args.services,
       check: args.options.check || false
-    })  
+    })
 
     updateCurrentMarker(await Punch.current())
   }

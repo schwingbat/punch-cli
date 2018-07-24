@@ -37,7 +37,8 @@ module.exports = function ({ config, punches, date, summary }, summarizeFn) {
   const { ascendingBy } = require('../utils/sort-factories')
   const formatCurrency = require('../format/currency')
   const formatDuration = require('../format/duration')
-  const chalk = require('chalk')
+  const endOfMonth = require('date-fns/end_of_month')
+  // const chalk = require('chalk')
 
   const months = {}
 
@@ -58,16 +59,21 @@ module.exports = function ({ config, punches, date, summary }, summarizeFn) {
   console.log()
 
   monthArray
-    .sort(ascendingBy(m => m[0]))
+    .sort(ascendingBy(m => Number(m[0])))
     .forEach(([key, punches]) => {
-      const monthSummary = summarizeFn(config, punches)
+      const month = new Date(date.getFullYear(), Number(key))
+
+      const monthSummary = summarizeFn(config, punches, {
+        start: month,
+        end: endOfMonth(month)
+      })
 
       const monthPay = monthSummary.reduce((sum, project) => sum + project.pay, 0)
       const monthTime = monthSummary.reduce((sum, project) => sum + project.time, 0)
       const monthPunches = monthSummary.reduce((sum, project) => sum + project.punches.length, 0)
 
       console.log(monthSummaryHeader({
-        date: new Date(date.getFullYear(), Number(key)),
+        date: month,
         stats: [
           formatDuration(monthTime),
           formatCurrency(monthPay),
