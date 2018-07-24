@@ -8,7 +8,9 @@ const formatCurrency = require('../format/currency')
 const formatDuration = require('../format/duration')
 const formatDate = require('date-fns/format')
 // const printLength = require('../utils/print-length')
-const wordWrap = require('./word-wrap')
+const wordWrap = require('@fardog/wordwrap')(0, 65, {
+  lengthFn: require('../utils/print-length.js')
+})
 
 function delimitedList (items, inners = ' / ', outers) {
   let joined = items.filter(i => i).join(chalk.grey(inners))
@@ -262,7 +264,7 @@ function dayPunches (punches, date, config) {
 
     if (punch.comments.length > 0) {
       punch.comments.forEach((comment, i) => {
-        str += chalk.grey(`   ${symbols.logSessionBullet} `) + wordWrap(comment.toString(), 65, 5)
+        str += chalk.grey(`   ${symbols.logSessionBullet} `) + wordWrap(comment.toString(), 65).replace('\n', '\n     ')
 
         if (punch.comments[i + 1]) {
           str += '\n'
@@ -283,7 +285,7 @@ function projectSummary ({ name, description, pay, time, rate, stats }) {
   if (rate) statList.push(rate)
 
   str += projectHeader(name) + ' ' + delimitedList(statList, ' / ', ['(', ')']) + '\n'
-  str += `${chalk.grey(' >')} ${wordWrap(description, 60, chalk.grey('\n > '))}\n\n`
+  str += `${chalk.grey(' >')} ${wordWrap(description).replace('\n', chalk.grey('\n > '))}\n\n`
 
   if (stats) {
     str += labelTable(stats)

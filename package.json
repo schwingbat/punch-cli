@@ -16,6 +16,7 @@
   "repository": "github:schwingbat/punch",
   "license": "MIT",
   "dependencies": {
+    "@fardog/wordwrap": "^1.1.0",
     "@schwingbat/mon": "^1.0.0",
     "ansi-regex": "^3.0.0",
     "aws-sdk": "^2.264.1",
