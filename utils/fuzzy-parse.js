@@ -96,6 +96,8 @@ module.exports = function (string, opts = {}) {
       unit = unit.replace(/[s|ies]$/, '')
 
       if (!(modifier === 0 && parts[2] === 'ago')) {
+        modifier = modifier || 0
+
         if (unit === 'day') {
           start = startOfDay(addDays(now, modifier))
           end = endOfDay(addDays(now, modifier))
