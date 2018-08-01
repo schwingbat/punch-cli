@@ -7,6 +7,7 @@ module.exports = function (config) {
   const fetch = require('node-fetch')
   const fs = require('fs')
   const util = require('util')
+  const { URL } = require('url')
 
   function generateWithAPI (props) {
     return new Promise((resolve, reject) => {
