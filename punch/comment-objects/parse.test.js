@@ -13,7 +13,7 @@ describe('parse', () => {
     expect(parsed[0].key).toBe('tag')
     expect(parsed[0].value).toBe('stuff')
     expect(parsed[1].key).toBe('vsts')
-    expect(parsed[1].value).toBe(1234)
+    expect(parsed[1].value).toBe('1234')
   })
 
   it('returns an empty array if passed an empty array', () => {
