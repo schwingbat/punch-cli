@@ -3,6 +3,7 @@ const parseDateTime = require('./parse-datetime')
 describe('parseDateTime', () => {
   it('parses datetime with 12-hour time', () => {
     expect(parseDateTime('10.12.2014@5:52:02PM')).toEqual(new Date(2014, 9, 12, 17, 52, 2))
+    expect(parseDateTime('2015-10-09@12:10AM')).toEqual(new Date(2015, 9, 9, 0, 10, 0))
     expect(parseDateTime('2014/10/8@10:12am')).toEqual(new Date(2014, 9, 8, 10, 12, 0))
   })
 

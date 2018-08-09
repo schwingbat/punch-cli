@@ -19,13 +19,34 @@ function parseTime (timeString) {
     throw new Error('Time is not in a compatible format: use either 12-hour with AM/PM or 24-hour format for time')
   }
 
-  if (meridian && meridian.toUpperCase() === 'PM') {
-    if (hours <= 11) {
-      hours += 12
-    } else if (hours > 12) {
-      throw new Error('Hours should not be greater than 12 when PM is present.')
+  if (meridian) {
+    if (hours > 12) {
+      throw new Error('Hours should not be greater than 12 when AM/PM is specified.')
+    } else {
+      switch (meridian.toUpperCase()) {
+      case 'AM':
+        if (hours == 12) hours = 0
+        break
+      case 'PM':
+        if (hours <= 11) hours += 12
+        break
+      default:
+        throw new Error('Invalid meridian. Should be AM or PM.')
+      }
     }
   }
+
+  // if (meridian && meridian.toUpperCase() === 'PM') {
+  //   if (hours <= 11) {
+  //     hours += 12
+  //   } else if (hours > 12) {
+  //     throw new Error('Hours should not be greater than 12 when PM is present.')
+  //   }
+  // } else if (meridian && meridian.toUpperCase() === 'AM') {
+  //   if (hours > 12) {
+  //     throw new Error('Hours should not be greater than 12 when AM is present.')
+  //   } else if (hours <)
+  // }
 
   return [hours, minutes, seconds]
 }
