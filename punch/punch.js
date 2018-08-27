@@ -160,6 +160,7 @@ module.exports = function (config, Storage) {
     constructor (comment, timestamp = new Date()) {
       const extracted = extractObjects(comment)
       this.objects = parseObjects(extracted.objects)
+      this.tags = extracted.tags.map(t => new Tag(t))
       this.comment = extracted.comment
       this.timestamp = new Date(timestamp)
     }
@@ -180,6 +181,14 @@ module.exports = function (config, Storage) {
 
     toString () {
       let comment = this.comment
+      if (this.tags.length > 0) {
+        this.tags.forEach(tag => {
+          comment = comment.slice(0, tag.index)
+                  + (comment[tag.index] === ' ' ? '' : ' ')
+                  + chalk.red(tag.toString())
+                  + comment.slice(tag.index)
+        })
+      }
       if (this.objects.length > 0) {
         comment += ' ' + chalk.green(this.objects.map(o => o.toLogString()).join(' '))
       }
@@ -190,16 +199,37 @@ module.exports = function (config, Storage) {
       return this.objects
     }
 
-    toJSON (pretty = false) {
+    toJSON () {
       let comment = this.comment
+      if (this.tags.length > 0) {
+        this.tags.forEach(tag => {
+          comment = comment.slice(0, tag.index)
+                  + (comment[tag.index] === ' ' ? '' : ' ')
+                  + tag.toString()
+                  + comment.slice(tag.index)
+        })
+      }
       if (this.objects.length > 0) {
         comment += ' ' + this.objects.map(o => o.toString()).join(' ')
       }
+
+      if (this.tags.length > 0) console.log(comment)
 
       return {
         comment,
         timestamp: this.timestamp.getTime()
       }
+    }
+  }
+
+  class Tag {
+    constructor (tag) {
+      this.value = tag.value
+      this.index = tag.index
+    }
+
+    toString () {
+      return `#${this.value}`
     }
   }
 
