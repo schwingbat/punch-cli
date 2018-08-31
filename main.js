@@ -1144,6 +1144,34 @@ command({
   }
 })
 
+command({
+  signature: 'migrate-to-sqlite',
+  description: 'copies punchfiles into SQLite database',
+  hidden: true,
+  async run (args) {
+    if (Punch.Storage.name === 'sqlite') {
+      Punch.Storage.close()
+    }
+
+    const PunchfileStorage = require('./storage/services/punchfile.service.js')
+    const SQLiteStorage = require('./storage/services/sqlite.service.js')
+    const FilePunch = require('./punch/punch')(config, PunchfileStorage)
+    const DBPunch = require('./punch/punch')(config, SQLiteStorage)
+    // const Punch = require('./punch/punch')(config, Storage)
+
+    const punches = await FilePunch.all()
+
+    for (let punch of punches) {
+      DBPunch.Storage.save(punch)
+    }
+
+    console.log(`Migrated ${punches.length} punches to SQLite.`)
+    if (config.storageType === 'punchfile') {
+      console.log('You should change your config.storageType to "sqlite" now.')
+    }
+  }
+})
+
 run(ARGS)
 
 bench.mark('parsed and run')
