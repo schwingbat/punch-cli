@@ -24,6 +24,6 @@
     "dateFormat": "dddd, MMMM Do YYYY",
     "timeFormat": "h:mm A"
   },
-  "storageType": "punchfile",
+  "storageType": "sqlite",
   "invoiceAPI": "http://invoice.api.punch.sh/v1/"
 }

@@ -143,6 +143,8 @@ module.exports = function (config, Punch) {
   }
 
   return {
+    name: 'punchfile',
+
     async save (punch) {
       const file = Punchfile.forDate(punch.in)
 
@@ -185,6 +187,8 @@ module.exports = function (config, Punch) {
       })
 
       return selected
-    }
+    },
+
+    close () {}
   }
 }

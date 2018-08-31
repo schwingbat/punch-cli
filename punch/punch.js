@@ -34,7 +34,7 @@ module.exports = function (config, Storage) {
       this.in = new Date(props.in || new Date())
       this.out = props.out ? new Date(props.out || new Date()) : null
       this.comments = props.comments
-        ? props.comments.map(c => new Comment(c.comment || c, c.timestamp))
+        ? props.comments.map(c => new Comment(c.comment || c, c.timestamp, c.id))
         : []
       if (props.rate) {
         this.rate = props.rate
@@ -62,13 +62,13 @@ module.exports = function (config, Storage) {
       this.update()
     }
 
-    punchOut (comment, options = {}) {
+    async punchOut (comment, options = {}) {
       this.out = options.time || new Date()
       
       this.update()
 
       if (comment) this.addComment(comment)
-      if (options.autosave) this.save()
+      if (options.autosave) await this.save()
     }
 
     duration () {
@@ -131,6 +131,7 @@ module.exports = function (config, Storage) {
   // Can't put it above the class because classes can't be referenced
   // before being defined, but it's used within the class.
   var storage = Storage(config, Punch)
+  Punch.Storage = storage
 
   /*=======================*\
   ||        Static         ||
@@ -144,8 +145,8 @@ module.exports = function (config, Storage) {
     return storage.latest()
   }
 
-  Punch.select = async function (test) {
-    return storage.select(test)
+  Punch.select = async function (fn) {
+    return storage.select(fn)
   }
 
   Punch.all = async function () {
@@ -157,8 +158,10 @@ module.exports = function (config, Storage) {
   \*=======================*/
 
   class Comment {
-    constructor (comment, timestamp = new Date()) {
+    constructor (comment, timestamp = new Date(), id = uuid()) {
       const extracted = extractObjects(comment)
+      this.id = id
+      this.raw = comment
       this.objects = parseObjects(extracted.objects)
       this.tags = extracted.tags.map(t => new Tag(t))
       this.comment = extracted.comment
@@ -195,6 +198,10 @@ module.exports = function (config, Storage) {
       return comment
     }
 
+    toStringPlain () {
+      return this.raw
+    }
+
     objects () {
       return this.objects
     }
@@ -213,7 +220,7 @@ module.exports = function (config, Storage) {
         comment += ' ' + this.objects.map(o => o.toString()).join(' ')
       }
 
-      if (this.tags.length > 0) console.log(comment)
+      // if (this.tags.length > 0) console.log(comment)
 
       return {
         comment,

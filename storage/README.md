@@ -2,6 +2,8 @@
 
 A storage service is a function that takes a `config` object and a `Punch` constructor as arguments and returns an object that implements the Storage Service API.
 
+The storage service is chosen based on the `storageType` [`string`] property in the user's config. `punchfile` is the default.
+
 ## Storage Service API
 
 ### `save(punch: Punch): Promise<void>`

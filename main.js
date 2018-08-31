@@ -158,7 +158,7 @@ command({
           project: args.project,
           in: args.options.time
         })
-        punch.save()
+        await punch.save()
 
         updateCurrentMarker(punch)
 
@@ -216,7 +216,7 @@ command({
       const formatDuration = require('./format/duration')
       const formatCurrency = require('./format/currency')
 
-      current.punchOut(args.options.comment, {
+      await current.punchOut(args.options.comment, {
         autosave: true,
         time: args.options.time || new Date()
       })
@@ -250,6 +250,7 @@ command({
   }],
   run: async function (args) {
     const current = await Punch.current()
+    const { dayPunches } = require('./logging/printing')
 
     if (!current) {
       const formatDate = require('date-fns/format')
@@ -271,11 +272,16 @@ command({
       inTime = formatDate(inTime, format)
       outTime = formatDate(outTime, format)
 
-      let str = `You're not punched in. Add to last punch on '${label}' (${inTime} - ${outTime})?`
+      let str = `\nYou're not punched in. Add to last punch?\n\n`
+      str += '  ' + dayPunches([latest], date, config).replace(/\n/g, '\n  ')
+      str += '  ' + chalk.green(` + ${args.comment}`)
+      str += '\n\n'
 
       if (confirm(str)) {
         latest.addComment(args.comment)
         await latest.save()
+
+        console.log('\nComment saved.')
 
         handleSync()
       }
@@ -283,6 +289,7 @@ command({
       current.addComment(args.comment)
       await current.save()
 
+      console.log('\n  ' + dayPunches([current], Date.now(), config).replace(/\n/g, '\n  '))
       console.log('Comment saved.')
       handleSync()
     }
@@ -972,6 +979,50 @@ command({
 })
 
 command({
+  signature: 'adjust-rate <project> <newRate>',
+  description: 'adjust pay rate for punches',
+  //hidden: true,
+  examples: [
+    'punch adjust-rate punch 50 --start 2018-08-01 --end 2018-09-01'
+  ],
+  arguments: [{
+    name: 'project',
+    description: 'project alias',
+  }, {
+    name: 'newRate',
+    description: 'new rate (number)',
+    parse: Number
+  }],
+  options: [{
+    name: 'start',
+    description: 'starting date',
+    type: parseDateTime
+  }, {
+    name: 'end',
+    description: 'ending date',
+    type: parseDateTime
+  }],
+  run: async function (args) {
+    const { project, newRate } = args
+    const { start, end } = args.options
+
+    const punches = await Punch.select(p => p.project === project
+                                         && (!start || p.in >= start)
+                                         && (!end || p.in <= end))
+
+    if (confirm(`Change rate to ${newRate} on ${punches.length} punches?`)) {
+      for (let punch of punches) {
+        punch.rate = newRate
+        punch.update()
+        punch.save()
+      }
+
+      console.log('Updated punches')
+    }
+  }
+})
+
+command({
   signature: 'export',
   description: 'exports punch data',
   hidden: true,
@@ -1060,7 +1111,63 @@ module.exports = function (punches) {
   }
 })
 
+command({
+  signature: 'sql <command>',
+  description: 'run SQL commands against the local punch database',
+  hidden: true,
+  arguments: [{
+    name: 'command',
+    description: 'a SQLite-compatible SQL query'
+  }],
+  options: [{
+    name: 'get',
+    description: 'returns query results',
+    type: 'boolean'
+  }, {
+    name: 'run',
+    description: 'runs a non-returning query',
+    type: 'boolean'
+  }],
+  run (args) {
+    if (Punch.Storage.name === 'sqlite') {
+      const { db } = Punch.Storage
+
+      if (args.options.get) {
+        console.log(db.prepare(args.command).all())
+      } else {
+        db.prepare(args.command).run()
+      }
+      
+    } else {
+      console.log(`Cannot run SQL commands because storage type '${Punch.Storage.name}' is not compatible.`)
+    }
+  }
+})
+
 run(ARGS)
 
 bench.mark('parsed and run')
 bench.printAll()
+
+// Exit cleanup
+
+function exitHandler(options) {
+  if (Punch.Storage.name === 'sqlite') {
+    Punch.Storage.close()
+  }
+
+  if (options.exit) process.exit()
+}
+
+//do something when app is closing
+process.on('exit', exitHandler.bind(null, { cleanup: true }))
+
+//catches ctrl+c event
+process.on('SIGINT', exitHandler.bind(null, { exit: true }))
+
+// catches "kill pid" (for example: nodemon restart)
+process.on('SIGUSR1', exitHandler.bind(null, { exit: true }))
+process.on('SIGUSR2', exitHandler.bind(null, { exit: true }))
+
+//catches uncaught exceptions
+process.on('uncaughtException', exitHandler.bind(null, { exit: true }))
