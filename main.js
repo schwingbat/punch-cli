@@ -1151,6 +1151,15 @@ command({
   async run (args) {
     Punch.storage.cleanUp()
 
+    if (fs.existsSync(config.punchDBPath)) {
+      if (confirm('DB file already exists. Are you sure you want to overwrite it with migrated punches?')) {
+        fs.unlinkSync(config.punchDBPath)
+        console.log('Overwriting DB file.')
+      } else {
+        return
+      }
+    }
+
     const PunchfileStorage = require('./storage/services/punchfile.service.js')
     const SQLiteStorage = require('./storage/services/sqlite.service.js')
     const FilePunch = require('./punch/punch')(config, PunchfileStorage)
@@ -1160,7 +1169,7 @@ command({
     const punches = await FilePunch.all()
 
     for (let punch of punches) {
-      DBPunch.Storage.save(punch)
+      DBPunch.storage.save(punch)
     }
 
     console.log(`Migrated ${punches.length} punches to SQLite.`)
