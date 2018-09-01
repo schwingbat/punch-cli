@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>{{ project.name }} Invoice</title>
+    <title>{{project.name}} Invoice</title>
     <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet">
     <style>
       {{{styles}}}
     </style>
+    {{!-- <script>
+      window.templateData = {{{json days}}}
+    </script> --}}
   </head>
   <body>
     <h1 class="header">INVOICE</h1>
     <div class="user-block">
       <div>{{user.name}}</div>
-      <div>{{user.address.street}}</div>
-      <div>{{user.address.city}}, {{user.address.state}} {{user.address.zip}}</div>
+      <div>{{{format-address user.address}}}</div>
     </div>
 
     <div class="client-block">
@@ -21,10 +23,9 @@
           <tr>
             <td class="table-label" valign="top">To</td>
             <td>
-              <div>{{client.name}}</div>
+              <div>{{client.contact}}</div>
               <div>{{client.company}}</div>
-              <div>{{client.address.street}}</div>
-              <div>{{client.address.city}}, {{client.address.state}} {{client.address.zip}}</div>
+              <div>{{{format-address client.address}}}</div>
             </td>
           </tr>
         </table>
@@ -38,7 +39,7 @@
           </tr>
           <tr>
             <td class="table-label">Period</td>
-            <td>{{start}} &mdash; {{end}}</td>
+            <td>{{startDate}} &mdash; {{endDate}}</td>
           </tr>
           <tr>
             <td class="table-label">Invoice Date</td>
@@ -47,6 +48,8 @@
         </table>
       </div>
     </div>
+
+    {{!-- <div id="charts"></div> --}}
 
     <table class="line-items-table" cellspacing="0">
       <thead>
@@ -66,7 +69,14 @@
             <td class="item-comments">
               <ul class="item-comments-list">
                 {{#each comments}}
-                  <li class="item-comment">{{.}}</li>
+                  <li class="item-comment">
+                    {{!-- <span> --}}
+                      {{#each objects}}
+                        {{{object-label key value config}}}
+                      {{/each}}
+                      {{comment}}
+                    {{!-- </span> --}}
+                  </li>
                 {{/each}}
               </ul>
             </td>
@@ -78,12 +88,8 @@
     <div class="totals">
       <table>
         <tr>
-          <td class="table-label">Fees</td>
-          <td>{{totalPay}} ({{totalTime}})</td>
-        </tr>
-        <tr>
-          <td class="table-label">Expenses</td>
-          <td>$0.00</td>
+          <td class="table-label">Total Hours</td>
+          <td>{{totalTime}}</td>
         </tr>
         <tr>
           <td class="table-label">Amount Due</td>
@@ -91,5 +97,9 @@
         </tr>
       </table>
     </div>
+
+    {{#if scripts}}
+      {{{scripts}}}
+    {{/if}}
   </body>
 </html>

@@ -1,0 +1,20 @@
+font-face [
+  {
+    name "Sentinel"
+    path "sentinel-regular.woff"
+    weight "regular"
+    style "normal"
+  }
+  {
+    name "Sentinel"
+    path "sentinel-regular-italic.woff"
+    weight "regular"
+    style "italic"
+  }
+  {
+    name "Sentinel"
+    path "sentinel-bold.woff"
+    weight "bold"
+    style "normal"
+  }
+]

@@ -1,0 +1,32 @@
+font-face [
+  {
+    name "Neue Haas"
+    path "nhaasgroteskdsstd-25th.woff"
+    weight 100
+    style "normal"
+  }
+  {
+    name "Neue Haas"
+    path "nhaasgroteskdsstd-35xlt.woff"
+    weight 300
+    style "normal"
+  }
+  {
+    name "Neue Haas"
+    path "nhaasgroteskdsstd-55rg.woff"
+    weight 400
+    style "normal"
+  }
+  {
+    name "Neue Haas"
+    path "nhaasgroteskdsstd-65md.woff"
+    weight 500
+    style "normal"
+  }
+  {
+    name "Neue Haas"
+    path "nhaasgroteskdsstd-75bd.woff"
+    weight 700
+    style "normal"
+  }
+]

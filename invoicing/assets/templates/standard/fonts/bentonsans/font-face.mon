@@ -1,0 +1,20 @@
+font-face [
+  {
+    name "Benton Sans"
+    path "bentonsans-book.woff"
+    weight 300
+    style "normal"
+  }
+  {
+    name "Benton Sans"
+    path "bentonsans-regular.woff"
+    weight 400
+    style "normal"
+  }
+  {
+    name "Benton Sans"
+    path "bentonsans-medium.woff"
+    weight 700
+    style "normal"
+  }
+]

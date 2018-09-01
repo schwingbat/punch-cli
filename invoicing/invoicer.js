@@ -1,18 +1,22 @@
 module.exports = function (config) {
   const { ascendingBy } = require('../utils/sort-factories')
-
   const formatDate = require('date-fns/format')
   const formatDuration = require('../format/duration')
   const formatCurrency = require('../format/currency')
-  const fetch = require('node-fetch')
-  const fs = require('fs')
-  const util = require('util')
-  const { URL } = require('url')
 
-  function generateWithAPI (props) {
-    return new Promise((resolve, reject) => {
+  return {
+    async generate (props) {
+      // Load specified format module.
+
+      let format
+      try {
+        format = require('./formats/' + props.output.format.toLowerCase() + '.format.js')
+      } catch (err) {
+        throw new Error(`Format ${props.output.format} is not supported.`)
+      }
+
       // Group punches by day
-
+    
       let days = {}
 
       props.punches.forEach(punch => {
@@ -38,6 +42,8 @@ module.exports = function (config) {
       })
       days = Object.values(days).sort(ascendingBy('date'))
 
+      // Format the data so the template can render it.
+
       const data = {
         project: props.project,
         user: props.user,
@@ -55,6 +61,9 @@ module.exports = function (config) {
         }))
       }
 
+      // Apply plugin configuration. Right now this just creates links
+      // to VSTS issues for @vsts:1234 tags.
+
       if (props.project.plugins) {
         for (const key in props.project.plugins) {
           days.forEach(day => {
@@ -69,80 +78,9 @@ module.exports = function (config) {
         }
       }
 
-      // console.log(util.inspect(data, { depth: null, colors: true }))
+      // Return the formatted output (actually a Promise).
 
-      const url = new URL(`generate/${props.output.format}/standard`, config.invoiceAPI)
-      console.log('requesting from ', url.toString())
-      fetch(url, {
-        method: 'POST',
-        body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }).then(res => {
-        const out = fs.createWriteStream(props.output.path)
-        res.body.pipe(out)
-        out.on('finish', () => resolve())
-      }).catch(reject)
-    })
-  }
-
-  async function generateLocally (props) {
-    let format
-    try {
-      format = require('./formats/' + props.output.format.toLowerCase() + '.format.js')
-    } catch (err) {
-      throw new Error(`Format ${props.output.format} is not supported.`)
-    }
-
-    // Group punches by day
-
-    let days = {}
-
-    props.punches.forEach(punch => {
-      const date = punch.in
-      const key = date.getFullYear() + '-' + date.getMonth() + '-' + date.getDate()
-      if (!days[key]) {
-        days[key] = {
-          date: new Date(date),
-          time: 0,
-          pay: 0,
-          comments: []
-        }
-      }
-
-      days[key].time += punch.duration()
-      days[key].pay += punch.pay()
-      days[key].comments.push(...punch.comments.map(c => c.toString()))
-    })
-    days = Object.values(days).sort(ascendingBy('date'))
-
-
-
-    const data = {
-      template: 'standard',
-      project: props.project,
-      user: props.user,
-      client: props.project.client,
-      start: props.start,
-      end: props.end,
-      today: props.today,
-      totalPay: days.reduce((sum, day) => sum + day.pay, 0),
-      totalTime: days.reduce((sum, day) => sum + day.time, 0),
-      days
-    }
-
-    return format(config, data, props.output.path)
-  }
-
-  return {
-    async generate (props, genLocal) {
-      // Keep the option to generate locally for now until the API is ready.
-      if (genLocal || config.generateInvoicesLocally) {
-        return generateLocally(props)
-      } else {
-        return generateWithAPI(props)
-      }
+      return format(config, data, props.output.path)
     }
   }
 }
