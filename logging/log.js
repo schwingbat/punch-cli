@@ -48,24 +48,50 @@ module.exports = function Logger (config, Punch) {
     async forInterval (interval, criteria = {}) {
       let { project, object } = criteria
       const now = Date.now()
+      let punches
 
       if (interval.start > new Date()) {
         return console.log(messageFor('future-punch-log'))
       }
 
-      const punches = await Punch.select(p => {
-        // Reject if start date is out of the interval's range
-        if (!((p.out || now) >= interval.start && p.in <= interval.end)) {
-          return false
-        }
-        if (project && p.project !== project) {
-          return false
-        }
-        if (object && !p.hasCommentWithObject(object)) {
-          return false
-        }
-        return true
-      })
+      // SQLite optimizations
+      // Filter with SQL and avoid instantiating when possible
+      if (Punch.storage.name === 'sqlite' && !object) {
+        punches = Punch.storage.run((db, instantiatePunch) => {
+          let intervalStart = interval.start.getTime()
+          let intervalEnd = interval.end.getTime()
+          let now = Date.now()
+          let query = `
+            SELECT * FROM punches
+            WHERE (
+              (outAt IS NOT NULL AND outAt >= ${intervalStart})
+              OR
+              (outAt IS NULL AND ${now} >= ${intervalStart})
+            ) AND (inAt <= ${intervalEnd})
+          `
+          if (project) {
+            query += ` AND project = '${project}'`
+          }
+
+          return db.prepare(query)
+            .all()
+            .map(instantiatePunch)
+        })
+      } else {
+        punches = await Punch.select(p => {
+          // Reject if start date is out of the interval's range
+          if (!((p.out || now) >= interval.start && p.in <= interval.end)) {
+            return false
+          }
+          if (project && p.project !== project) {
+            return false
+          }
+          if (object && !p.hasCommentWithObject(object)) {
+            return false
+          }
+          return true
+        })
+      }
 
       if (punches.length === 0) {
         // Figure out what to say if there are no results

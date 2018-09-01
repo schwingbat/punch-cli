@@ -1129,8 +1129,8 @@ command({
     type: 'boolean'
   }],
   run (args) {
-    if (Punch.Storage.name === 'sqlite') {
-      const { db } = Punch.Storage
+    if (Punch.storage.name === 'sqlite') {
+      const { db } = Punch.storage
 
       if (args.options.get) {
         console.log(db.prepare(args.command).all())
@@ -1149,9 +1149,7 @@ command({
   description: 'copies punchfiles into SQLite database',
   hidden: true,
   async run (args) {
-    if (Punch.Storage.name === 'sqlite') {
-      Punch.Storage.close()
-    }
+    Punch.storage.cleanUp()
 
     const PunchfileStorage = require('./storage/services/punchfile.service.js')
     const SQLiteStorage = require('./storage/services/sqlite.service.js')
@@ -1180,22 +1178,17 @@ bench.printAll()
 // Exit cleanup
 
 function exitHandler(options) {
-  if (Punch.Storage.name === 'sqlite') {
-    Punch.Storage.close()
-  }
+  Punch.storage.cleanUp()
 
   if (options.exit) process.exit()
 }
 
-//do something when app is closing
 process.on('exit', exitHandler.bind(null, { cleanup: true }))
+process.on('uncaughtException', exitHandler.bind(null, { exit: true }))
 
-//catches ctrl+c event
+// ctrl + c
 process.on('SIGINT', exitHandler.bind(null, { exit: true }))
 
-// catches "kill pid" (for example: nodemon restart)
+// kill pid (e.g. nodemon restart)
 process.on('SIGUSR1', exitHandler.bind(null, { exit: true }))
 process.on('SIGUSR2', exitHandler.bind(null, { exit: true }))
-
-//catches uncaught exceptions
-process.on('uncaughtException', exitHandler.bind(null, { exit: true }))

@@ -130,8 +130,7 @@ module.exports = function (config, Storage) {
   // Gotta love that function scope.
   // Can't put it above the class because classes can't be referenced
   // before being defined, but it's used within the class.
-  var storage = Storage(config, Punch)
-  Punch.Storage = storage
+  var storage = Punch.storage = Storage(config, Punch)
 
   /*=======================*\
   ||        Static         ||

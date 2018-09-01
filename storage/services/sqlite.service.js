@@ -12,7 +12,8 @@ module.exports = function (config, Punch) {
     db.exec(schema)
   }
 
-  function instantiatePunch (data, comments) {
+  function instantiatePunch (data) {
+    const comments = db.prepare('SELECT * FROM comments WHERE punchID = ?').all(data.id)
     return new Punch({
       id: data.id,
       project: data.project,
@@ -114,8 +115,7 @@ module.exports = function (config, Punch) {
         : db.prepare("SELECT * FROM punches WHERE outAt IS NULL ORDER BY inAt DESC").get()
 
       if (data) {
-        const comments = db.prepare("SELECT * FROM comments WHERE punchID=?").all(data.id)
-        return instantiatePunch(data, comments)
+        return instantiatePunch(data)
       } else {
         return null
       }
@@ -127,8 +127,7 @@ module.exports = function (config, Punch) {
         : db.prepare("SELECT * FROM punches ORDER BY inAt DESC LIMIT 1").get()
 
       if (data) {
-        const comments = db.prepare("SELECT * FROM comments WHERE punchID=?").all(data.id)
-        return instantiatePunch(data, comments)
+        return instantiatePunch(data)
       } else {
         return null
       }
@@ -138,8 +137,7 @@ module.exports = function (config, Punch) {
       const selected = []
       const results = db.prepare('SELECT * FROM punches').all()
       for (let p of results) {
-        const comments = db.prepare('SELECT * FROM comments WHERE punchID = ?').all(p.id)
-        const punch = instantiatePunch(p, comments)
+        const punch = instantiatePunch(p)
         if (fn(punch)) {
           selected.push(punch)
         }
@@ -147,8 +145,16 @@ module.exports = function (config, Punch) {
       return selected
     },
 
-    close () {
+    async cleanUp () {
       db.close()
-    }
+    },
+
+    // SQLite extras
+
+    // Runs a function which takes the DB object.
+    // Used to execute custom queries from elsewhere.
+    run (fn) {
+      return fn(db, instantiatePunch)
+    },
   }
 }

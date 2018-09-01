@@ -189,6 +189,8 @@ module.exports = function (config, Punch) {
       return selected
     },
 
-    close () {}
+    async cleanUp () {
+      // No cleanup necessary
+    }
   }
 }
