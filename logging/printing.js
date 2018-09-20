@@ -115,7 +115,7 @@ function summaryTable (projects, opts = {}) {
     table.push([
       chalk.yellow(project.name),
       formatDuration(project.time, { padded: true }),
-      formatCurrency(project.pay),
+      project.isPaid ? formatCurrency(project.pay) : chalk.grey('---'),
       project.punches.length + ' punch' + (project.punches.length === 1 ? '' : 'es')
     ])
   })
@@ -243,6 +243,9 @@ function dayPunches (punches, date, config) {
     str += timeSpan
     str += chalk.blue(time.padStart(6))
     str += chalk.yellow(` [${projectName}]`)
+    if (punch.rate) {
+      str += chalk.grey(` ($${punch.pay().toFixed(2)})`)
+    }
     str += '\n'
 
     if (carryForward) {

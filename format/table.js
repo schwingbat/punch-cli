@@ -1,3 +1,5 @@
+const printLen = require('../utils/print-length')
+
 class Table {
   constructor (options = {}) {
     this.rows = []
@@ -9,14 +11,14 @@ class Table {
   }
 
   _leftAlignString (str, length) {
-    while (str.length < length) {
+    while (printLen(str) < length) {
       str += ' '
     }
     return str
   }
 
   _rightAlignString (str, length) {
-    while (str.length < length) {
+    while (printLen(str) < length) {
       str = ' ' + str
     }
     return str
@@ -45,56 +47,52 @@ class Table {
   toString () {
     let rows = []
     let columnWidths = []
-    let columnStyles = []
-    let column = 0
-    let looping = true
 
-    this.rows.forEach(cells => {
-      cells.forEach((cell, index) => {
-        columnWidths[index] = Math.max(cell.length || 0, columnWidths[index] || 0)
-      })
-    })
-
-    columnWidths.forEach((_, i) => {
-      if (this.options.columnStyle) {
-        if (this.options.columnStyle[i]) {
-          columnStyles.push(this.options.columnStyle[i])
-        } else {
-          columnStyles.push(this.options.columnStyle)
-        }
-      } else {
-        columnStyles.push({
-          align: 'left'
-        })
+    // TODO: Figure out a way to do this that doesn't require two loops.
+    for (let r = 0; r < this.rows.length; r++) {
+      for (let c = 0; c < this.rows[r].length; c++) {
+        columnWidths[c] = Math.max(printLen(this.rows[r][c]) || 0, columnWidths[c] || 0)
       }
-    })
+    }
 
-    this.rows.forEach(cells => {
-      cells = cells.map((cell, index) => {
-        const styles = Object.assign({}, {
+    for (let r = 0; r < this.rows.length; r++) {
+      let cells = []
+
+      for (let c = 0; c < this.rows[r].length; c++) {
+        let cell = this.rows[r][c]
+        const width = columnWidths[c]
+        let styles =  {
           align: 'left',
           leftPadding: 0,
-          rightPadding: 0,
-        }, columnStyles[index])
+          rightPadding: 0
+        }
+
+        if (this.options.columnStyle) {
+          if (this.options.columnStyle[c]) {
+            styles = Object.assign(styles, this.options.columnStyle[c])
+          } else {
+            styles = Object.assign(styles, this.options.columnStyle)
+          }
+        }
 
         switch (styles.align) {
-          case 'left':
-            cell = this._leftAlignString(cell, columnWidths[index])
-            break
-          case 'right':
-            cell = this._rightAlignString(cell, columnWidths[index])
-            break
-          case 'center':
-            cell = this._centerAlignString(cell, columnWidths[index])
-            break
+        case 'left':
+          cell = this._leftAlignString(cell, width)
+          break
+        case 'right':
+          cell = this._rightAlignString(cell, width)
+          break
+        case 'center':
+          cell = this._centerAlignString(cell, width)
+          break
         }
 
         cell = this._addStringPadding(cell, styles.leftPadding, styles.rightPadding)
-        return cell
-      })
+        cells.push(cell)
+      }
 
       rows.push(cells.join(' '))
-    })
+    }
 
     return rows.join('\n') + '\n'
   }
