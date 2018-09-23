@@ -123,6 +123,19 @@ const updateCurrentMarker = (current) => {
   fs.writeFileSync(path.join(path.dirname(config.configPath), 'current'), label)
 }
 
+const allPunchedIn = async () => {
+  const names = Object.keys(config.projects)
+  const punchedIn = []
+
+  for (let i = 0; i < names.length; i++) {
+    if (await Punch.current(names[i])) {
+      punchedIn.push(names[i])
+    }
+  }
+
+  return punchedIn
+}
+
 /* ========================= *\
 ||       Parse/Dispatch      ||
 \* ========================= */
@@ -147,7 +160,7 @@ command({
     loader.start('Punching in...')
     await handleSync({ silent: true })
 
-    const current = await Punch.current()
+    const current = await Punch.current(args.project)
 
     if (current) {
       loader.stop(chalk.red(config.symbols.error) + ` You're already punched in on ${getLabelFor(current.project)}! Punch out first.`)
@@ -173,8 +186,12 @@ command({
 })
 
 command({
-  signature: 'out',
+  signature: 'out [project]',
   description: 'stop tracking time',
+  arguments: [{
+    name: 'project',
+    description: 'name of the project'
+  }],
   options: [{
     name: 'comment',
     short: 'c',
@@ -195,7 +212,26 @@ command({
     loader.start('Punching out...')
     await handleSync({ silent: true })
 
-    const current = await Punch.current()
+    let current
+
+    if (args.project) {
+      current = await Punch.current(args.project)
+    } else {
+      const punchedIn = await allPunchedIn()
+
+      if (punchedIn.length >= 2) {
+        let str = `\nYou are punched in on ${punchedIn.length} projects:\n  `
+        str += punchedIn.join('\n  ')
+        str += '\n\n'
+        str += 'Specify which one you want to punch out of:\n  '
+        str += punchedIn.map(s => `punch out ${s}`).join('\n  ')
+        str += '\n'
+        loader.stop(str)
+        return
+      } else if (punchedIn.length == 1) {
+        current = await Punch.current(punchedIn[0])
+      }
+    }
 
     if (current) {
       if (current.comments.length === 0 && !args.options.comment) {
@@ -208,7 +244,8 @@ command({
         }
 
         if (!noComment) {
-          return console.log(`Use the --comment or -c flags to add a comment:\n  usage: punch out -c "This is a comment."\n`)
+          loader.stop(`Use the --comment or -c flags to add a comment:\n  usage: punch out -c "This is a comment."\n`)
+          return
         }
       }
       
@@ -248,7 +285,31 @@ command({
     description: 'a description of what you worked on',
     parse: (words) => words.join(' ')
   }],
+  options: [{
+    name: 'project',
+    alias: 'p',
+    description: 'the active project to add the comment to',
+    type: 'string'
+  }],
   run: async function (args) {
+
+    const punchedIn = await allPunchedIn()
+
+    if (punchedIn.length > 1 && !args.options.project) {
+      console.log('\nYou are punched in on more than one project. Use the -p flag to specify which project to comment on.')
+      let str = ''
+      for (let i = 0; i < punchedIn.length; i++) {
+        if (i == 0) {
+          str += '  e.g. '
+        } else {
+          str += '       '
+        }
+        str += `punch comment -p ${punchedIn[i]} "${args.comment}"\n`
+      }
+      console.log(str)
+      return
+    }
+
     const current = await Punch.current()
     const { dayPunches } = require('./logging/printing')
 

@@ -111,7 +111,7 @@ module.exports = function (config, Punch) {
 
     async current (project) {
       let data = (project)
-        ? db.prepare("SELECT * FROM punches WHERE outAt IS NULL AND project = '?' ORDER BY inAt DESC").get(project)
+        ? db.prepare("SELECT * FROM punches WHERE outAt IS NULL AND project = ? ORDER BY inAt DESC").get(project)
         : db.prepare("SELECT * FROM punches WHERE outAt IS NULL ORDER BY inAt DESC").get()
 
       if (data) {
@@ -123,7 +123,7 @@ module.exports = function (config, Punch) {
 
     async latest (project) {
       let data = (project)
-        ? db.prepare("SELECT * FROM punches AND project = '?' ORDER BY inAt DESC LIMIT 1").get(project)
+        ? db.prepare("SELECT * FROM punches AND project = ? ORDER BY inAt DESC LIMIT 1").get(project)
         : db.prepare("SELECT * FROM punches ORDER BY inAt DESC LIMIT 1").get()
 
       if (data) {
