@@ -267,7 +267,11 @@ function dayPunches (punches, date, config) {
 
     if (punch.comments.length > 0) {
       punch.comments.forEach((comment, i) => {
-        str += chalk.grey(`   ${symbols.logSessionBullet} `) + wordWrap(comment.toString(), 65).replace('\n', '\n     ')
+        str += chalk.grey(`   ${symbols.logSessionBullet} `)
+        if (config.display.showCommentTimestamps) {
+          str += formatDate(comment.timestamp, config.display.timeFormat) + ': '
+        }
+        str += wordWrap(comment.toString(), 65).replace('\n', '\n     ')
 
         if (punch.comments[i + 1]) {
           str += '\n'

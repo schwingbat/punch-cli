@@ -164,7 +164,7 @@ module.exports = function (config, Storage) {
       this.objects = parseObjects(extracted.objects)
       this.tags = extracted.tags.map(t => new Tag(t))
       this.comment = extracted.comment
-      this.timestamp = new Date(timestamp)
+      this.timestamp = new Date(parseInt(timestamp) || Date.now())
     }
 
     hasObject (obj) {
