@@ -96,7 +96,7 @@ module.exports = function Logger (config, Punch) {
 
       if (punches.length === 0) {
         // Figure out what to say if there are no results
-        if (Object.keys(criteria).length > 0) {
+        if (Object.keys(args).length > 0) {
           return console.log(messageFor('no-sessions-with-criteria'))
         } else {
           if (isSameDay(interval.start, new Date())) {

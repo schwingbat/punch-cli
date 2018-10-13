@@ -15,6 +15,9 @@ module.exports = function MockStorageService (config, Punch) {
     // function returns true. Like 'filter'
     async select (fn) {},
 
+    // Deletes a given punch
+    async delete (punch) {},
+
     // Called before the program exits.
     // Close connections and do any necessary cleanup.
     async cleanUp () {}

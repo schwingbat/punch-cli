@@ -122,6 +122,10 @@ module.exports = function (config, Storage) {
       this.updated = new Date()
     }
 
+    async delete () {
+      return storage.delete(this)
+    }
+
     async save () {
       return storage.save(this)
     }
@@ -238,6 +242,9 @@ module.exports = function (config, Storage) {
       return `#${this.value}`
     }
   }
+
+  Punch.Comment = Comment
+  Punch.Comment.Tag = Tag
 
   return Punch
 }

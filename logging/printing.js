@@ -272,6 +272,9 @@ function dayPunches (punches, date, config) {
     if (punch.comments.length > 0) {
       punch.comments.forEach((comment, i) => {
         str += chalk.grey(`   ${symbols.logSessionBullet} `)
+        if (config.showCommentIndices) {
+          str += chalk.bold(`[${i}] `)
+        } 
         if (config.display.showCommentTimestamps) {
           str += formatDate(comment.timestamp, config.display.timeFormat) + ': '
         }

@@ -196,7 +196,7 @@ function requiredArgsProvided (mappedArgs, argMap) {
 
   for (let i = 0; i < argMap.length; i++) {
     const marg = argMap[i]
-    if (marg.required && !mappedArgs[marg.name]) {
+    if (marg.required && mappedArgs[marg.name] == null) {
       return false
     }
   }

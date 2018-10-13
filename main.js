@@ -404,6 +404,151 @@ command({
 })
 
 command({
+  signature: 'add-comment <punchID> <comment...>',
+  description: 'add a comment to a specific punch',
+  arguments: [{
+    name: 'punchID',
+    description: 'ID of a given punch (use "punch log --with-ids" to find IDs)'
+  }, {
+    name: 'comment',
+    description: 'comment text',
+    parse: (val) => val.join(' ')
+  }],
+  run: async function (args) {
+    const punch = (await Punch.select(p => p.id === args.punchID))[0]
+
+    if (punch) {
+      const { dayPunches } = require('./logging/printing')
+
+      let str = '\n'
+
+      str += '  ' + dayPunches([punch], punch.in, config).replace(/\n/g, '\n  ')
+      str += '  ' + chalk.green(` + ${args.comment}`)
+      str += '\n\n'
+
+      str += 'Add comment?'
+
+      if (confirm(str)) {
+        punch.addComment(args.comment)
+        await punch.save()
+
+        console.log('\nComment added.')
+
+        handleSync()
+      }
+
+    } else {
+      console.log('Punch not found')
+    }
+  }
+})
+
+command({
+  signature: 'replace-comment <punchID> <commentIndex> <newComment>',
+  description: 'replace the text of a comment on a punch',
+  arguments: [{
+    name: 'punchID',
+    description: 'ID of a given punch (use "punch log --with-ids" to find IDs)'
+  }, {
+    name: 'commentIndex',
+    description: 'index of the comment to edit',
+    parse: (val) => parseInt(val)
+  }, {
+    name: 'newComment',
+    description: 'new comment content',
+    // parse: (val) => parseInt(val)
+  }],
+  run: async function (args) {
+    const punch = (await Punch.select(p => p.id === args.punchID))[0]
+
+    if (punch) {
+      if (punch.comments[args.commentIndex]) {
+        const { dayPunches } = require('./logging/printing')
+
+        const lines = dayPunches([punch], punch.in, config).split('\n').filter(l => l != '')
+
+        let str = '\n  ' + lines.shift() + '\n  '
+
+        for (let i = 0; i < lines.length; i++) {
+          if (i === args.commentIndex) {
+            str += '     ' + chalk.red('- ' + punch.comments[i].toStringPlain()) + '\n  '
+            str += '     ' + chalk.green('+ ' + args.newComment) + '\n  '
+          } else {
+            str += '  ' + lines[i] + '\n  '
+          }
+        }
+
+        str += '\nReplace comment?'
+
+        if (confirm(str)) {
+          // Set old comment to deleted
+          punch.comments[args.commentIndex].raw = args.newComment
+          await punch.save()
+
+          console.log('\nComment replaced.')
+
+          handleSync()
+        }
+      } else {
+
+      }
+    } else {
+      console.log('Punch not found.')
+    }
+  }
+})
+
+command({
+  signature: 'delete-comment <punchID> <commentIndex>',
+  description: 'delete a comment from a punch',
+  arguments: [{
+    name: 'punchID',
+    description: 'ID of a given punch (use "punch log --with-ids" to find IDs)'
+  }, {
+    name: 'commentIndex',
+    description: 'index of the comment to replace',
+    parse: (val) => parseInt(val)
+  }],
+  run: async function (args) {
+    const punch = (await Punch.select(p => p.id === args.punchID))[0]
+
+    if (punch) {
+      if (punch.comments[args.commentIndex]) {
+        const { dayPunches } = require('./logging/printing')
+
+        const lines = dayPunches([punch], punch.in, config).split('\n').filter(l => l != '')
+
+        let str = '\n  ' + lines.shift() + '\n  '
+
+        for (let i = 0; i < lines.length; i++) {
+          if (i === args.commentIndex) {
+            str += '     ' + chalk.red('- ' + punch.comments[i].toStringPlain()) + '\n  '
+          } else {
+            str += '  ' + lines[i] + '\n  '
+          }
+        }
+
+        str += '\nDelete comment?'
+
+        if (confirm(str)) {
+          // Set deleted to true and the storage service will handle the rest
+          punch.comments[args.commentIndex].deleted = true
+          await punch.save()
+
+          console.log('\nComment deleted.')
+
+          handleSync()
+        }
+      } else {
+        console.log('No comment found at index ' + args.index)
+      }
+    } else {
+      console.log('Punch not found.')
+    }
+  }
+})
+
+command({
   signature: 'now',
   description: 'show stats for the current session',
   options: [{
@@ -561,6 +706,37 @@ command({
 })
 
 command({
+  signature: 'delete <punchID>',
+  arguments: [{
+    name: 'punchID',
+    description: 'ID of a given punch (use "punch log --with-ids" to find IDs)',
+    // parse: val => val
+  }],
+  options: [{
+    name: 'yes',
+    short: 'y',
+    description: 'delete without confirmation',
+    type: 'boolean'
+  }],
+  run: async function (args) {
+    const punch = (await Punch.select(p => p.id === args.punchID))[0]
+
+    if (punch) {
+      const { dayPunches } = require('./logging/printing')
+
+      console.log('\n  ' + dayPunches([punch], punch.in, config).replace(/\n/g, '\n  '))
+
+      if (args.yes || confirm('Delete this punch?')) {
+        punch.delete()
+        console.log('BOOM! It\'s gone.')
+      }
+    } else {
+      console.log('Punch not found')
+    }
+  }
+})
+
+command({
   signature: 'watch',
   description: 'continue running to show automatically updated stats of your current session',
   options: [{
@@ -711,16 +887,17 @@ command({
     type: 'string',
     description: 'show only punches tagged with a given comment object (e.g. @task:1669)'
   }, {
-    name: 'show-id',
+    name: 'with-ids',
     type: 'boolean',
-    description: 'print punch ID (temporarily set config.showPunchIDs to true)'
+    description: 'print punch IDs'
   }],
   run: function (args) {
     const fuzzyParse = require('./utils/fuzzy-parse')
     const interval = fuzzyParse(args.when)
 
-    if (args.options['show-id']) {
+    if (args.options['with-ids']) {
       config.showPunchIDs = true
+      config.showCommentIndices = true
     }
 
     if (interval) {
@@ -1023,7 +1200,7 @@ command({
 })
 
 command({
-  signature: 'alias-rename <from> <to>',
+  signature: 'rename-alias <from> <to>',
   description: 'move all punches with project alias <from> to <to>',
   //hidden: true,
   examples: [
@@ -1051,7 +1228,7 @@ command({
 })
 
 command({
-  signature: 'comment-object-rename <from> <to>',
+  signature: 'rename-comment-object <from> <to>',
   description: 'rename comment objects with name <from> to name <to>',
   //hidden: true,
   examples: [
@@ -1165,7 +1342,7 @@ command({
   }, {
     name: 'format',
     short: 'f',
-    description: 'formatting style of punches (e.g. tfs-tracker)',
+    description: 'formatting function file name (looks in ~/.punch/formatters)',
     type: 'string'
   }, {
     name: 'destination',

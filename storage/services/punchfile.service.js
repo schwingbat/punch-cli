@@ -189,6 +189,10 @@ module.exports = function (config, Punch) {
       return selected
     },
 
+    async delete (punch) {
+      // Placeholder - punchfile deprecated
+    },
+
     async cleanUp () {
       // No cleanup necessary
     }

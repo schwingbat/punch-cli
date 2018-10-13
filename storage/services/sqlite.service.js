@@ -5,11 +5,17 @@ module.exports = function (config, Punch) {
 
   const db = new Database(config.punchDBPath, { fileMustExist: false })
 
-  const tableExists = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='punches'").get()
+  const punchTableExists = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='punches'").get()
 
-  if (!tableExists) {
+  if (!punchTableExists) {
     const schema = fs.readFileSync(path.join(appRoot, 'resources', 'sqlite-schema.sql'), 'utf8')
     db.exec(schema)
+  } else {
+    // Punch table exists. Check for deletion table.
+    const deletionTableExists = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='deletions'").get()
+    if (!deletionTableExists) {
+      db.prepare("CREATE TABLE deletions (id TEXT PRIMARY KEY NOT NULL, deletedAt INTEGER NOT NULL);").run()
+    }
   }
 
   function instantiatePunch (data) {
@@ -42,9 +48,9 @@ module.exports = function (config, Punch) {
   function updateComment (data, punchID) {
     db.prepare("UPDATE comments SET comment=?, createdAt=? WHERE id = ?")
       .run(
-        data.id,
         data.raw,
-        data.timestamp.getTime())
+        data.timestamp.getTime(),
+        data.id)
   }
 
   function insertPunch (punch) {
@@ -85,7 +91,11 @@ module.exports = function (config, Punch) {
     for (let comment of punch.comments) {
       if (db.prepare("SELECT id FROM comments WHERE id = ?").get(comment.id)) {
         // Comment exists
-        updateComment(comment, punch.id)
+        if (comment.deleted) {
+          db.prepare("DELETE FROM comments WHERE id = ?").run(comment.id)
+        } else {
+          updateComment(comment, punch.id)
+        }
       } else {
         // Comment doesn't exist yet
         insertComment(comment, punch.id)
@@ -98,7 +108,6 @@ module.exports = function (config, Punch) {
     db: db,
 
     async save (punch) {
-      // db.prepare("BEGIN").run()
       if (db.prepare("SELECT id FROM punches WHERE id = ?").get(punch.id)) {
         // Already exists
         updatePunch(punch)
@@ -106,7 +115,6 @@ module.exports = function (config, Punch) {
         // Doesn't exist yet
         insertPunch(punch)
       }
-      // db.prepare("COMMIT").run()
     },
 
     async current (project) {
@@ -143,6 +151,14 @@ module.exports = function (config, Punch) {
         }
       }
       return selected
+    },
+
+    async delete (punch) {
+      db.prepare("DELETE FROM comments WHERE punchID = ?").run(punch.id)
+      const results = db.prepare("DELETE FROM punches WHERE id = ?").run(punch.id)
+      if (results.changes > 0) {
+        db.prepare("INSERT INTO deletions (id, deletedAt) VALUES (?, ?)").run(punch.id, Date.now())
+      }
     },
 
     async cleanUp () {

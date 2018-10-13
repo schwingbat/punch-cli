@@ -15,3 +15,8 @@ CREATE TABLE comments (
     createdAt TEXT NOT NULL
 );
 CREATE INDEX commentsToPunchesIndex ON comments(punchID);
+
+CREATE TABLE deletions (
+    id TEXT PRIMARY KEY NOT NULL,
+    deletedAt INTEGER NOT NULL
+);
