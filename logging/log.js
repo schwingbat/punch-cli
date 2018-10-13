@@ -46,8 +46,8 @@ module.exports = function Logger (config, Punch) {
   const printYear = require('./log-year')
 
   return {
-    async forInterval (interval, criteria = {}) {
-      let { project, object } = criteria
+    async forInterval (interval, args = {}) {
+      let { project, object } = args
       const now = Date.now()
       let punches
 

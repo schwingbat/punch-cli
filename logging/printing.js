@@ -265,6 +265,10 @@ function dayPunches (punches, date, config) {
       str += chalk.grey(s)
     }
 
+    if (config.showPunchIDs) {
+      str += '   ' + chalk.grey(`ID: ${punch.id}`) + '\n'
+    }
+
     if (punch.comments.length > 0) {
       punch.comments.forEach((comment, i) => {
         str += chalk.grey(`   ${symbols.logSessionBullet} `)

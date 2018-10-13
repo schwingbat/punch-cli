@@ -71,13 +71,13 @@ module.exports = function (config, Storage) {
       if (options.autosave) await this.save()
     }
 
-    duration () {
-      return (this.out || new Date()).getTime() - this.in
+    duration (out) {
+      return (out || this.out || new Date()).getTime() - this.in
     }
 
-    pay () {
+    pay (out) {
       // Hours * hourlyRate
-      return this.duration() / 3600000 * this.rate
+      return this.duration(out) / 3600000 * this.rate
     }
 
     durationWithinInterval (interval) {

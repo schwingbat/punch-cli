@@ -93,6 +93,19 @@ const confirm = (question) => {
   }
 }
 
+const confirmAdjustedTime = (date, template = 'Set time to $?') => {
+  const format = require('date-fns/format')
+  const isSameDay = require('date-fns/is_same_day')
+
+  let stringFmt = config.display.timeFormat
+
+  if (!isSameDay(new Date(), date)) {
+    stringFmt += ` [on] ${config.display.dateFormat}`
+  }
+
+  return confirm(template.replace('$', format(date, stringFmt)))
+}
+
 // const questionnaire = (questions) => {
 //   const rl = require('readline-sync')
 
@@ -154,10 +167,17 @@ command({
     short: 't',
     description: 'time to set as punch in time (defaults to current time)',
     type: parseDateTime 
+  }, {
+    name: 'dry-run',
+    description: 'run but don\'t commit punch',
+    type: 'boolean'
   }],
   run: async function (args) {
     const loader = Loader()
+    const dryRun = !!args.options['dry-run']
+
     loader.start('Punching in...')
+
     await handleSync({ silent: true })
 
     const current = await Punch.current(args.project)
@@ -167,17 +187,29 @@ command({
     } else {
       // Check if project is in config file
       if (config.projects[args.project]) {
+
+        if (args.options.time && !confirmAdjustedTime(args.options.time, 'Punch in at $?')) {
+          loader.stop()
+          return
+        }
+
         const punch = new Punch({
           project: args.project,
           in: args.options.time
         })
-        await punch.save()
+
+        if (!dryRun) {
+          await punch.save()
+        }
 
         updateCurrentMarker(punch)
 
         // const time = format(new Date(), config.display.timeFormat)
         loader.stop(chalk.green(config.symbols.success) + ` Punched in on ${getLabelFor(args.project)}. ${getMessageFor('punched-in', { default: '' })}`)
-        handleSync()
+        
+        if (!dryRun) {
+          handleSync()
+        }
       } else {
         loader.stop(`\n${chalk.yellow(config.symbols.warning)} ${chalk.bold(args.project)} is not a project in your config file. You'll have to add it first.\nEnter '${chalk.bold('punch config')}' to edit your configuration.\n`)
       }
@@ -206,10 +238,17 @@ command({
     name: 'no-comment',
     description: 'punch out without warning about a lack of comments',
     type: 'boolean'
+  }, {
+    name: 'dry-run',
+    description: 'run but don\'t commit punch out',
+    type: 'boolean'
   }],
   run: async function (args) {
     const loader = Loader()
+    const dryRun = args.options['dry-run']
+
     loader.start('Punching out...')
+    
     await handleSync({ silent: true })
 
     let current
@@ -248,20 +287,27 @@ command({
           return
         }
       }
+
+      if (args.options.time && !confirmAdjustedTime(args.options.time, 'Punch out at $?')) {
+        loader.stop()
+        return
+      }
       
       const formatDate = require('date-fns/format')
       const formatDuration = require('./format/duration')
       const formatCurrency = require('./format/currency')
 
-      await current.punchOut(args.options.comment, {
-        autosave: true,
-        time: args.options.time || new Date()
-      })
+      if (!dryRun) {
+        await current.punchOut(args.options.comment, {
+          autosave: true,
+          time: args.options.time || new Date()
+        })
+      }
 
       const label = getLabelFor(current.project)
-      const duration = formatDuration(current.duration())
+      const duration = formatDuration(current.duration(args.options.time))
       const time = formatDate(args.options.time || new Date(), config.display.timeFormat)
-      const pay = current.pay()
+      const pay = current.pay(args.options.time)
 
       let str = `Punched out on ${label} at ${time}. Worked for ${duration}`
       if (pay > 0) {
@@ -270,7 +316,7 @@ command({
       loader.stop(chalk.green(config.symbols.success) + ' ' + str + '.')
 
       updateCurrentMarker('')
-      handleSync()
+      if (!dryRun) { handleSync() }
     } else {
       loader.stop(chalk.yellow(config.symbols.warning) + ` You're not punched in!`)
     }
@@ -664,10 +710,18 @@ command({
     short: 'o',
     type: 'string',
     description: 'show only punches tagged with a given comment object (e.g. @task:1669)'
+  }, {
+    name: 'show-id',
+    type: 'boolean',
+    description: 'print punch ID (temporarily set config.showPunchIDs to true)'
   }],
   run: function (args) {
     const fuzzyParse = require('./utils/fuzzy-parse')
     const interval = fuzzyParse(args.when)
+
+    if (args.options['show-id']) {
+      config.showPunchIDs = true
+    }
 
     if (interval) {
       require('./logging/log')(config, Punch).forInterval(interval, args.options)
