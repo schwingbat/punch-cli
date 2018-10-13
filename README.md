@@ -1,6 +1,10 @@
 # Punch
 
-Punch is a cross-platform time tracker for your terminal. You just `punch in` when you start working and `punch out` when you stop. You can also `punch sync` to synchronize your data with Amazon S3 and other backends, so your work can follow you between computers and operating systems throughout the day. Punch is currently functional; I've been using it every day to track and invoice projects for the last year. It has the odd issue here and there, but over all it's pretty solid.
+Punch is a cross-platform time tracker for your terminal. You just `punch in` when you start working and `punch out` when you stop. You can also `punch sync` to synchronize your data with Amazon S3 and other backends, so your work can follow you between computers and operating systems throughout the day. 
+
+Track time on multiple projects, view your aggregate time and earnings in marvelous Technicolor and generate invoices using Handlebars templates. You can also write custom exporters in JavaScript so you can get your data out in any format you need it, whether you want to pop it in a spreadsheet or import into another time tracker application. Punch is a timesheet program for keyboard-loving power users.
+
+While not perfectly polished, Punch is currently functional; I've been using it every day to track and invoice projects for the last year. It has the odd issue here and there, but over all it's pretty solid.
 
 Thanks to the stateless nature of Punch, nothing actually runs in the background while punched in. You can `punch in` on one computer and `punch out` on another as long as both computers are configured to sync with the same source.
 
