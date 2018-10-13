@@ -1,6 +1,6 @@
 {
   "name": "@schwingbat/punch",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "A CLI time tracker that syncs.",
   "main": "main.js",
   "bin": {

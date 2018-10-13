@@ -445,7 +445,7 @@ command({
 
 command({
   signature: 'replace-comment <punchID> <commentIndex> <newComment>',
-  description: 'replace the text of a comment on a punch',
+  description: 'replace the text of an existing comment',
   arguments: [{
     name: 'punchID',
     description: 'ID of a given punch (use "punch log --with-ids" to find IDs)'
@@ -548,54 +548,54 @@ command({
   }
 })
 
-command({
-  signature: 'now',
-  description: 'show stats for the current session',
-  options: [{
-    name: 'minimal',
-    short: 'm',
-    description: 'print a stripped down output for scripting use',
-    type: 'boolean'
-  }, {
-    name: 'project-only',
-    short: 'p',
-    description: 'print only the project name',
-    type: 'boolean'
-  }],
-  run: async function (args) {
-    const current = await Punch.current()
-    const formatDuration = require('./format/duration')
+// command({
+//   signature: 'now',
+//   description: 'show stats for the current session',
+//   options: [{
+//     name: 'minimal',
+//     short: 'm',
+//     description: 'print a stripped down output for scripting use',
+//     type: 'boolean'
+//   }, {
+//     name: 'project-only',
+//     short: 'p',
+//     description: 'print only the project name',
+//     type: 'boolean'
+//   }],
+//   run: async function (args) {
+//     const current = await Punch.current()
+//     const formatDuration = require('./format/duration')
 
-    updateCurrentMarker(current)
+//     updateCurrentMarker(current)
 
-    if (args.options.minimal) {
-      if (current) {
-        if (args.options['project-only']) {
-          console.log(getLabelFor(current.project))
-        } else {
-          console.log(`${getLabelFor(current.project)}: ${formatDuration(current.duration())}`)
-        }
-      }
-    } else {
-      if (current) {
-        // Print current session stats.
-        // Project name, current pay, time worked,
-        console.log(`You've been punched in on ${getLabelFor(current.project)} for ${formatDuration(Date.now() - current.in)}.`)
-      } else {
-        let message = "You're not punched in."
+//     if (args.options.minimal) {
+//       if (current) {
+//         if (args.options['project-only']) {
+//           console.log(getLabelFor(current.project))
+//         } else {
+//           console.log(`${getLabelFor(current.project)}: ${formatDuration(current.duration())}`)
+//         }
+//       }
+//     } else {
+//       if (current) {
+//         // Print current session stats.
+//         // Project name, current pay, time worked,
+//         console.log(`You've been punched in on ${getLabelFor(current.project)} for ${formatDuration(Date.now() - current.in)}.`)
+//       } else {
+//         let message = "You're not punched in."
 
-        const latest = await Punch.latest()
-        if (latest) {
-          const label = getLabelFor(latest.project)
-          const timeDiff = formatDuration(Date.now() - latest.out, { long: true })
-          message += ` You punched out of ${label} ${timeDiff} ago.`
-        }
+//         const latest = await Punch.latest()
+//         if (latest) {
+//           const label = getLabelFor(latest.project)
+//           const timeDiff = formatDuration(Date.now() - latest.out, { long: true })
+//           message += ` You punched out of ${label} ${timeDiff} ago.`
+//         }
 
-        console.log(message)
-      }
-    }
-  }
-})
+//         console.log(message)
+//       }
+//     }
+//   }
+// })
 
 command({
   signature: 'create <project>',
@@ -707,6 +707,7 @@ command({
 
 command({
   signature: 'delete <punchID>',
+  description: 'delete a punch',
   arguments: [{
     name: 'punchID',
     description: 'ID of a given punch (use "punch log --with-ids" to find IDs)',

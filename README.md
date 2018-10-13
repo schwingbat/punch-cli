@@ -1,6 +1,6 @@
 # Punch
 
-Punch is a cross-platform time tracker for your terminal. You just `punch in` when you start working and `punch out` when you stop. You can also `punch sync` to synchronize your data, so your work can follow you between computers and operating systems throughout the day. Punch is currently functional; I've been using it every day to track and invoice projects for the last few months. It has the odd issue here and there, but over all it's currently pretty solid.
+Punch is a cross-platform time tracker for your terminal. You just `punch in` when you start working and `punch out` when you stop. You can also `punch sync` to synchronize your data with Amazon S3 and other backends, so your work can follow you between computers and operating systems throughout the day. Punch is currently functional; I've been using it every day to track and invoice projects for the last year. It has the odd issue here and there, but over all it's pretty solid.
 
 Thanks to the stateless nature of Punch, nothing actually runs in the background while punched in. You can `punch in` on one computer and `punch out` on another as long as both computers are configured to sync with the same source.
 
@@ -10,12 +10,12 @@ Thanks to the stateless nature of Punch, nothing actually runs in the background
 - A terminal emulator (ideally with Unicode support)
 - [Node.js 8+](https://nodejs.org/en/)
 
-## v2.0 To Do
+## To Do
 
 - [ ] Add quick setup for fresh installs (generate directories, create skeleton config)
 - [ ] Implement weekly log
 - [X] Implement yearly log
-- [ ] Generate logs for specific month/year (currently just relative - `this month`, `last month`)
+- [X] Generate logs for specific month/year (currently just relative - `this month`, `last month`)
 
 ## Configuration
 
@@ -26,33 +26,47 @@ Thanks to the stateless nature of Punch, nothing actually runs in the background
 Output from `punch help`:
 
 ```
-punch v1.13.0
+  punch v2.1.0
 
-a <param> is required
-a [param] is optional
-a param... groups any arguments after this point into one argument
+  a <param> is required
+  a [param] is optional
+  a param... groups any arguments after this point into one argument
 
-Commands:
-  in <project>
-    start tracking time on a project
-  out [comment...]
-    stop tracking time and record an optional description of tasks completed
-  comment <comment...>
-    add a comment to remember what you worked on
-  create <project> <timeIn> <timeOut> [comment...]
-    create a punch
-  watch
-    continue running to show automatically updated stats of your current session
-  project <name>
-    get statistics for a specific project
-  projects [names...]
-    show statistics for all projects in your config file
-  log [when...]
-    show a summary of punches for a given period ("last month", "this week", "two days ago", etc)
-  invoice <project> <startDate> <endDate> <outputFile>
-    automatically generate an invoice using punch data
-  sync
-    synchronize with any providers in your config file
-  config [editor]
-    open config file in editor - uses EDITOR env var unless an editor command is specified.
+  Run punch <command> --help with any of the following commands for more information.
+
+  Commands:
+    in <project>
+      start tracking time on a project
+    out [project]
+      stop tracking time
+    comment <comment...>
+      add a comment to remember what you worked on
+    add-comment <punchID> <comment...>
+      add a comment to a specific punch
+    replace-comment <punchID> <commentIndex> <newComment>
+      replace the text of an existing comment
+    delete-comment <punchID> <commentIndex>
+      delete a comment from a punch
+    create <project>
+      create a punch
+    delete <punchID>
+      delete a punch
+    watch
+      continue running to show automatically updated stats of your current session
+    projects [names...]
+      show statistics for all projects in your config file
+    log [when...]
+      show a summary of punches for a given period ("last month", "this week", "two days ago", etc)
+    invoice <project> <startDate> <endDate> <outputFile>
+      automatically generate an invoice using punch data
+    sync [services...]
+      synchronize with any services in your config file
+    config
+      open config file in editor - uses EDITOR env var unless an editor flag is specified.
+    rename-alias <from> <to>
+      move all punches with project alias <from> to <to>
+    rename-comment-object <from> <to>
+      rename comment objects with name <from> to name <to>
+    adjust-rate <project> <newRate>
+      adjust pay rate for punches
 ```
