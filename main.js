@@ -153,8 +153,7 @@ const allPunchedIn = async () => {
 ||       Parse/Dispatch      ||
 \* ========================= */
 
-command({
-  signature: 'in <project>',
+command('in <project>', {
   description: 'start tracking time on a project',
   examples: ['punch in punch-cli',
              'punch in tps-reports'],
@@ -217,8 +216,7 @@ command({
   }
 })
 
-command({
-  signature: 'out [project]',
+command('out [project]', {
   description: 'stop tracking time',
   arguments: [{
     name: 'project',
@@ -323,8 +321,77 @@ command({
   }
 })
 
-command({
-  signature: 'comment <comment...>',
+command('log [when...]', {
+  description: 'show a summary of punches for a given period ("last month", "this week", "two days ago", etc)',
+  arguments: [{
+    name: 'when',
+    description: 'time period to log',
+    default: 'today',
+    parse: words => words.join(' ')
+  }],
+  options: [{
+    name: 'project',
+    short: 'p',
+    type: 'string',
+    description: 'show only punches for a given project'
+  }, {
+    name: 'object',
+    short: 'o',
+    type: 'string',
+    description: 'show only punches tagged with a given comment object (e.g. @task:1669)'
+  }, {
+    name: 'with-ids',
+    type: 'boolean',
+    description: 'print punch IDs'
+  }],
+  run: function (args) {
+    const fuzzyParse = require('./utils/fuzzy-parse')
+    const interval = fuzzyParse(args.when)
+
+    if (args.options['with-ids']) {
+      config.showPunchIDs = true
+      config.showCommentIndices = true
+    }
+
+    if (interval) {
+      require('./logging/log')(config, Punch).forInterval(interval, args.options)
+    }
+  }
+})
+
+command('today', {
+  description: 'show a summary of today\'s punches (alias of "punch log today")',
+  hidden: true,
+  run: function () {
+    invoke('log today')
+  }
+})
+
+command('yesterday', {
+  description: 'show a summary of yesterday\'s punches (alias of "punch log yesterday")',
+  hidden: true,
+  run: function () {
+    invoke('log yesterday')
+  }
+})
+
+command('week', {
+  description: 'show a summary of punches for the current week (alias of "punch log this week")',
+  hidden: true,
+  run: function () {
+    invoke('log this week')
+  }
+})
+
+command('month', {
+  description: 'show a summary of punches for the current month (alias of "punch log this month")',
+  hidden: true,
+  run: function () {
+    invoke('log this month')
+  }
+})
+
+command('comment <comment...>', {
   description: 'add a comment to remember what you worked on',
   arguments: [{
     name: 'comment',
@@ -403,8 +470,7 @@ command({
   }
 })
 
-command({
-  signature: 'add-comment <punchID> <comment...>',
+command('add-comment <punchID> <comment...>', {
   description: 'add a comment to a specific punch',
   arguments: [{
     name: 'punchID',
@@ -443,8 +509,7 @@ command({
   }
 })
 
-command({
-  signature: 'replace-comment <punchID> <commentIndex> <newComment>',
+command('replace-comment <punchID> <commentIndex> <newComment>', {
   description: 'replace the text of an existing comment',
   arguments: [{
     name: 'punchID',
@@ -498,8 +563,7 @@ command({
   }
 })
 
-command({
-  signature: 'delete-comment <punchID> <commentIndex>',
+command('delete-comment <punchID> <commentIndex>', {
   description: 'delete a comment from a punch',
   arguments: [{
     name: 'punchID',
@@ -548,8 +612,7 @@ command({
   }
 })
 
-// command({
-//   signature: 'now',
+// command('now', {
 //   description: 'show stats for the current session',
 //   options: [{
 //     name: 'minimal',
@@ -597,8 +660,7 @@ command({
 //   }
 // })
 
-command({
-  signature: 'create <project>',
+command('create <project>', {
   description: 'create a punch',
   arguments: [{
     name: 'project',
@@ -678,35 +740,7 @@ command({
   }
 })
 
-command({
-  signature: 'purge <project>',
-  description: 'destroy all punches for a given project',
-  hidden: true,
-  disabled: true,
-  run: async function (args) {
-    const { project } = args
-    const label = getLabelFor(project)
-    const punches = await Punch.select(p => p.project === project)
-
-    if (punches.length > 0) {
-      const formatDuration = require('./format/duration')
-      const totalTime = punches.reduce((sum, p) => sum + p.duration(), 0)
-      const duration = formatDuration(totalTime)
-
-      // Confirm and commit changes to files.
-      if (confirm(`Purging ${label} would delete ${punches.length} punches totalling ${duration}. Are you sure?`)) {
-        console.log('Punch purge not yet re-implemented')
-      } else {
-        return false
-      }
-    } else {
-      console.log(`${label} has no punches.`)
-    }
-  }
-})
-
-command({
-  signature: 'delete <punchID>',
+command('delete <punchID>', {
   description: 'delete a punch',
   arguments: [{
     name: 'punchID',
@@ -737,214 +771,52 @@ command({
   }
 })
 
-command({
-  signature: 'watch',
-  description: 'continue running to show automatically updated stats of your current session',
-  options: [{
-    name: 'animate',
-    short: 'a',
-    type: 'boolean',
-    description: 'enable animations for the clock'
-  }],
-  run: async function (args) {
-    const active = await Punch.current()
-
-    if (active) {
-      const formatCurrency = require('./format/currency')
-      const formatDuration = require('./format/duration')
-      const { startOfMonth,
-              endOfMonth,
-              startOfDay,
-              endOfDay } = require('date-fns')
-      const logUpdate = require('log-update')
-      const printLength = require('./utils/print-length')
-      const clock = require('./utils/big-clock')({
-        style: 'clock-block',
-        letterSpacing: 1,
-        animate: !!args.options.animate
-      })
-
-      const now = new Date()
-
-      // Get total for month and day
-      let monthlyTotal = 0
-      let dailyTotal = 0
-
-      // Total daily and monthly amounts.
-      // Skip the active punch so we can just add its current pay() value
-      // to get correct amounts for daily and monthly earnings.
-      const punches = await Punch.select(p => p.in >= startOfMonth(now)
-                                           && p.in <= endOfMonth(now)
-                                           && p.id !== active.id)
-
-      punches.forEach(p => {
-        if (p.in >= startOfDay(now) && p.in <= endOfDay(now)) {
-          dailyTotal += p.pay()
-        }
-        monthlyTotal += p.pay()
-      })
-
-      const update = () => {
-        const duration = active.duration()
-        const activePay = active.pay()
-        const numbers = clock.display(formatDuration(duration, { style: 'clock' }))
-
-        let topLine = `Working on ${getLabelFor(active.project)}`
-        let bottomLine = ''
-
-        // Don't bother showing money stats for unpaid projects.
-        if (activePay > 0) {
-          const money = formatCurrency(activePay)
-          const numbersLength = printLength(numbers.split('\n')[0])
-          const monthly = formatCurrency(monthlyTotal + activePay) + ' this month'
-          const daily = formatCurrency(dailyTotal + activePay) + ' today'
-
-          topLine += money.padStart(numbersLength - topLine.length, ' ')
-          bottomLine = monthly + daily.padStart(numbersLength - monthly.length, ' ')
-        }
-
-        logUpdate('\n' + topLine + '\n' + numbers + bottomLine)
-      }
-
-      update()
-      setInterval(update, args.options.animate ? 64 : 1000)
-    } else {
-      console.log(messageFor('not-punched-in'))
-    }
-  }
-})
-
-command({
-  signature: 'projects [names...]',
-  description: 'show statistics for all projects in your config file',
-  run: async function (args) {
-    const { projectSummary } = require('./logging/printing')
-    const formatSummary = require('./format/project-summary')
-
-    let names = args.names || Object.keys(config.projects)
-
-    let allPunches = await Punch.all()
-    allPunches = allPunches.sort(ascendingBy('in'))
-    const summaries = []
-
-    for (let i = 0; i < names.length; i++) {
-      const project = names[i]
-      const punches = allPunches.filter(p => p.project === project)
-
-      if (punches.length > 0) {
-        let firstPunch = punches[0]
-        let latestPunch = punches[punches.length - 1]
-
-        const projectData = config.projects[project]
-        const fullName = getLabelFor(project)
-        const totalTime = punches.reduce((sum, punch) => sum + punch.duration(), 0)
-        const totalPay = punches.reduce((sum, punch) => sum + punch.pay(), 0)
-        const hourlyRate = projectData && projectData.hourlyRate
-          ? projectData.hourlyRate
-          : 0
-
-        summaries.push({
-          fullName,
-          description: projectData.description,
-          totalTime,
-          totalPay,
-          hourlyRate,
-          firstPunch,
-          latestPunch,
-          totalPunches: punches.length
-        })
-      }
-    }
-
-    let str = ''
-
-    summaries
-      .sort(ascendingBy('fullName'))
-      .forEach(s => {
-        str += projectSummary(formatSummary(config, s)) + '\n\n'
-      })
-
-    console.log(padWithLines(str, 1))
-  }
-})
-
-command({
-  signature: 'log [when...]',
-  description: 'show a summary of punches for a given period ("last month", "this week", "two days ago", etc)',
+command('adjust <punchID>', {
+  description: 'adjust punch start/end times',
   arguments: [{
-    name: 'when',
-    description: 'time period to log',
-    default: 'today',
-    parse: words => words.join(' ')
+    name: 'punchID',
+    description: 'ID of a given punch (use "punch log --with-ids" to find IDs)',
+    // parse: val => val
   }],
   options: [{
-    name: 'project',
-    short: 'p',
-    type: 'string',
-    description: 'show only punches for a given project'
+    name: 'start',
+    short: 's',
+    description: 'start date and time for punch',
+    type: parseDateTime
   }, {
-    name: 'object',
-    short: 'o',
-    type: 'string',
-    description: 'show only punches tagged with a given comment object (e.g. @task:1669)'
-  }, {
-    name: 'with-ids',
-    type: 'boolean',
-    description: 'print punch IDs'
+    name: 'end',
+    short: 'e',
+    description: 'start date and time for punch',
+    type: parseDateTime
   }],
-  run: function (args) {
-    const fuzzyParse = require('./utils/fuzzy-parse')
-    const interval = fuzzyParse(args.when)
+  run: async function (args) {
+    const punch = (await Punch.select(p => p.id === args.punchID))[0]
 
-    if (args.options['with-ids']) {
-      config.showPunchIDs = true
-      config.showCommentIndices = true
+    if (punch) {
+      const format = require('date-fns/format')
+      if (!punch.out && args.options.end) {
+        return console.log('You can\'t set and end for a running punch. Use ' + chalk.bold('punch out -t <value>') + ' to set a punch out time.')
+      }
+
+      if (args.options.start) punch.in = args.options.start
+      if (args.options.end) punch.out = args.options.end
+
+      console.log({
+        start: format(punch.in, config.display.dateFormat + ' ' + config.display.timeFormat),
+        end: format(punch.out, config.display.dateFormat + ' ' + config.display.timeFormat)
+      })
+
+      if (confirm('?')) {
+        await punch.save()
+        console.log('Saved')
+      }
+    } else {
+      console.log('Punch not found')
     }
-
-    if (interval) {
-      require('./logging/log')(config, Punch).forInterval(interval, args.options)
-    }
   }
 })
 
-command({
-  signature: 'today',
-  description: 'show a summary of today\'s punches (alias of "punch log today")',
-  hidden: true,
-  run: function () {
-    invoke('log today')
-  }
-})
-
-command({
-  signature: 'yesterday',
-  description: 'show a summary of yesterday\'s punches (alias of "punch log yesterday")',
-  hidden: true,
-  run: function () {
-    invoke('log yesterday')
-  }
-})
-
-command({
-  signature: 'week',
-  description: 'show a summary of punches for the current week (alias of "punch log this week")',
-  hidden: true,
-  run: function () {
-    invoke('log this week')
-  }
-})
-
-command({
-  signature: 'month',
-  description: 'show a summary of punches for the current month (alias of "punch log this month")',
-  hidden: true,
-  run: function () {
-    invoke('log this month')
-  }
-})
-
-command({
-  signature: 'invoice <project> <startDate> <endDate> <outputFile>',
+command('invoice <project> <startDate> <endDate> <outputFile>', {
   description: 'automatically generate an invoice using punch data',
   arguments: [{
     name: 'project',
@@ -1058,8 +930,7 @@ command({
   }
 })
 
-command({
-  signature: 'sync [services...]',
+command('sync [services...]', {
   description: 'synchronize with any services in your config file',
   arguments: [{
     name: 'services',
@@ -1082,8 +953,7 @@ command({
   }
 })
 
-command({
-  signature: 'config',
+command('config', {
   description: 'open config file in editor - uses EDITOR env var unless an editor flag is specified.',
   options: [{
     name: 'editor',
@@ -1102,8 +972,162 @@ command({
   }
 })
 
-command({
-  signature: 'edit [date]',
+command('purge <project>', {
+  description: 'destroy all punches for a given project',
+  hidden: true,
+  disabled: true,
+  run: async function (args) {
+    const { project } = args
+    const label = getLabelFor(project)
+    const punches = await Punch.select(p => p.project === project)
+
+    if (punches.length > 0) {
+      const formatDuration = require('./format/duration')
+      const totalTime = punches.reduce((sum, p) => sum + p.duration(), 0)
+      const duration = formatDuration(totalTime)
+
+      // Confirm and commit changes to files.
+      if (confirm(`Purging ${label} would delete ${punches.length} punches totalling ${duration}. Are you sure?`)) {
+        console.log('Punch purge not yet re-implemented')
+      } else {
+        return false
+      }
+    } else {
+      console.log(`${label} has no punches.`)
+    }
+  }
+})
+
+command('watch', {
+  description: 'continue running to show automatically updated stats of your current session',
+  options: [{
+    name: 'animate',
+    short: 'a',
+    type: 'boolean',
+    description: 'enable animations for the clock'
+  }],
+  run: async function (args) {
+    const active = await Punch.current()
+
+    if (active) {
+      const formatCurrency = require('./format/currency')
+      const formatDuration = require('./format/duration')
+      const { startOfMonth,
+              endOfMonth,
+              startOfDay,
+              endOfDay } = require('date-fns')
+      const logUpdate = require('log-update')
+      const printLength = require('./utils/print-length')
+      const clock = require('./utils/big-clock')({
+        style: 'clock-block',
+        letterSpacing: 1,
+        animate: !!args.options.animate
+      })
+
+      const now = new Date()
+
+      // Get total for month and day
+      let monthlyTotal = 0
+      let dailyTotal = 0
+
+      // Total daily and monthly amounts.
+      // Skip the active punch so we can just add its current pay() value
+      // to get correct amounts for daily and monthly earnings.
+      const punches = await Punch.select(p => p.in >= startOfMonth(now)
+                                           && p.in <= endOfMonth(now)
+                                           && p.id !== active.id)
+
+      punches.forEach(p => {
+        if (p.in >= startOfDay(now) && p.in <= endOfDay(now)) {
+          dailyTotal += p.pay()
+        }
+        monthlyTotal += p.pay()
+      })
+
+      const update = () => {
+        const duration = active.duration()
+        const activePay = active.pay()
+        const numbers = clock.display(formatDuration(duration, { style: 'clock' }))
+
+        let topLine = `Working on ${getLabelFor(active.project)}`
+        let bottomLine = ''
+
+        // Don't bother showing money stats for unpaid projects.
+        if (activePay > 0) {
+          const money = formatCurrency(activePay)
+          const numbersLength = printLength(numbers.split('\n')[0])
+          const monthly = formatCurrency(monthlyTotal + activePay) + ' this month'
+          const daily = formatCurrency(dailyTotal + activePay) + ' today'
+
+          topLine += money.padStart(numbersLength - topLine.length, ' ')
+          bottomLine = monthly + daily.padStart(numbersLength - monthly.length, ' ')
+        }
+
+        logUpdate('\n' + topLine + '\n' + numbers + bottomLine)
+      }
+
+      update()
+      setInterval(update, args.options.animate ? 64 : 1000)
+    } else {
+      console.log(messageFor('not-punched-in'))
+    }
+  }
+})
+
+command('projects [names...]', {
+  description: 'show statistics for all projects in your config file',
+  run: async function (args) {
+    const { projectSummary } = require('./logging/printing')
+    const formatSummary = require('./format/project-summary')
+
+    let names = args.names || Object.keys(config.projects)
+
+    let allPunches = await Punch.all()
+    allPunches = allPunches.sort(ascendingBy('in'))
+    const summaries = []
+
+    for (let i = 0; i < names.length; i++) {
+      const project = names[i]
+      const punches = allPunches.filter(p => p.project === project)
+
+      if (punches.length > 0) {
+        let firstPunch = punches[0]
+        let latestPunch = punches[punches.length - 1]
+
+        const projectData = config.projects[project]
+        const fullName = getLabelFor(project)
+        const totalTime = punches.reduce((sum, punch) => sum + punch.duration(), 0)
+        const totalPay = punches.reduce((sum, punch) => sum + punch.pay(), 0)
+        const hourlyRate = projectData && projectData.hourlyRate
+          ? projectData.hourlyRate
+          : 0
+
+        summaries.push({
+          fullName,
+          description: projectData.description,
+          totalTime,
+          totalPay,
+          hourlyRate,
+          firstPunch,
+          latestPunch,
+          totalPunches: punches.length
+        })
+      }
+    }
+
+    let str = ''
+
+    summaries
+      .sort(ascendingBy('fullName'))
+      .forEach(s => {
+        str += projectSummary(formatSummary(config, s)) + '\n\n'
+      })
+
+    console.log(padWithLines(str, 1))
+  }
+})
+
+command('edit [date]', {
   description: 'edit punchfile for the given date - uses EDITOR env var unless an editor is specified',
   arguments: [{
     name: 'date',
@@ -1137,8 +1161,7 @@ command({
   }
 })
 
-command({
-  signature: 'timestamp [time]',
+command('timestamp [time]', {
   description: 'get a millisecond timestamp for a given time (mm/dd/yyyy@hh:mm:ss)',
   examples: [
     'punch timestamp 6/5/2018@10:31am',
@@ -1159,8 +1182,7 @@ command({
   }
 })
 
-command({
-  signature: 'migrate <version>',
+command('migrate <version>', {
   description: 'migrate punchfiles with older schemas up to the specified version',
   examples: [
     'punch migrate 3'
@@ -1200,8 +1222,7 @@ command({
   }
 })
 
-command({
-  signature: 'rename-alias <from> <to>',
+command('rename-alias <from> <to>', {
   description: 'move all punches with project alias <from> to <to>',
   //hidden: true,
   examples: [
@@ -1228,8 +1249,7 @@ command({
   }
 })
 
-command({
-  signature: 'rename-comment-object <from> <to>',
+command('rename-comment-object <from> <to>', {
   description: 'rename comment objects with name <from> to name <to>',
   //hidden: true,
   examples: [
@@ -1271,8 +1291,7 @@ command({
   }
 })
 
-command({
-  signature: 'adjust-rate <project> <newRate>',
+command('adjust-rate <project> <newRate>', {
   description: 'adjust pay rate for punches',
   //hidden: true,
   examples: [
@@ -1315,8 +1334,7 @@ command({
   }
 })
 
-command({
-  signature: 'export',
+command('export', {
   description: 'exports punch data',
   hidden: true,
   examples: [],
@@ -1404,8 +1422,7 @@ module.exports = function (punches) {
   }
 })
 
-command({
-  signature: 'sql <command>',
+command('sql <command>', {
   description: 'run SQL commands against the local punch database',
   hidden: true,
   arguments: [{
@@ -1437,8 +1454,7 @@ command({
   }
 })
 
-command({
-  signature: 'migrate-to-sqlite',
+command('migrate-to-sqlite', {
   description: 'copies punchfiles into SQLite database',
   hidden: true,
   async run (args) {

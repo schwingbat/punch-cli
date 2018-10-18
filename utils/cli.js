@@ -354,13 +354,13 @@ function makeGeneralHelp (program, commands) {
 function CLI (program) {
   const commands = {}
 
-  const command = (config) => {
+  const command = (signature, config) => {
     if (!config || config.disabled) {
       // BAIL!
       return
     }
 
-    const { signature, description, run } = config
+    const { description, run } = config
 
     const command = signature.split(' ')[0]
 
