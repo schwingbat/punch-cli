@@ -1,5 +1,6 @@
 const path = require('path')
 const chalk = require('chalk')
+const is = require('@schwingbat/is')
 
 const nameMap = {
   'dummy':      'dummy.service.js',
@@ -20,7 +21,7 @@ function Syncer (config, Punch) {
     let serviceConf
     let name
 
-    if (typeof serviceName === 'object') {
+    if (is.object(serviceName)) {
       serviceConf = serviceName
       name = serviceConf.name.toLowerCase()
     } else {
@@ -71,7 +72,7 @@ function Syncer (config, Punch) {
       For now it's just single sync
     */
 
-   if (typeof service !== 'object' || typeof service.getManifest !== 'function') {
+   if (is.not.object(service) || is.not.func(service.getManifest)) {
      throw new Error('sync() takes an instance of a sync service as a parameter.\nUse loadService to obtain one.')
    }
 

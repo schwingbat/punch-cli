@@ -13,6 +13,7 @@ const messageFor = require('./utils/message-for')
 const padWithLines = require('./logging/pad-with-lines')
 const Loader = require('./utils/loader')
 const chalk = require('chalk')
+const is = require('@schwingbat/is')
 
 const { command, run, invoke } = CLI({
   name: 'punch',
@@ -127,7 +128,7 @@ const handleSync = async ({ silent } = {}) => {
 const updateCurrentMarker = (current) => {
   // Updates the ~/.punch/current file
   let label = ''
-  if (typeof current === 'string') {
+  if (is.string(current)) {
     label = current
   } else if (current instanceof Punch) {
     label = getLabelFor(current.project)

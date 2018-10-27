@@ -1,4 +1,5 @@
 const chalk = require('chalk')
+const is = require('@schwingbat/is')
 
 function parseSignature (str) {
   let i = 0
@@ -105,7 +106,7 @@ function mapArgs (args, argMap, optionMap = []) {
 
   // Set default values
   optionMap.filter(o => o.default).forEach(o => {
-    if (typeof o.default === 'function') {
+    if (is.func(o.default)) {
       mapped.options[o.name] = o.default()
     } else {
       mapped.options[o.name] = o.default
@@ -121,7 +122,7 @@ function mapArgs (args, argMap, optionMap = []) {
       let [arg, value] = args[i].replace(/^-*/g, '').split('=')
       const map = optionMap.find(op => op.name === arg || op.short === arg)
       if (map) {
-        if (typeof map.type === 'string') {
+        if (is.string(map.type)) {
           if (map.type.toLowerCase() === 'boolean') {
             mapped.options[map.name] = true
           } else {
@@ -142,7 +143,7 @@ function mapArgs (args, argMap, optionMap = []) {
             }
             mapped.options[map.name] = value
           }
-        } else if (typeof map.type === 'function') {
+        } else if (is.func(map.type)) {
           if (map.type === Boolean) {
             mapped.options[map.name] = true
           } else {
@@ -153,7 +154,7 @@ function mapArgs (args, argMap, optionMap = []) {
             mapped.options[map.name] = map.type(value)
           }
         } else {
-          console.log(`option.${map.name}: Type must be either a string or a function. Is ${typeof map.type}`)
+          console.log(`option.${map.name}: Type must be either a string or a function. Is ${is.what(map.type)}`)
         }
       }
     } else {
@@ -171,7 +172,7 @@ function mapArgs (args, argMap, optionMap = []) {
       } else {
         value = args[i]
       }
-      if (typeof arg.parse === 'function') {
+      if (is.func(arg.parse)) {
         try {
           value = arg.parse(value)
         } catch (err) {
@@ -180,7 +181,7 @@ function mapArgs (args, argMap, optionMap = []) {
       }
       mapped[arg.name] = value
     } else if (arg.hasOwnProperty('default')) {
-      if (typeof arg.default === 'function') {
+      if (is.func(arg.default)) {
         mapped[arg.name] = arg.default()
       } else {
         mapped[arg.name] = arg.default
