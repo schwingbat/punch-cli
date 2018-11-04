@@ -70,7 +70,22 @@ module.exports = function formatDuration (milliseconds, opts = {}) {
     let out = []
 
     if ('hours' in parts) {
-      let hours = parts.hours + (opts.long ? ' hours' : 'h')
+      let hourString = parts.hours.toString()
+      
+      // Add commas
+      if (hourString.length > 3) {
+        const chars = []
+        const rev = hourString.split('').reverse()
+        for (let i = 0; i < rev.length; i++) {
+          chars.push(rev[i])
+          if (i !== 0 && i !== rev.length - 1 && (i + 1) % 3=== 0) {
+            chars.push(',')
+          }
+        }
+        hourString = chars.reverse().join('')
+      }
+
+      let hours = hourString + (opts.long ? ' hours' : 'h')
       out.push(hours)
     }
 
