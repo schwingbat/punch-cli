@@ -291,6 +291,71 @@ function dayPunches (punches, date, config) {
   return str
 }
 
+function simplePunches (punches, config) {
+  const symbols = config.symbols
+  let str = ''
+
+  punches.forEach(punch => {
+    let out = punch.out || new Date()
+
+    let timeSpan = ''
+    timeSpan += formatDate(punch.in, config.display.timeFormat).padStart(8) + ' - '
+    if (punch.out) {
+      timeSpan += formatDate(out, config.display.timeFormat).padStart(8)
+    } else {
+      timeSpan += 'NOW'.padStart(8)
+    }
+
+    if (punch.out) {
+      timeSpan = chalk.cyan(timeSpan)
+    } else {
+      timeSpan = chalk.bold.green(timeSpan)
+    }
+
+    const project = config.projects[punch.project]
+    const projectName = project ? project.name : punch.project
+    let time
+    const hours = punch.duration() / 3600000
+    if (hours < 1) {
+      time = `${~~(hours * 60)}m`
+    } else {
+      time = `${(hours).toFixed(1)}h`
+    }
+
+    str += timeSpan
+    str += chalk.blue(time.padStart(6))
+    str += chalk.yellow(` [${projectName}]`)
+    if (punch.rate) {
+      str += chalk.grey(` ($${punch.pay().toFixed(2)})`)
+    }
+    str += '\n'
+
+    if (config.showPunchIDs) {
+      str += '   ' + chalk.grey(`ID: ${punch.id}`) + '\n'
+    }
+
+    if (punch.comments.length > 0) {
+      punch.comments.forEach((comment, i) => {
+        str += chalk.grey(`   ${symbols.logSessionBullet} `)
+        if (config.showCommentIndices) {
+          str += chalk.bold(`[${i}] `)
+        } 
+        if (config.display.showCommentTimestamps) {
+          str += formatDate(comment.timestamp, config.display.timeFormat) + ': '
+        }
+        str += wordWrap(comment.toString(), 65).replace('\n', '\n     ')
+
+        if (punch.comments[i + 1]) {
+          str += '\n'
+        }
+      })
+      str += '\n'
+    }
+  })
+
+  return str
+}
+
 function projectSummary ({ name, description, pay, time, rate, stats }) {
   let str = ''
   const statList = [time]
@@ -313,6 +378,7 @@ module.exports = {
   labelTable,
   reportHeader,
   dayPunches,
+  simplePunches,
   summaryTable,
   daySummaryHeader,
   monthSummaryHeader,

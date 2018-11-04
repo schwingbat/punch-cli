@@ -1,19 +1,37 @@
 module.exports = function (config) {
+  const fs = require('fs')
   const { ascendingBy } = require('../utils/sort-factories')
   const formatDate = require('date-fns/format')
   const formatDuration = require('../format/duration')
   const formatCurrency = require('../format/currency')
 
+  const loadFormat = (format) => {
+    const customFormats = fs.readdirSync(config.invoiceTemplatePath)
+
+    let formatter
+
+    for (let format of customFormats) {
+      if (format.toLowerCase() === format.toLowerCase()) {
+        formatter = require('./formats/custom.format.js')
+        break
+      }
+    }
+
+    if (!formatter) {
+      try {
+        formatter = require('./formats/' + format.toLowerCase() + '.format.js')
+      } catch (err) {
+        throw new Error(`Format ${format} is not supported.`)
+      }
+    }
+    return formatter
+  }
+
   return {
     async generate (props) {
       // Load specified format module.
 
-      let format
-      try {
-        format = require('./formats/' + props.output.format.toLowerCase() + '.format.js')
-      } catch (err) {
-        throw new Error(`Format ${props.output.format} is not supported.`)
-      }
+      const format = loadFormat(props.output.format)
 
       // Group punches by day
     
@@ -45,6 +63,7 @@ module.exports = function (config) {
       // Format the data so the template can render it.
 
       const data = {
+        template: props.output.format,
         project: props.project,
         user: props.user,
         client: props.project.client,

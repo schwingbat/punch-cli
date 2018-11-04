@@ -50,11 +50,13 @@ function loadTemplate (directory) {
     }
   }
 
+  // console.log(directory)
+
   let manifest
   if (fs.existsSync(path.join(directory, 'template.mon'))) {
     manifest = MON.parse(fs.readFileSync(path.join(directory, 'template.mon'), 'utf8'))
   } else {
-    manifest = require(path.join(directory, 'template.json'))
+    manifest = JSON.parse(fs.readFileSync(path.join(directory, 'template.json'), 'utf8'))
   }
 
   if (manifest.fonts) {
@@ -121,8 +123,6 @@ handlebars.registerHelper('json', function (object, pretty = false) {
   return JSON.stringify(object, null, pretty ? 2 : null)
 })
 
-
-
 module.exports = function (name, data) {
-  return loadTemplate(path.join(templatesPath, name), data)
+  return loadTemplate(path.isAbsolute(name) ? name : path.join(templatesPath, name), data)
 }

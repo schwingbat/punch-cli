@@ -124,6 +124,32 @@ const handleSync = async ({ silent } = {}) => {
   }
 }
 
+const loadImporter = (name) => {
+  let formatter
+  let formatterPath = path.join(config.punchPath, 'importers', name + '.js')
+  try {
+    formatter = require(formatterPath)
+  } catch (err) {
+    console.log(chalk.red(`\nNo formatter for '${name}'`))
+    console.log(`You can create ${chalk.green(formatterPath)} to define it.`)
+    console.log('Formatters should be a single exported function that takes a file\'s contents as a string and returns an array of Punch objects.\n')
+      console.log(`Here's a good starting point:`)
+      console.log(`
+module.exports = function (fileContentsStr, Punch) {
+  const punches = []
+
+  // Do your thing!
+  // punches.push(new Punch(...))
+
+  return punches
+}
+`)
+    return
+  }
+
+  return formatter
+}
+
 const updateCurrentMarker = (current) => {
   // Updates the ~/.punch/current file
   let label = ''
@@ -423,14 +449,21 @@ command('comment <comment...>', {
       return
     }
 
-    const current = await Punch.current()
+    const current = await Punch.current(args.options.project)
     const { dayPunches } = require('./logging/printing')
 
-    if (!current) {
+    if (current) {
+      current.addComment(args.comment)
+      await current.save()
+
+      console.log('\n  ' + dayPunches([current], Date.now(), config).replace(/\n/g, '\n  '))
+      console.log('Comment saved.')
+      handleSync()
+    } else {
       const formatDate = require('date-fns/format')
       const latest = await Punch.latest()
 
-      let label = getLabelFor(latest.project)
+      // let label = getLabelFor(latest.project)
       let inTime = latest.in
       let outTime = latest.out
       let date = Date.now()
@@ -459,13 +492,6 @@ command('comment <comment...>', {
 
         handleSync()
       }
-    } else {
-      current.addComment(args.comment)
-      await current.save()
-
-      console.log('\n  ' + dayPunches([current], Date.now(), config).replace(/\n/g, '\n  '))
-      console.log('Comment saved.')
-      handleSync()
     }
   }
 })
@@ -496,6 +522,7 @@ command('add-comment <punchID> <comment...>', {
 
       if (confirm(str)) {
         punch.addComment(args.comment)
+        punch.update()
         await punch.save()
 
         console.log('\nComment added.')
@@ -548,6 +575,7 @@ command('replace-comment <punchID> <commentIndex> <newComment>', {
         if (confirm(str)) {
           // Set old comment to deleted
           punch.comments[args.commentIndex].raw = args.newComment
+          punch.update()
           await punch.save()
 
           console.log('\nComment replaced.')
@@ -597,6 +625,7 @@ command('delete-comment <punchID> <commentIndex>', {
         if (confirm(str)) {
           // Set deleted to true and the storage service will handle the rest
           punch.comments[args.commentIndex].deleted = true
+          punch.update()
           await punch.save()
 
           console.log('\nComment deleted.')
@@ -801,6 +830,8 @@ command('adjust <punchID>', {
       if (args.options.start) punch.in = args.options.start
       if (args.options.end) punch.out = args.options.end
 
+      // TODO: Show comparison/preview of changes with a real confirmation
+
       console.log({
         start: format(punch.in, config.display.dateFormat + ' ' + config.display.timeFormat),
         end: format(punch.out, config.display.dateFormat + ' ' + config.display.timeFormat)
@@ -850,6 +881,11 @@ command('invoice <project> <startDate> <endDate> <outputFile>', {
     //   type: 'boolean'
     // },
     {
+      name: 'format',
+      description: 'specify a format rather than guessing from file name',
+      type: 'string'
+    },
+    {
       name: 'yes',
       short: 'y',
       description: 'generation without confirming details',
@@ -875,9 +911,13 @@ command('invoice <project> <startDate> <endDate> <outputFile>', {
     endDate.setHours(23, 59, 59, 999)
 
     let fileFormat
-    let ext = require('path').extname(outputFile)
 
-    switch (ext.toLowerCase()) {
+    if (args.options.format) {
+      fileFormat = args.options.format
+    } else {
+      let ext = require('path').extname(outputFile)
+
+      switch (ext.toLowerCase()) {
       case '.pdf':
         fileFormat = 'PDF'
         break
@@ -889,6 +929,7 @@ command('invoice <project> <startDate> <endDate> <outputFile>', {
         return console.log(`Exporting invoices as ${ext.toLowerCase()} is not yet supported. Use HTML or PDF.`)
       default:
         return console.log(`Can't export to file with an extension of ${ext}`)
+      }
     }
 
     console.log('\n' + labelTable([
@@ -1330,6 +1371,65 @@ command('adjust-rate <project> <newRate>', {
       }
 
       console.log('Updated punches')
+    }
+  }
+})
+
+command('import <file>', {
+  description: 'imports punch data from a file',
+  examples: [
+    'punch import ~/export.csv -f hourstracker'
+  ],
+  arguments: [{
+    name: 'file',
+    description: 'path to a file of importable data',
+  }],
+  options: [{
+    name: 'format',
+    short: 'f',
+    description: 'name of function to handle import (defined in ~/.punch/formatters/import)',
+    type: 'string'
+  }],
+  run: async function (args) {
+    let contents
+    try {
+      contents = fs.readFileSync(args.file, 'utf8')
+    } catch (err) {
+      console.log('Error loading file: ' + err.message)
+    }
+
+    if (!args.options.format) {
+      return console.log('Must pass --format with value')
+    }
+
+    const { simplePunches } = require('./logging/printing')
+    const formatter = loadImporter(args.options.format)
+    const dateFmt = require('date-fns/format')
+    if (formatter) {
+      const punches = formatter(contents, Punch)
+
+      const byDate = {}
+
+      for (const punch of punches) {
+        const key = dateFmt(punch.in, config.display.dateFormat)
+        if (!byDate[key]) byDate[key] = []
+        byDate[key].push(punch)
+      }
+
+      console.log()
+      for (const date in byDate) {
+        console.log(chalk.white.bold.underline(date) + '\n')
+        console.log(simplePunches(byDate[date], config))
+      }
+
+      // TODO: Add overlap detection
+
+      if (confirm('Import these punches?')) {
+        for (const punch of punches) {
+          await punch.save()
+        }
+        console.log(`${punches.length} punches imported.`)
+      }
     }
   }
 })

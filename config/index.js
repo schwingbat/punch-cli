@@ -91,6 +91,13 @@ module.exports = function (configPath) {
   config.punchFilePath = path.join(punchPath, 'punches')
   config.punchDBPath = path.join(punchPath, 'punch.db')
   config.symbols = require('../utils/symbols')(config)
+  config.invoiceTemplatePath = config.invoiceTemplatePath || path.join(punchPath, 'templates', 'invoice')
+  config.importerPath = config.importerPath || path.join(punchPath, 'importers')
+  config.exporterPath = config.exporterPath || path.join(punchPath, 'exporters')
+
+  mkdirp(config.invoiceTemplatePath)
+  mkdirp(config.importerPath)
+  mkdirp(config.exporterPath)
 
   if (config.display.textColors === false) {
     require('chalk').level = 0
