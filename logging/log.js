@@ -118,17 +118,22 @@ module.exports = function Logger (config, Punch) {
         interval
       }
 
-      let days = (interval.end.getTime() / 86400000) - (interval.start.getTime() / 86400000)
-
-      if (days > 31) {
+      switch (interval.unit) {
+      case 'year':
         printYear(logData, summarize)
-      } else if (days > 7) {
+        break
+      case 'month':
         printMonth(logData)
-      } else if (days > 1) {
+        break
+      case 'week':
         console.log('Weekly logs are not implemented yet')
         // printWeek(logData)
-      } else {
+        break
+      case 'day':
         printDay(logData)
+        break
+      default:
+        throw new Error(`Unknown unit: ${unit}`)
       }
     },
     _summarize: summarize
