@@ -3,6 +3,7 @@ const path = require('path')
 const resolvePath = require('../../utils/resolve-path')
 const SyncService = require('../syncservice.js')
 const MON = require('@schwingbat/mon')
+const is = require('@schwingbat/is')
 
 class S3SyncService extends SyncService {
   constructor (appConfig, serviceConfig, Punch, S3 = require('aws-sdk').S3) {
@@ -147,7 +148,7 @@ class S3Credentials {
       throw new Error('S3 config has no credentials')
     }
 
-    if (typeof credentials === 'string') {
+    if (is.string(credentials)) {
       let credPath = resolvePath(credentials, path.dirname(appConfig.configPath))
 
       if (fs.existsSync(credPath)) {
@@ -171,7 +172,7 @@ class S3Credentials {
       } else {
         throw new Error('Credentials is a path, but the file does not exist: ' + credPath)
       }
-    } else if (typeof credentials !== 'object') {
+    } else if (is.object(credentials)) {
       throw new Error('Credentials should either be a path to a JSON file containing your S3 credentials or an object containing the credentials themselves.')
     }
 

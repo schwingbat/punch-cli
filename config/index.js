@@ -4,6 +4,7 @@ module.exports = function (configPath) {
   const path = require('path')
   const home = require('os').homedir()
   const merge = require('../utils/deep-merge.js')
+  const is = require('@schwingbat/is')
   const MON = require('@schwingbat/mon')
 
   const punchPath = process.env.PUNCH_PATH || path.join(home, '.punch')
@@ -48,7 +49,7 @@ module.exports = function (configPath) {
       for (const alias in projects) {
         const { client, name } = projects[alias]
 
-        if (typeof client === 'string' && client[0] === '@') {
+        if (is.string(client) && client[0] === '@') {
           const clientName = client.slice(1)
 
           if (clients[clientName]) {
@@ -65,14 +66,14 @@ module.exports = function (configPath) {
     } catch (err) {}
 
     // Turn addresses into strings
-    if (typeof config.user.address === 'object') {
+    if (is.object(config.user.address)) {
       const { street, city, state, zip } = config.user.address
       config.user.address = `${street}\n${city}, ${state} ${zip}`
     }
 
     for (const client in config.clients) {
       const c = config.clients[client]
-      if (typeof c.address === 'object') {
+      if (is.object(c.address)) {
         const { street, city, state, zip } = c.address
         c.address = `${street}\n${city}, ${state} ${zip}`
       }

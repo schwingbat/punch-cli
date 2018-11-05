@@ -1,4 +1,5 @@
 const uuid = require('uuid/v1')
+const is = require('@schwingbat/is')
 const extractObjects = require('./comment-objects/extract.js')
 const parseObjects = require('./comment-objects/parse.js')
 const chalk = require('chalk')
@@ -22,10 +23,10 @@ module.exports = function (config, Storage) {
     */
 
     constructor (props) {
-      if (typeof props !== 'object' || Array.isArray(props)) {
+      if (is.not.an.object(props)) {
         throw new Error('The only argument to the Punch constructor should be an object. Received ' + typeof props)
       }
-      if (typeof props.project !== 'string') {
+      if (is.not.a.string(props.project)) {
         throw new Error('Punch requires a "project" field (string) to be specified in the props object.')
       }
 
