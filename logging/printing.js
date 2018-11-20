@@ -8,7 +8,7 @@ const formatCurrency = require('../format/currency')
 const formatDuration = require('../format/duration')
 const formatDate = require('date-fns/format')
 // const printLength = require('../utils/print-length')
-const wordWrap = require('@fardog/wordwrap')(0, 65, {
+const wordWrap = require('@fardog/wordwrap')(0, 999, {
   lengthFn: require('../utils/print-length.js')
 })
 
@@ -278,7 +278,7 @@ function dayPunches (punches, date, config) {
         if (config.display.showCommentTimestamps) {
           str += formatDate(comment.timestamp, config.display.timeFormat) + ': '
         }
-        str += wordWrap(comment.toString(), 65).replace('\n', '\n     ')
+        str += wordWrap(comment.toString()).replace('\n', '\n     ')
 
         if (punch.comments[i + 1]) {
           str += '\n'
@@ -343,7 +343,7 @@ function simplePunches (punches, config) {
         if (config.display.showCommentTimestamps) {
           str += formatDate(comment.timestamp, config.display.timeFormat) + ': '
         }
-        str += wordWrap(comment.toString(), 65).replace('\n', '\n     ')
+        str += wordWrap(comment.toString()).replace('\n', '\n     ')
 
         if (punch.comments[i + 1]) {
           str += '\n'

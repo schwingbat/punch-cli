@@ -24,12 +24,12 @@ module.exports = class SpacesSyncService extends S3SyncService {
       ? true 
       : serviceConfig.auto
     
-    if (serviceConfig.region) {
-      conf.endpoint = `${serviceConfig.region}.digitaloceanspaces.com`
-      conf.region = serviceConfig.region
-    } else if (serviceConfig.endpoint) {
+    if (serviceConfig.endpoint) {
       conf.endpoint = serviceConfig.endpoint
       conf.region = serviceConfig.endpoint.match(/^([a-zA-Z0-9]+).digitaloceanspaces.com/)
+    } else if (serviceConfig.region) {
+      conf.endpoint = `${serviceConfig.region}.digitaloceanspaces.com`
+      conf.region = serviceConfig.region
     }
   
     super(appConfig, conf, Punch)

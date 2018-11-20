@@ -50,8 +50,6 @@ function loadTemplate (directory) {
     }
   }
 
-  // console.log(directory)
-
   let manifest
   if (fs.existsSync(path.join(directory, 'template.mon'))) {
     manifest = MON.parse(fs.readFileSync(path.join(directory, 'template.mon'), 'utf8'))

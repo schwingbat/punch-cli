@@ -10,8 +10,8 @@ module.exports = function (config) {
 
     let formatter
 
-    for (let format of customFormats) {
-      if (format.toLowerCase() === format.toLowerCase()) {
+    for (let fmt of customFormats) {
+      if (fmt.toLowerCase() === format.toLowerCase()) {
         formatter = require('./formats/custom.format.js')
         break
       }
@@ -63,7 +63,7 @@ module.exports = function (config) {
       // Format the data so the template can render it.
 
       const data = {
-        template: props.output.format,
+        // template: props.output.format,
         project: props.project,
         user: props.user,
         client: props.project.client,

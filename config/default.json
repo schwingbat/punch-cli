@@ -22,7 +22,8 @@
   "display": {
     "textColors": true,
     "dateFormat": "dddd, MMMM Do YYYY",
-    "timeFormat": "h:mm A"
+    "timeFormat": "h:mm A",
+    "wordWrapWidth": 65
   },
   "storageType": "sqlite",
   "invoiceAPI": "http://invoice.api.punch.sh/v1/"
