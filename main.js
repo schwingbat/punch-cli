@@ -961,7 +961,8 @@ command('invoice <project> <startDate> <endDate> <outputFile>', {
           user: config.user,
           output: {
             path: resolvePath(outputFile),
-            format: fileFormat
+            format: fileFormat,
+            customFormat: !!args.options.format
           }
         }, false /*!!args.options.local*/)
         loader.stop(`${fileFormat} invoice generated!`)

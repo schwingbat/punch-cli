@@ -4,6 +4,8 @@ module.exports = function (config, data, outPath) {
     const fs = require('fs')
     const path = require('path')
 
+    // console.log(config.invoiceTemplatePath, data.template)
+
     const result = loadTemplate(path.join(config.invoiceTemplatePath, data.template)).render(data)
 
     fs.writeFile(outPath, result, (err) => {

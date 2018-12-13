@@ -63,7 +63,7 @@ module.exports = function (config) {
       // Format the data so the template can render it.
 
       const data = {
-        // template: props.output.format,
+        template: props.output.customFormat ? props.output.format : null,
         project: props.project,
         user: props.user,
         client: props.project.client,
