@@ -1,10 +1,16 @@
-module.exports = function (config) {
-  const fs = require('fs')
-  const { ascendingBy } = require('../utils/sort-factories')
-  const formatDate = require('date-fns/format')
-  const formatDuration = require('../format/duration')
-  const formatCurrency = require('../format/currency')
+const fs = require('fs')
+const { ascendingBy } = require('../utils/sort-factories')
+const formatDate = require('date-fns/format')
+const formatDuration = require('../format/duration')
+const formatCurrency = require('../format/currency')
 
+const formats = {
+  custom: require('./formats/custom.format'),
+  html: require('./formats/html.format'),
+  plaintext: require('./formats/plaintext.format')
+}
+
+module.exports = function (config) {
   const loadFormat = (format) => {
     const customFormats = fs.readdirSync(config.invoiceTemplatePath)
 
@@ -12,18 +18,19 @@ module.exports = function (config) {
 
     for (let fmt of customFormats) {
       if (fmt.toLowerCase() === format.toLowerCase()) {
-        formatter = require('./formats/custom.format.js')
+        formatter = formats.custom
         break
       }
     }
 
     if (!formatter) {
-      try {
-        formatter = require('./formats/' + format.toLowerCase() + '.format.js')
-      } catch (err) {
+      if (formats[format.toLowerCase()]) {
+        return formats[format.toLowerCase()]
+      } else {
         throw new Error(`Format ${format} is not supported.`)
       }
     }
+    
     return formatter
   }
 

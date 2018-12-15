@@ -379,7 +379,7 @@ function CLI (program) {
     }
   }
 
-  const run = (args) => {
+  const run = async (args) => {
     const command = args.shift()
     const cmd = commands[command]
 

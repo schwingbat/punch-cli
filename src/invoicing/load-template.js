@@ -7,7 +7,7 @@
 const fs = require('fs')
 const path = require('path')
 const handlebars = require('handlebars')
-const templatesPath = path.join(__dirname, 'assets', 'templates')
+const templatesPath = path.join(__dirname, '..', 'resources', 'templates', 'invoice')
 const MON = require('@schwingbat/mon')
 
 function makeFontFace (font, fontDir) {

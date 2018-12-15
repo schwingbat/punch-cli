@@ -2,11 +2,11 @@ const path = require('path')
 const chalk = require('chalk')
 const is = require('@schwingbat/is')
 
-const nameMap = {
-  'dummy':      'dummy.service.js',
-  's3':         's3.service.js',
-  'b2':         'b2.service.js',
-  'spaces':     'spaces.service.js',
+const services = {
+  dummy: require('./services/dummy.service'),
+  s3: require('./services/s3.service'),
+  b2: require('./services/b2.service'),
+  spaces: require('./services/spaces.service')
 }
 
 function Syncer (config, Punch) {
@@ -33,12 +33,11 @@ function Syncer (config, Punch) {
     if (!serviceConf) {
       throw new Error(`Service ${name} is not configured in config.sync.services`)
     }
-    if (!nameMap[name]) {
+    if (!services[name]) {
       throw new Error(`Service ${name} is not supported (yet?).`)
     }
 
-    const modulePath = path.join(__dirname, 'services', nameMap[name])
-    return new (require(modulePath))(config, serviceConf, Punch)
+    return new (services[name])(config, serviceConf, Punch)
   }
 
   async function diff (manifest) {

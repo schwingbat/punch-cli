@@ -105,14 +105,14 @@ module.exports = function (config, Storage) {
       return false
     }
 
-    toJSON (pretty = false) {
+    toJSON () {
       const json = {
         id: this.id,
         project: this.project,
         in: this.in.getTime(),
         out: this.out ? this.out.getTime() : null,
         rate: this.rate,
-        comments: this.comments.map(comment => comment.toJSON(pretty)),
+        comments: this.comments.map(comment => comment.toJSON()),
         created: this.created.getTime(),
         updated: this.updated.getTime()
       }

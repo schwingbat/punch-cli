@@ -14,10 +14,11 @@ const padWithLines = require('./logging/pad-with-lines')
 const Loader = require('./utils/loader')
 const chalk = require('chalk')
 const is = require('@schwingbat/is')
+const pkg = require('../package.json')
 
 const { command, run, invoke } = CLI({
   name: 'punch',
-  version: require('./package.json').version
+  version: pkg.version
 })
 
 const flags = {
@@ -36,7 +37,7 @@ for (let i = 0; i < ARGS.length; i++) {
   if (arg[0] === '-') {
     switch (arg.toLowerCase()) {
       case '-v':
-        console.log('punch v' + require('./package.json').version)
+        console.log('punch v' + pkg.version)
         process.exit()
       case '--verbose':
         flags.VERBOSE = true
@@ -1524,38 +1525,6 @@ module.exports = function (punches) {
   }
 })
 
-command('sql <command>', {
-  description: 'run SQL commands against the local punch database',
-  hidden: true,
-  arguments: [{
-    name: 'command',
-    description: 'a SQLite-compatible SQL query'
-  }],
-  options: [{
-    name: 'get',
-    description: 'returns query results',
-    type: 'boolean'
-  }, {
-    name: 'run',
-    description: 'runs a non-returning query',
-    type: 'boolean'
-  }],
-  run (args) {
-    if (Punch.storage.name === 'sqlite') {
-      const { db } = Punch.storage
-
-      if (args.options.get) {
-        console.log(db.prepare(args.command).all())
-      } else {
-        db.prepare(args.command).run()
-      }
-      
-    } else {
-      console.log(`Cannot run SQL commands because storage type '${Punch.Storage.name}' is not compatible.`)
-    }
-  }
-})
-
 command('migrate-to-sqlite', {
   description: 'copies punchfiles into SQLite database',
   hidden: true,
@@ -1587,6 +1556,45 @@ command('migrate-to-sqlite', {
     if (config.storageType === 'punchfile') {
       console.log('You should change your config.storageType to "sqlite" now.')
     }
+  }
+})
+
+command('migrate-from-sqlite', {
+  description: 'copies SQLite DB contents into NEDB file',
+  hidden: true,
+  async run (args) {
+    if (Punch.storage.name === 'sqlite') {
+      console.log('Migration from SQLite to SQLite doesn\'t make any sense.')
+      return
+    }
+
+    const SQLiteStorage = require('./storage/services/sqlite.service.js')
+    const SQLitePunch = require('./punch/punch')(config, SQLiteStorage)
+
+    const punches = await SQLitePunch.all()
+
+    const next = (list) => {
+      const punch = list.shift()
+
+      Punch.storage.db.update({ id: punch.id }, punch, { upsert: true }, (err, res) => {
+        console.log(err, res)
+        next(list)
+      })
+    }
+
+    next(punches)
+
+    // for (const punch of punches) {
+    //   NEDBPunch.storage.save(punch)
+    // }
+
+    console.log(`Migrated ${punches.length} punches`)
+
+    // for (let i = 0; i < punches.length; i++) {
+    //   console.log(punches[i])
+    //   const result = await NEDBPunch.storage.save(punches[i])
+    //   console.log(result)
+    // }
   }
 })
 
