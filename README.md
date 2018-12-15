@@ -14,14 +14,22 @@ Thanks to the stateless nature of Punch, nothing actually runs in the background
 
 - A macOS, Linux or Windows computer
 - A terminal emulator (ideally with Unicode support)
-- [Node.js 8+](https://nodejs.org/en/)
 
-## To Do
+## Development To Do
 
 - [ ] Add quick setup for fresh installs (generate directories, create skeleton config)
 - [ ] Implement weekly log
 - [X] Implement yearly log
 - [X] Generate logs for specific month/year (currently just relative - `this month`, `last month`)
+- [X] Package as a standalone executable
+
+## Installation
+
+### Mac & Linux
+
+
+
+### Windows
 
 ## Configuration
 
