@@ -1,0 +1,9 @@
+template "standard.hbs"
+css ["standard.css"]
+# js [
+#   "js/Chart.bundle.min.js"
+#   "js/draw-chart.js"
+# ]
+fonts [
+  "fonts/sentinel"
+]

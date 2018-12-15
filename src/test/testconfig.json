@@ -1,0 +1,25 @@
+{
+  "user": {},
+  "clients": {
+    "TestCo": {
+      "name": "Mr. Robot"
+    }
+  },
+  "projects": {
+    "test": {
+      "name": "Test Project",
+      "hourlyRate": 75.00,
+      "client": "@TestCo"
+    }
+  },
+  "sync": {
+    "autoSync": false,
+    "services": [{
+      "name": "dummy"
+    }, {
+      "name": "nope"
+    }]
+  },
+  "punchPath": "./testpunches",
+  "textColors": false
+}

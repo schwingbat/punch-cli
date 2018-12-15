@@ -1,0 +1,4 @@
+{
+  "template": "generic.hbs",
+  "css": ["generic.css"]
+}

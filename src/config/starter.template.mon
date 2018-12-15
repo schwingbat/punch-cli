@@ -1,0 +1,100 @@
+user {
+  # Your name and address as they should appear on invoices.
+  name "Your Name"
+  address "
+    123 Awesome Street, Apt. B123
+    Coolsville, NY 99999
+  "
+}
+
+clients {
+  example-client {
+    # This info will be used for invoices, so set the formatting
+    # to whatever you want it to be on an invoice.
+    # Contact is optional if you're just invoicing
+    # the company directly.
+    # Company and address are required.
+    contact "Joe Cuppa"
+    company "Hipster Coffee Co."
+    address "
+      5532 N Bean St.
+      Pickleton, MI 12345
+    "
+  }
+
+  # You can add more clients here, just like above.
+}
+
+projects {
+  # This project's alias is 'example-project', so you would punch in
+  # on this project by typing 'punch in example-project'.
+  # This name can be anything you want.
+  example-project {
+
+    # Whereas the alias above is how you and Punch refer to the project,
+    # its name is how it appears in logs and on invoices.
+    name "My Example Project"
+
+    # An (optional) hourly rate. In USD for now.
+    hourlyRate 30.00
+
+    # Describe your project. This is currently only used by the 'punch projects' command.
+    description "My cool project"
+
+    # This @object/thing syntax is a reference. It points the value of 'client'
+    # to the clients -> example-client object defined above.
+    # Client is optional. Feel free to leave it out if you're just tracking
+    # time on a project for yourself.
+    client @clients/example-client
+  }
+
+  # Feel free to add as many projects as you want, just like above!
+
+  # another-project {
+  #   name "Another Project"
+  #   description "Delete me and add your own"
+  # }
+}
+
+sync {
+  # Turn on autosync to synchronize before and
+  # after any punch in, punch out or comment.
+  autoSync off
+
+  services [
+    # If you have an S3 bucket, you can enter your credentials here
+    # and Punch will take care of the rest when you type 'punch sync'.
+    # Generating a set of credentials limited to just the one bucket
+    # is recommended.
+
+    # {
+    #   name "S3"
+    #   bucket "your-s3-bucket-name"
+    #   credentials {
+    #     accessKeyId "XXXX"
+    #     secretAccessKey "XXXX"
+    #   }
+    # }
+
+    # More sync services are planned, but S3 is the only one supported
+    # at the moment.
+  ]
+}
+
+display {
+  # Punch uses fancy colors and formatting. Turn text colors off
+  # to disable them permanently, or run punch with --no-colors
+  # to disable them temporarily.
+  textColors on
+
+  # Date and time formatting are customizable.
+  # The date and time formats below will print...
+  #   Monday, January 12th 2018
+  # and
+  #   6:32 PM
+  # respectively.
+  # See https://date-fns.org/v1.29.0/docs/format to build
+  # your own custom formats.
+  dateFormat "dddd, MMMM Do YYYY"
+  timeFormat "h:mm A"
+}

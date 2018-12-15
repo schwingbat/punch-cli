@@ -1,28 +1,66 @@
 {
   "name": "@schwingbat/punch",
-  "version": "1.9.0",
-  "description": "A CLI time tracker that syncs across all your computers.",
-  "main": "index.js",
-  "bin": "./punch.js",
+  "version": "2.1.0",
+  "description": "A CLI time tracker that syncs.",
+  "main": "./src/main.js",
+  "bin": {
+    "punch": "./src/main.js"
+  },
+  "pkg": {
+    "assets": [
+      "src/resources/**/*"
+    ],
+    "targets": [
+      "node10"
+    ]
+  },
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "bundle": "browserify src/main.js --node --outfile=punch.js",
+    "build": "npm run build:mac && npm run build:linux && npm run build:windows",
+    "build:mac": "pkg package.json --out-path dist/mac --target node10-macos-x64",
+    "build:windows": "pkg package.json --out-path dist/windows --target node10-win-x86",
+    "build:linux": "pkg package.json --out-path dist/linux --target node10-linux-x86"
   },
   "keywords": [],
   "author": "Tony McCoy <tony@ratwizard.io>",
+  "repository": "github:schwingbat/punch",
   "license": "MIT",
   "dependencies": {
-    "aws-sdk": "^2.186.0",
-    "chalk": "^2.3.0",
-    "electron": "^1.7.11",
-    "format-currency": "^1.0.0",
-    "handlebars": "^4.0.11",
-    "html5-to-pdf": "^2.2.9",
+    "@fardog/wordwrap": "^1.1.0",
+    "@schwingbat/is": "^2.0.0",
+    "@schwingbat/mon": "^1.0.0",
+    "ansi-regex": "^3.0.0",
+    "aws-sdk": "^2.264.1",
+    "backblaze-b2": "^1.0.4",
+    "better-sqlite3": "^4.1.4",
+    "chalk": "^2.4.1",
+    "date-fns": "^1.29.0",
+    "jszip": "^3.1.5",
     "log-update": "^2.3.0",
-    "moment": "^2.20.1",
-    "readline-sync": "^1.4.7",
-    "time-require": "^0.1.2"
+    "mkdirp": "^0.5.1",
+    "nedb": "^1.8.0",
+    "readline-sync": "^1.4.9",
+    "time-require": "^0.1.2",
+    "uuid": "^3.3.0"
+  },
+  "standard": {
+    "globals": [
+      "describe",
+      "it",
+      "expect",
+      "beforeEach",
+      "beforeAll",
+      "jest"
+    ]
+  },
+  "jest": {
+    "testEnvironment": "node"
   },
   "devDependencies": {
-    "jest": "^22.1.4"
+    "jest": "^23.4.0",
+    "node-zip": "^1.1.1",
+    "browserify": "^16.2.3"
   }
 }

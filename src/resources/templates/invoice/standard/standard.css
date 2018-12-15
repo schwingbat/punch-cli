@@ -1,0 +1,170 @@
+*,
+*:before,
+*:after {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  --header-font: "Source Sans Pro", sans-serif;
+  --body-font: "Source Sans Pro", sans-serif;
+  --label-font: "Source Sans Pro", sans-serif;
+  /* font-size: 0.8em; */
+  font-size: 14px;
+  font-weight: 400;
+  /* padding: 40px; */
+  font-family: var(--body-font);
+  color: #000;
+  background-color: #fff;
+  -webkit-print-color-adjust: exact;
+  /* word-spacing: 0.13em; */
+  /* letter-spacing: 0.005em; */
+}
+
+.header {
+  /* text-align: center; */
+  margin-bottom: 0.8em;
+  color: #ccc;
+  font-weight: bold;
+  font-size: 2.5em;
+  font-family: var(--header-font);
+  text-align: center;
+}
+
+.user-block {
+  margin-bottom: 3em;
+}
+
+.client-block {
+  display: flex;
+  align-items: stretch;
+  margin-bottom: 3em;
+}
+
+.client-block-column {
+  flex: 1 1 50%;
+  display: flex;
+  flex-flow: column nowrap;
+}
+
+/*=========================*\
+||    Line Item General    ||
+\*=========================*/
+
+.line-items-table {
+  width: calc(100% + 2em);
+  margin: 0 -1em;
+}
+
+.line-items-table td {
+  padding: 0.25em 1em;
+  vertical-align: top;
+}
+
+.line-items-table thead td {
+  border-bottom: 2px solid #000;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  font-family: var(--header-font);
+}
+
+.line-items-table tbody td {
+  padding-top: 0.5em;
+}
+
+.table-label {
+  font-weight: bold;
+  padding-right: 0.7em;
+  letter-spacing: -0.02em;
+  font-family: var(--header-font);
+}
+
+/*=========================*\
+||   Line Item Specifics   ||
+\*=========================*/
+
+.item-time {
+  white-space: nowrap;
+}
+
+.item-comments-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item-comment {
+  display: flex;
+  flex-flow: row nowrap;
+}
+
+.item-comment:before {
+  content: '';
+  display: inline-block;
+
+  margin-top: calc(0.5em - 1px);
+
+  width: 0;
+  height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 4px solid #ccc;
+
+  margin-right: 0.7em;
+}
+
+.item-comment span {
+  line-height: 22px;
+}
+
+/*=========================*\
+||     Comment Objects     ||
+\*=========================*/
+
+.comment-object {
+  display: inline-flex;
+  align-items: center;
+  height: min-content;
+  margin-right: 0.3em;
+  height: 20px;
+  font-family: var(--label-font);
+  text-decoration: none;
+}
+
+.comment-object-icon {
+  width: 1em;
+  height: 1em;
+  margin: 1px 3px 2px 0;
+}
+
+.comment-object-label {
+  font-size: 0.8em;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.comment-object.vsts {
+  color: #0078d7;
+}
+
+.comment-object.vsts {
+  fill: #0078d7;
+}
+
+.comment-object.vsts .comment-object-label {
+  padding: 0 0.2em;
+}
+
+/*=========================*\
+||  Total Fees & Expenses  ||
+\*=========================*/
+
+.totals {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  margin-top: 3em;
+}

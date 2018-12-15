@@ -1,6 +1,14 @@
 # Punch
 
-Punch is a cross-platform time tracker for your terminal. You just `punch in` when you start working and `punch out` when you stop. You can also `punch sync` to synchronize your data, so your work can follow you between computers and operating systems throughout the day. Punch is currently functional; I've been using it every day to track and invoice projects for the last few months. It has the odd issue here and there, but over all it's currently pretty solid.
+Punch is a cross-platform time tracker for your terminal. You just `punch in` when you start working and `punch out` when you stop. You can also `punch sync` to synchronize your data with Amazon S3 and other backends, so your work can follow you between computers and operating systems throughout the day. 
+
+![](/docs/screenshot-1.png)
+
+Track time on multiple projects, view your aggregate time and earnings in marvelous Technicolor and generate invoices using Handlebars templates. You can also write custom exporters in JavaScript so you can get your data out in any format you need it, whether you want to pop it in a spreadsheet or import into another time tracker application. Punch is a timesheet program for keyboard loving power users.
+
+While not perfectly polished, Punch is currently functional; I've been using it every day to track and invoice projects for the last year. It has the odd issue here and there, but over all it's pretty solid.
+
+Thanks to the stateless nature of Punch, nothing actually runs in the background while punched in. You can `punch in` on one computer and `punch out` on another as long as both computers are configured to sync with the same source.
 
 ## Requirements
 
@@ -8,125 +16,63 @@ Punch is a cross-platform time tracker for your terminal. You just `punch in` wh
 - A terminal emulator (ideally with Unicode support)
 - [Node.js 8+](https://nodejs.org/en/)
 
-## v2.0 To Do
+## To Do
 
 - [ ] Add quick setup for fresh installs (generate directories, create skeleton config)
 - [ ] Implement weekly log
-- [ ] Implement yearly log
-- [ ] Generate logs for specific month/year (currently just relative - `this month`, `last month`)
+- [X] Implement yearly log
+- [X] Generate logs for specific month/year (currently just relative - `this month`, `last month`)
 
 ## Configuration
 
-The basic configuration is thus: you have a folder in your home directory called `.punch`, which contains this structure:
+> TODO: Add configuration guide.
+
+## Commands
+
+Output from `punch help`:
 
 ```
-~/.punch/
-|-> punch.yaml
-|-> punches/
-    |-> punches_10_25_2017.json
-    |-> punches_10_26_2017.json
-    |-> punches_10_27_2017.json
-    |-> ...
+  punch v2.1.0
+
+  a <param> is required
+  a [param] is optional
+  a param... groups any arguments after this point into one argument
+
+  Run punch <command> --help with any of the following commands for more information.
+
+  Commands:
+    in <project>
+      start tracking time on a project
+    out [project]
+      stop tracking time
+    comment <comment...>
+      add a comment to remember what you worked on
+    add-comment <punchID> <comment...>
+      add a comment to a specific punch
+    replace-comment <punchID> <commentIndex> <newComment>
+      replace the text of an existing comment
+    delete-comment <punchID> <commentIndex>
+      delete a comment from a punch
+    create <project>
+      create a punch
+    delete <punchID>
+      delete a punch
+    watch
+      continue running to show automatically updated stats of your current session
+    projects [names...]
+      show statistics for all projects in your config file
+    log [when...]
+      show a summary of punches for a given period ("last month", "this week", "two days ago", etc)
+    invoice <project> <startDate> <endDate> <outputFile>
+      automatically generate an invoice using punch data
+    sync [services...]
+      synchronize with any services in your config file
+    config
+      open config file in editor - uses EDITOR env var unless an editor flag is specified.
+    rename-alias <from> <to>
+      move all punches with project alias <from> to <to>
+    rename-comment-object <from> <to>
+      rename comment objects with name <from> to name <to>
+    adjust-rate <project> <newRate>
+      adjust pay rate for punches
 ```
-
-Each punch file contains something like this:
-
-```json
-[
-  {
-    "project": "itzadoozie",
-    "in": 902898102,
-    "out": 908210292,
-    "rewind": 600120,
-    "comments": [
-      "Fixed sticky tiles"
-    ]
-  },
-  {
-    "project": "morganizer",
-    "in": 902898102,
-    "out": null,
-    "rewind": 0,
-    "comments": []
-  },
-]
-```
-
-Thanks to the stateless and file-based nature of Punch, nothing actually runs in the background while punched in. You can `punch in` on one computer and `punch out` on another as long as both computers are configured to sync with the same S3 bucket.
-
-## API
-
-### Key
-- `<something>` is a required parameter.
-- `[something]` is an optional parameter.
-- `[*something] and [something...]` are parameters that can include multiple words (`punch out this is all a comment` is equivalent to `punch out "this is all a comment"`).
-
-### Commands
-
-#### `in <project>`
-
-Start tracking time on a project.
-
-#### `out [*comment]`
-
-Stop tracking time and record an optional description of tasks completed.
-
-#### `comment [*comment]`
-
-Add a comment to your current session.
-
-#### `create <project> <time_in> <time_out> [*comment]`
-
-Create a punch.
-
-#### `purge <project>`
-
-Destroy all punches for a given project.
-
-#### `now`
-
-Show the status of the current session.
-
-#### `watch`
-
-Continue running to show automatically updated stats of your current session.
-
-#### `project <name>`
-
-Get statistics for a specific project.
-
-#### `projects [names...]`
-
-Show statistics for projects.
-
-#### `log [*when]`
-
-Show a summary of punches for a given period.
-
-#### `today`
-
-Show a summary of today's punches (alias of "punch log today").
-
-#### `yesterday`
-
-Show a summary of yesterday's punches (alias of "punch log yesterday").
-
-#### `week`
-
-Show a summary of punches for the current week (alias of `punch log this week`).
-
-#### `month`
-
-Show a summary of punches for the current month (alias of `punch log this month`).
-
-#### `invoice <project> <start_date> <end_date> <output_file>`
-
-Automatically generate an invoice using punch data.
-
-#### `sync`
-
-Synchronize with any providers you have configured. Just running `punch sync` with no providers will sync with all of them.
-
-#### `config [editor]`
-
-Open config file in `editor` - uses `EDITOR` env var unless an editor command is specified.
