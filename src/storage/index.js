@@ -1,8 +1,8 @@
 const services = {
-  mock: require('./services/mock.service'),
-  punchfile: require('./services/punchfile.service'),
+  // punchfile: require('./services/punchfile.service'),
   sqlite: require('./services/sqlite.service'),
-  nedb: require('./services/nedb.service')
+  // nedb: require('./services/nedb.service'),
+  ledger: require('./services/ledger.service')
 }
 
 module.exports = function (config) {

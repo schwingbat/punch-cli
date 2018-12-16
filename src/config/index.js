@@ -89,8 +89,6 @@ module.exports = function (configPath) {
 
   config.configPath = configPath + (configFormat || '.mon')
   config.punchPath = punchPath
-  config.punchFilePath = path.join(punchPath, 'punches')
-  config.punchDBPath = path.join(punchPath, 'punch.db')
   config.symbols = require('../utils/symbols')(config)
   config.invoiceTemplatePath = config.invoiceTemplatePath || path.join(punchPath, 'templates', 'invoice')
   config.importerPath = config.importerPath || path.join(punchPath, 'importers')

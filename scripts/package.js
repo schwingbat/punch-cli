@@ -18,6 +18,8 @@ const mkdirp = require('mkdirp')
 const Zip = require('jszip')
 
 const distPath = path.join(__dirname, '..', 'dist')
+const changelogPath = path.join(__dirname, '..', 'changelog', `${pkg.version}.md`)
+let changelog
 
 const unixReadme = `
 Installation Instructions:
@@ -40,6 +42,12 @@ const zipOptions = {
   }
 }
 
+if (fs.existsSync(changelogPath)) {
+  changelog = fs.readFileSync(changelogPath, 'utf8')
+} else {
+  console.log(`Warning! Changelog not found for version ${pkg.version}!`)
+}
+
 mkdirp(path.join(distPath, '_zipped'), (err) => {
 
   // Mac
@@ -51,7 +59,8 @@ mkdirp(path.join(distPath, '_zipped'), (err) => {
     const exe = fs.readFileSync(path.join(distPath, 'mac', 'punch'))
 
     zip.file('punch', exe)
-    zip.file('README.txt', unixReadme)
+    zip.file('readme.md', unixReadme)
+    if (changelog) zip.file('changelog.md', changelog)
 
     zip.generateNodeStream(zipOptions)
       .pipe(fs.createWriteStream(path.join(distPath, '_zipped', `punch-${pkg.version}-mac.zip`)))
@@ -69,7 +78,8 @@ mkdirp(path.join(distPath, '_zipped'), (err) => {
     const exe = fs.readFileSync(path.join(distPath, 'linux', 'punch'))
 
     zip.file('punch', exe)
-    zip.file('README.txt', unixReadme)
+    zip.file('readme.md', unixReadme)
+    if (changelog) zip.file('changelog.md', changelog)
 
     zip.generateNodeStream(zipOptions)
       .pipe(fs.createWriteStream(path.join(distPath, '_zipped', `punch-${pkg.version}-linux.zip`)))
@@ -87,7 +97,8 @@ mkdirp(path.join(distPath, '_zipped'), (err) => {
     const exe = fs.readFileSync(path.join(distPath, 'windows', 'punch.exe'))
 
     zip.file('punch', exe)
-    zip.file('README.txt', unixReadme)
+    zip.file('readme.md', windowsReadme)
+    if (changelog) zip.file('changelog.md', changelog)
 
     zip.generateNodeStream(zipOptions)
       .pipe(fs.createWriteStream(path.join(distPath, '_zipped', `punch-${pkg.version}-windows.zip`)))

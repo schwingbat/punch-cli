@@ -7,6 +7,93 @@ const chalk = require('chalk')
 module.exports = function (config, Storage) {
 
   /*=======================*\
+  ||       Comments        ||
+  \*=======================*/
+
+  class Tag {
+    constructor (tag) {
+      this.value = tag.value
+      this.index = tag.index
+    }
+
+    toString () {
+      return `#${this.value}`
+    }
+  }
+
+  class Comment {
+    constructor (comment, timestamp = new Date(), id = uuid()) {
+      const extracted = extractObjects(comment)
+      this.id = id
+      this.raw = comment
+      this.objects = parseObjects(extracted.objects)
+      this.tags = extracted.tags.map(t => new Tag(t))
+      this.comment = extracted.comment
+      this.timestamp = new Date(parseInt(timestamp) || Date.now())
+    }
+
+    hasObject (obj) {
+      if (obj[0] === '@') {
+        obj = obj.slice(1)
+      }
+      const [key, val] = obj.split(':')
+      for (let i = 0; i < this.objects.length; i++) {
+        const o = this.objects[i]
+        if (o.key === key && o.value.toString() === val) {
+          return true
+        }
+      }
+      return false
+    }
+
+    toString () {
+      let comment = this.comment
+      if (this.tags.length > 0) {
+        this.tags.forEach(tag => {
+          comment = comment.slice(0, tag.index)
+                  + (comment[tag.index] === ' ' ? '' : ' ')
+                  + chalk.red(tag.toString())
+                  + comment.slice(tag.index)
+        })
+      }
+      if (this.objects.length > 0) {
+        comment += ' ' + chalk.green(this.objects.map(o => o.toLogString()).join(' '))
+      }
+      return comment
+    }
+
+    toStringPlain () {
+      return this.raw
+    }
+
+    objects () {
+      return this.objects
+    }
+
+    toJSON () {
+      let comment = this.comment
+      if (this.tags.length > 0) {
+        this.tags.forEach(tag => {
+          comment = comment.slice(0, tag.index)
+                  + (comment[tag.index] === ' ' ? '' : ' ')
+                  + tag.toString()
+                  + comment.slice(tag.index)
+        })
+      }
+      if (this.objects.length > 0) {
+        comment += ' ' + this.objects.map(o => o.toString()).join(' ')
+      }
+
+      // if (this.tags.length > 0) console.log(comment)
+
+      return {
+        comment,
+        timestamp: this.timestamp.getTime()
+      }
+    }
+  }
+
+  /*=======================*\
   ||         Punch         ||
   \*=======================*/
 
@@ -155,93 +242,6 @@ module.exports = function (config, Storage) {
 
   Punch.all = async function () {
     return storage.select(() => true)
-  }
-
-  /*=======================*\
-  ||       Comments        ||
-  \*=======================*/
-
-  class Comment {
-    constructor (comment, timestamp = new Date(), id = uuid()) {
-      const extracted = extractObjects(comment)
-      this.id = id
-      this.raw = comment
-      this.objects = parseObjects(extracted.objects)
-      this.tags = extracted.tags.map(t => new Tag(t))
-      this.comment = extracted.comment
-      this.timestamp = new Date(parseInt(timestamp) || Date.now())
-    }
-
-    hasObject (obj) {
-      if (obj[0] === '@') {
-        obj = obj.slice(1)
-      }
-      const [key, val] = obj.split(':')
-      for (let i = 0; i < this.objects.length; i++) {
-        const o = this.objects[i]
-        if (o.key === key && o.value.toString() === val) {
-          return true
-        }
-      }
-      return false
-    }
-
-    toString () {
-      let comment = this.comment
-      if (this.tags.length > 0) {
-        this.tags.forEach(tag => {
-          comment = comment.slice(0, tag.index)
-                  + (comment[tag.index] === ' ' ? '' : ' ')
-                  + chalk.red(tag.toString())
-                  + comment.slice(tag.index)
-        })
-      }
-      if (this.objects.length > 0) {
-        comment += ' ' + chalk.green(this.objects.map(o => o.toLogString()).join(' '))
-      }
-      return comment
-    }
-
-    toStringPlain () {
-      return this.raw
-    }
-
-    objects () {
-      return this.objects
-    }
-
-    toJSON () {
-      let comment = this.comment
-      if (this.tags.length > 0) {
-        this.tags.forEach(tag => {
-          comment = comment.slice(0, tag.index)
-                  + (comment[tag.index] === ' ' ? '' : ' ')
-                  + tag.toString()
-                  + comment.slice(tag.index)
-        })
-      }
-      if (this.objects.length > 0) {
-        comment += ' ' + this.objects.map(o => o.toString()).join(' ')
-      }
-
-      // if (this.tags.length > 0) console.log(comment)
-
-      return {
-        comment,
-        timestamp: this.timestamp.getTime()
-      }
-    }
-  }
-
-  class Tag {
-    constructor (tag) {
-      this.value = tag.value
-      this.index = tag.index
-    }
-
-    toString () {
-      return `#${this.value}`
-    }
   }
 
   Punch.Comment = Comment

@@ -2,7 +2,8 @@ module.exports = function (config, Punch) {
   const fs = require('fs')
   const path = require('path')
   const Database = require('better-sqlite3')
-  const db = new Database(config.punchDBPath, { fileMustExist: false })
+  const dbPath = path.join(config.punchPath, 'punch.db')
+  const db = new Database(dbPath, { fileMustExist: false })
 
   const punchTableExists = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='punches'").get()
 

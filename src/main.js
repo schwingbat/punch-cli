@@ -108,15 +108,6 @@ const confirmAdjustedTime = (date, template = 'Set time to $?') => {
   return confirm(template.replace('$', format(date, stringFmt)))
 }
 
-// const questionnaire = (questions) => {
-//   const rl = require('readline-sync')
-
-//   for (let i = 0; i < questions.length; i++) {
-//     const q = questions[i]
-    
-//   }
-// }
-
 const handleSync = async ({ silent } = {}) => {
   if (autoSync && !flags.NO_SYNC) {
     const Syncer = require('./sync/syncer')
@@ -643,54 +634,6 @@ command('delete-comment <punchID> <commentIndex>', {
   }
 })
 
-// command('now', {
-//   description: 'show stats for the current session',
-//   options: [{
-//     name: 'minimal',
-//     short: 'm',
-//     description: 'print a stripped down output for scripting use',
-//     type: 'boolean'
-//   }, {
-//     name: 'project-only',
-//     short: 'p',
-//     description: 'print only the project name',
-//     type: 'boolean'
-//   }],
-//   run: async function (args) {
-//     const current = await Punch.current()
-//     const formatDuration = require('./format/duration')
-
-//     updateCurrentMarker(current)
-
-//     if (args.options.minimal) {
-//       if (current) {
-//         if (args.options['project-only']) {
-//           console.log(getLabelFor(current.project))
-//         } else {
-//           console.log(`${getLabelFor(current.project)}: ${formatDuration(current.duration())}`)
-//         }
-//       }
-//     } else {
-//       if (current) {
-//         // Print current session stats.
-//         // Project name, current pay, time worked,
-//         console.log(`You've been punched in on ${getLabelFor(current.project)} for ${formatDuration(Date.now() - current.in)}.`)
-//       } else {
-//         let message = "You're not punched in."
-
-//         const latest = await Punch.latest()
-//         if (latest) {
-//           const label = getLabelFor(latest.project)
-//           const timeDiff = formatDuration(Date.now() - latest.out, { long: true })
-//           message += ` You punched out of ${label} ${timeDiff} ago.`
-//         }
-
-//         console.log(message)
-//       }
-//     }
-//   }
-// })
-
 command('create <project>', {
   description: 'create a punch',
   arguments: [{
@@ -776,7 +719,6 @@ command('delete <punchID>', {
   arguments: [{
     name: 'punchID',
     description: 'ID of a given punch (use "punch log --with-ids" to find IDs)',
-    // parse: val => val
   }],
   options: [{
     name: 'yes',
@@ -876,12 +818,6 @@ command('invoice <project> <startDate> <endDate> <outputFile>', {
     parse: resolvePath
   }],
   options: [
-    // {
-    //   name: 'local',
-    //   short: 'l',
-    //   description: 'generate invoice locally (uses HTTP invoice API by default)',
-    //   type: 'boolean'
-    // },
     {
       name: 'format',
       description: 'specify a format rather than guessing from file name',
@@ -1018,8 +954,6 @@ command('config', {
 
 command('purge <project>', {
   description: 'destroy all punches for a given project',
-  hidden: true,
-  disabled: true,
   run: async function (args) {
     const { project } = args
     const label = getLabelFor(project)
@@ -1032,9 +966,10 @@ command('purge <project>', {
 
       // Confirm and commit changes to files.
       if (confirm(`Purging ${label} would delete ${punches.length} punches totalling ${duration}. Are you sure?`)) {
-        console.log('Punch purge not yet re-implemented')
-      } else {
-        return false
+        for (const punch in punches) {
+          await Punch.storage.delete(punch)
+        }
+        console.log(`Deleted ${punches.length} punches.`)
       }
     } else {
       console.log(`${label} has no punches.`)
@@ -1171,40 +1106,6 @@ command('projects [names...]', {
   }
 })
 
-command('edit [date]', {
-  description: 'edit punchfile for the given date - uses EDITOR env var unless an editor is specified',
-  arguments: [{
-    name: 'date',
-    description: 'date for the desired punchfile (MM-DD-YYYY format)',
-    parse: parseDate,
-    default: () => new Date()
-  }],
-  options: [{
-    name: 'editor',
-    short: 'e',
-    type: 'string',
-    default: () => process.env.VISUAL ||
-                   process.env.EDITOR ||
-                   (/^win/.test(process.platform) ? 'notepad' : 'vim')
-  }],
-  hidden: true,
-  run: function (args) {
-    const { date } = args
-
-    const y = date.getFullYear()
-    const m = date.getMonth() + 1
-    const d = date.getDate()
-    const filename = `punch_${y}_${m}_${d}.json`
-    const file = require('path').join(config.punchFilePath, filename)
-
-    if (!require('fs').existsSync(file)) {
-      return console.log(chalk.red('File doesn\'t exist.'))
-    }
-
-    require('child_process').spawn(args.options.editor, [file], { stdio: 'inherit' })
-  }
-})
-
 command('timestamp [time]', {
   description: 'get a millisecond timestamp for a given time (mm/dd/yyyy@hh:mm:ss)',
   examples: [
@@ -1226,47 +1127,7 @@ command('timestamp [time]', {
   }
 })
 
-command('migrate <version>', {
-  description: 'migrate punchfiles with older schemas up to the specified version',
-  examples: [
-    'punch migrate 3'
-  ],
-  hidden: true,
-  arguments: [{
-    name: 'version',
-    description: 'target schema version number',
-    parse: val => parseInt(val)
-  }],
-  run: function (args) {
-    const { version } = args
-    const fs = require('fs')
-    const path = require('path')
-    const migrator = require('./utils/migrator')(config)
-    const dir = fs.readdirSync(config.punchFilePath)
-
-    dir.forEach(fileName => {
-      const filePath = path.join(config.punchFilePath, fileName)
-      let file
-
-      try {
-        file = JSON.parse(fs.readFileSync(filePath, 'utf8'))
-      } catch (err) {
-        console.log('Failed to read file as JSON: ' + filePath)
-        return
-      }
-
-      const fileVersion = migrator.getPunchFileVersion(file)
-      const migrated = migrator.migrate(fileVersion, version, file)
-
-      migrated.updated = Date.now()
-
-      fs.writeFileSync(filePath, JSON.stringify(migrated, null, 2))
-      console.log(`Converted ${fileName} from version ${fileVersion} to version ${Math.max(fileVersion, version)}`)
-    })
-  }
-})
-
-command('rename-alias <from> <to>', {
+command('rename-project <from> <to>', {
   description: 'move all punches with project alias <from> to <to>',
   //hidden: true,
   examples: [
@@ -1295,7 +1156,7 @@ command('rename-alias <from> <to>', {
 
 command('rename-comment-object <from> <to>', {
   description: 'rename comment objects with name <from> to name <to>',
-  //hidden: true,
+  hidden: true,
   examples: [
     'punch alias-rename task vsts'
   ],
@@ -1467,13 +1328,13 @@ command('export', {
     description: 'formatting function file name (looks in ~/.punch/formatters)',
     type: 'string'
   }, {
-    name: 'destination',
-    short: 'd',
+    name: 'output',
+    short: 'o',
     description: 'file path to save to (prints to console by default)',
     type: 'string'
   }],
   run: async function(args) {
-    const { start, end, project, tag, format, destination } = args.options
+    const { start, end, project, tag, format, output } = args.options
     const resolvePath = require('./utils/resolve-path')
     const path = require('path')
 
@@ -1517,44 +1378,10 @@ module.exports = function (punches) {
     const formatted = formatter(config, punches)
 
     if (destination) {
-      fs.writeFileSync(resolvePath(destination), formatted)
-      console.log('Exported punches were saved to ' + destination)
+      fs.writeFileSync(resolvePath(output), formatted)
+      console.log('Exported punches were saved to ' + output)
     } else {
       console.log(formatted)
-    }
-  }
-})
-
-command('migrate-to-sqlite', {
-  description: 'copies punchfiles into SQLite database',
-  hidden: true,
-  async run (args) {
-    Punch.storage.cleanUp()
-
-    if (fs.existsSync(config.punchDBPath)) {
-      if (confirm('DB file already exists. Are you sure you want to overwrite it with migrated punches?')) {
-        fs.unlinkSync(config.punchDBPath)
-        console.log('Overwriting DB file.')
-      } else {
-        return
-      }
-    }
-
-    const PunchfileStorage = require('./storage/services/punchfile.service.js')
-    const SQLiteStorage = require('./storage/services/sqlite.service.js')
-    const FilePunch = require('./punch/punch')(config, PunchfileStorage)
-    const DBPunch = require('./punch/punch')(config, SQLiteStorage)
-    // const Punch = require('./punch/punch')(config, Storage)
-
-    const punches = await FilePunch.all()
-
-    for (let punch of punches) {
-      DBPunch.storage.save(punch)
-    }
-
-    console.log(`Migrated ${punches.length} punches to SQLite.`)
-    if (config.storageType === 'punchfile') {
-      console.log('You should change your config.storageType to "sqlite" now.')
     }
   }
 })
@@ -1573,28 +1400,11 @@ command('migrate-from-sqlite', {
 
     const punches = await SQLitePunch.all()
 
-    const next = (list) => {
-      const punch = list.shift()
-
-      Punch.storage.db.update({ id: punch.id }, punch, { upsert: true }, (err, res) => {
-        console.log(err, res)
-        next(list)
-      })
+    for (const punch of punches) {
+      await Punch.storage.save(punch)
     }
 
-    next(punches)
-
-    // for (const punch of punches) {
-    //   NEDBPunch.storage.save(punch)
-    // }
-
     console.log(`Migrated ${punches.length} punches`)
-
-    // for (let i = 0; i < punches.length; i++) {
-    //   console.log(punches[i])
-    //   const result = await NEDBPunch.storage.save(punches[i])
-    //   console.log(result)
-    // }
   }
 })
 
@@ -1605,8 +1415,8 @@ bench.printAll()
 
 // Exit cleanup
 
-function exitHandler(options) {
-  Punch.storage.cleanUp()
+async function exitHandler(options) {
+  await Punch.storage.cleanUp()
 
   if (options.exit) process.exit()
 }
