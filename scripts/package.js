@@ -103,7 +103,7 @@ mkdirp(path.join(distPath, '_zipped'), (err) => {
     const zip = new Zip()
     const exe = fs.readFileSync(path.join(distPath, 'windows', 'punch.exe'))
 
-    zip.file('punch', exe)
+    zip.file('punch.exe', exe)
     zip.file('readme.md', windowsReadme)
     if (changelog) zip.file('changelog.md', changelog)
 
