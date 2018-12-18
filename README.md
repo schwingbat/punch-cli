@@ -1,35 +1,28 @@
 # Punch
 
-Punch is a cross-platform time tracker for your terminal. You just `punch in` when you start working and `punch out` when you stop. You can also `punch sync` to synchronize your data with Amazon S3 and other backends, so your work can follow you between computers and operating systems throughout the day. 
+Punch is a cross-platform time tracker for your terminal. You just `punch in` when you start working and `punch out` when you stop. You can also `punch sync` to sync your data with Amazon S3 and other backends, so your work can follow you between computers and operating systems throughout the day. 
 
 ![](/docs/screenshot-1.png)
 
-Track time on multiple projects, view your aggregate time and earnings in marvelous Technicolor and generate invoices using Handlebars templates. You can also write custom exporters in JavaScript so you can get your data out in any format you need it, whether you want to pop it in a spreadsheet or import into another time tracker application. Punch is a timesheet program for keyboard loving power users.
+Track time on multiple projects (simultaneously even), view summaries of your time and earnings in marvelous Technicolor and generate invoices using your own custom Handlebars templates. Write custom export functions in JavaScript to get your data in any format you need it, whether you want to pop it in a spreadsheet or import into another time tracker application. Punch is a timesheet program for geeks.
 
-While not perfectly polished, Punch is currently functional; I've been using it every day to track and invoice projects for the last year. It has the odd issue here and there, but over all it's pretty solid.
+Thanks to the stateless nature of Punch, nothing actually runs in the background while punched in. You can `punch in` on one computer and `punch out` on another as long as both computers sync with the same source.
 
-Thanks to the stateless nature of Punch, nothing actually runs in the background while punched in. You can `punch in` on one computer and `punch out` on another as long as both computers are configured to sync with the same source.
+Punch is personally battle tested. I've been relying on it to track and invoice projects every day for the past year.
 
 ## Requirements
 
 - A macOS, Linux or Windows computer
 - A terminal emulator (ideally with Unicode support)
 
-## Development To Do
-
-- [ ] Add quick setup for fresh installs (generate directories, create skeleton config)
-- [ ] Implement weekly log
-- [X] Implement yearly log
-- [X] Generate logs for specific month/year (currently just relative - `this month`, `last month`)
-- [X] Package as a standalone executable
-
 ## Installation
 
-### Mac & Linux
+Punch is distributed as a single dependency-free binary (courtesy of [zeit/pkg](https://github.com/zeit/pkg)). Download the latest release over on [the releases page](https://github.com/schwingbat/punch-cli/releases), follow the install instructions and you're ready to roll!
 
+## Development To Do
 
-
-### Windows
+- [ ] Add comprehensive setup for fresh installs (generate directories, create skeleton config, ask for user info)
+- [ ] Implement weekly log
 
 ## Configuration
 
@@ -40,7 +33,8 @@ Thanks to the stateless nature of Punch, nothing actually runs in the background
 Output from `punch help`:
 
 ```
-  punch v2.1.0
+
+  punch v2.2.0
 
   a <param> is required
   a [param] is optional
@@ -53,6 +47,8 @@ Output from `punch help`:
       start tracking time on a project
     out [project]
       stop tracking time
+    log [when...]
+      show a summary of punches for a period ("last month", "this week", "two days ago", etc)
     comment <comment...>
       add a comment to remember what you worked on
     add-comment <punchID> <comment...>
@@ -65,22 +61,25 @@ Output from `punch help`:
       create a punch
     delete <punchID>
       delete a punch
-    watch
-      continue running to show automatically updated stats of your current session
-    projects [names...]
-      show statistics for all projects in your config file
-    log [when...]
-      show a summary of punches for a given period ("last month", "this week", "two days ago", etc)
+    adjust <punchID>
+      adjust punch start/end times
     invoice <project> <startDate> <endDate> <outputFile>
       automatically generate an invoice using punch data
     sync [services...]
       synchronize with any services in your config file
     config
       open config file in editor - uses EDITOR env var unless an editor flag is specified.
-    rename-alias <from> <to>
+    purge <project>
+      destroy all punches for a given project
+    watch
+      continue running to show automatically updated stats of your current session
+    projects [names...]
+      show statistics for all projects in your config file
+    rename-project <from> <to>
       move all punches with project alias <from> to <to>
-    rename-comment-object <from> <to>
-      rename comment objects with name <from> to name <to>
     adjust-rate <project> <newRate>
       adjust pay rate for punches
+    import <file>
+      imports punch data from a file
+
 ```
