@@ -1,5 +1,10 @@
-module.exports = function MockStorageService (config, Punch) {
+// This is a service template. Implement these methods and your new storage backend should work.
+// Takes the app config and a Punch constructor.
+
+module.exports = function (config, Punch) {
   return {
+    name: 'template',
+
     // Saves a single punch object
     async save (punch) {},
 

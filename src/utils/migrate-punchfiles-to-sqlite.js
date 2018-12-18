@@ -1,3 +1,0 @@
-/*
-  Migrate punchfiles into a sqlite database
-*/

@@ -25,6 +25,6 @@
     "timeFormat": "h:mm A",
     "wordWrapWidth": 65
   },
-  "storageType": "sqlite",
+  "storageType": "ledger",
   "invoiceAPI": "http://invoice.api.punch.sh/v1/"
 }
