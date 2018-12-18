@@ -25,13 +25,20 @@ const unixReadme = `
 Installation Instructions:
 
 1. Copy (or symlink) the punch executable into /usr/local/bin
-2. Run 'punch help' in your terminal for a complete list of commands.
+  - Alternatively, copy it to a directory of your choosing and add that directory to your PATH 
+2. Run 'punch help' in your terminal for a complete list of commands
 `
 
 const windowsReadme = `
 Installation Instructions:
 
-???
+Most Windows programs have an installer EXE which would handle this for you, but as a Windows user who knows what a command line is, you probably know what you're doing. Here are a few quick steps to set up Punch on Windows 10.
+
+1. Copy punch.exe into C:/Users/<your-username>/AppData/Local/Punch
+2. Search "environment" in the Start menu or Settings. Select "Edit environment variables for your account"
+3. Select "Path" under user variables and click Edit
+4. Add the Punch installation directory to the list (C:/Users/<your-username>/AppData/Local/Punch)
+5. Run 'punch help' in PowerShell or Command Prompt for a complete list of commands
 `
 
 const zipOptions = {
