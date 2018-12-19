@@ -29,7 +29,7 @@ function summarize (config, punches, interval) {
   for (const alias in projects) {
     projectArray.push({
       alias,
-      isPaid: config.projects[alias] && config.projects[alias].hourlyRate,
+      isPaid: !!(config.projects[alias] && config.projects[alias].hourlyRate),
       ...projects[alias]
     })
   }

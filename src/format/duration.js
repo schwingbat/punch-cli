@@ -30,8 +30,12 @@ module.exports = function formatDuration (milliseconds, opts = {}) {
   if (resolution > 0) {
     seconds += Math.round(milliseconds / 1000)
   }
-  if (resolution > 1) {
+  if (resolution > 1 || seconds === 60) {
     minutes += Math.round(seconds / 60)
+
+    if (seconds === 60) {
+      seconds = 0
+    }
   }
   if (resolution > 2) {
     hours += Math.round(minutes / 60)
@@ -71,7 +75,7 @@ module.exports = function formatDuration (milliseconds, opts = {}) {
 
     if ('hours' in parts) {
       let hourString = parts.hours.toString()
-      
+
       // Add commas
       if (hourString.length > 3) {
         const chars = []

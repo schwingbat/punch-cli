@@ -8,9 +8,11 @@ const formatCurrency = require('../format/currency')
 const formatDuration = require('../format/duration')
 const formatDate = require('date-fns/format')
 // const printLength = require('../utils/print-length')
-const wordWrap = require('@fardog/wordwrap')(0, 999, {
-  lengthFn: require('../utils/print-length.js')
-})
+// const wordWrap = require('@fardog/wordwrap')(0, 999, {
+//   lengthFn: require('../utils/print-length.js')
+// })
+const wordWrap = value => value
+const realTime = require('../utils/real-time')
 
 function delimitedList (items, inners = ' / ', outers) {
   let joined = items.filter(i => i).join(chalk.grey(inners))
@@ -123,12 +125,25 @@ function summaryTable (projects, opts = {}) {
   str += table.toString()
 
   if (opts.total) {
+    const punches = []
+
+    for (const project of projects) {
+      punches.push(...project.punches.map(p => ({
+        start: p.in,
+        end: p.out || new Date()
+      })))
+    }
+
+    const rtime = realTime(punches)
+    const time = formatDuration(total.time)
+
     str += '\n' + chalk.bold.cyan('TOTAL') + ' '
     str += delimitedList([
-      formatDuration(total.time, { padded: true }),
+      rtime !== total.time ? `${formatDuration(rtime)} ${chalk.cyan('[Real]')}` : null,
+      rtime !== total.time ? `${time} ${chalk.cyan('[Tracked]')}` : time,
       formatCurrency(total.pay),
       total.punchCount + ' punch' + (total.punchCount === 1 ? '' : 'es')
-    ], ' / ', ['(', ')'])
+    ].filter(x => x), ' / ', ['(', ')'])
   }
 
   return str
@@ -274,7 +289,7 @@ function dayPunches (punches, date, config) {
         str += chalk.grey(`   ${symbols.logSessionBullet} `)
         if (config.showCommentIndices) {
           str += chalk.bold(`[${i}] `)
-        } 
+        }
         if (config.display.showCommentTimestamps) {
           str += formatDate(comment.timestamp, config.display.timeFormat) + ': '
         }
@@ -339,7 +354,7 @@ function simplePunches (punches, config) {
         str += chalk.grey(`   ${symbols.logSessionBullet} `)
         if (config.showCommentIndices) {
           str += chalk.bold(`[${i}] `)
-        } 
+        }
         if (config.display.showCommentTimestamps) {
           str += formatDate(comment.timestamp, config.display.timeFormat) + ': '
         }
