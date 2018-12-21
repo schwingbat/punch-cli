@@ -7,10 +7,24 @@ module.exports = function ({ config, punches, date, summary }) {
   const formatDuration = require('../format/duration')
   // const { ascendingBy, descendingBy } = require('../utils/sort-factories')
   const groupByDay = require('./group-by-day')
+  const dayGraphic = require('./day-graphic')
 
   const { projectDay, summaryTable } = require('./printing')
 
   const days = groupByDay(punches)
+
+  let longestProjectName = 0
+
+  if (config.showDayGraphics) {
+    for (let i = 0; i < punches.length; i++) {
+      const project = config.projects[punches[i].project]
+      const name = project ? project.name : punches[i].project
+  
+      if (name.length > longestProjectName) {
+        longestProjectName = name.length
+      }
+    }
+  }
 
   console.log()
   days.forEach(day => {
@@ -30,6 +44,17 @@ module.exports = function ({ config, punches, date, summary }) {
       ],
       punches: day.punches
     }))
+
+    if (config.showDayGraphics) {
+      console.log(dayGraphic({
+        punches: day.punches,
+        date: day.date,
+        labelPadding: longestProjectName + 3,
+        config
+      }))
+
+      console.log()
+    }
   })
 
   console.log(summaryTable(summary) + '\n')

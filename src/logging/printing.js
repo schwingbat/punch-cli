@@ -8,10 +8,10 @@ const formatCurrency = require('../format/currency')
 const formatDuration = require('../format/duration')
 const formatDate = require('date-fns/format')
 // const printLength = require('../utils/print-length')
-// const wordWrap = require('@fardog/wordwrap')(0, 999, {
-//   lengthFn: require('../utils/print-length.js')
-// })
-const wordWrap = value => value
+const wordWrap = require('@fardog/wordwrap')(0, 80, {
+  lengthFn: require('../utils/print-length.js')
+})
+// const wordWrap = value => value
 const realTime = require('../utils/real-time')
 
 function delimitedList (items, inners = ' / ', outers) {

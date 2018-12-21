@@ -13,6 +13,7 @@
 module.exports = function ({ config, punches, date, summary, project, interval }) {
   const { ascendingBy } = require('../utils/sort-factories')
   const { dayPunches, summaryTable, daySummaryHeader } = require('./printing')
+  const dayGraphic = require('./day-graphic')
   const formatDate = require('date-fns/format')
 
   if (punches.length === 0) {
@@ -38,6 +39,15 @@ module.exports = function ({ config, punches, date, summary, project, interval }
 
   console.log(`\n${daySummaryHeader({ date, dateFormat: config.display.dateFormat })}`)
   console.log('  ' + dayPunches(punches, date, config).replace(/\n/g, '\n  '))
+
+  if (config.showDayGraphics) {
+    console.log(dayGraphic({
+      punches,
+      date,
+      config
+    }))
+  }
+
   console.log(summaryTable(summary))
   console.log()
 }

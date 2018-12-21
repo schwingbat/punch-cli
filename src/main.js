@@ -362,6 +362,10 @@ command('log [when...]', {
     name: 'with-ids',
     type: 'boolean',
     description: 'print punch IDs'
+  }, {
+    name: 'with-graphics',
+    type: 'boolean',
+    description: 'override app config and show hourly punch graphics'
   }],
   run: function (args) {
     const fuzzyParse = require('./utils/fuzzy-parse')
@@ -370,6 +374,10 @@ command('log [when...]', {
     if (args.options['with-ids']) {
       config.showPunchIDs = true
       config.showCommentIndices = true
+    }
+
+    if (args.options['with-graphics']) {
+      config.showDayGraphics = true
     }
 
     if (interval) {
