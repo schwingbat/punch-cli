@@ -6,13 +6,13 @@ const onChar = '■'
 const offChar = '░'
 const lineLength = 48
 const colors = [
-  'red',
-  'yellow',
-  'green',
-  'blue',
-  'cyan',
-  'red',
-  'magenta',
+  // 'red',
+  // 'yellow',
+  // 'green',
+  // 'blue',
+  // 'cyan',
+  // 'red',
+  // 'magenta',
   'white'
 ]
 
