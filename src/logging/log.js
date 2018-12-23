@@ -101,18 +101,20 @@ module.exports = function Logger (config, Punch) {
 
       switch (interval.unit) {
       case 'year':
+        // Shows a higher level summary
         printYear(logData, summarize)
         break
       case 'month':
-        printMonth(logData)
+        printPeriod(logData)
         break
       case 'week':
-        printWeek(logData)
+        printPeriod(logData)
         break
       case 'day':
         printDay(logData)
         break
       default:
+        // Month, week & other intervals
         printPeriod(logData)
         break
       }

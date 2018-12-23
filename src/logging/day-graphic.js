@@ -1,4 +1,5 @@
 const startOfDay = require('date-fns/start_of_day')
+const addHours = require('date-fns/add_hours')
 const closestIndexTo = require('date-fns/closest_index_to')
 const chalk = require('chalk')
 
@@ -24,7 +25,9 @@ const colors = [
 
 module.exports = function ({ punches, date, labelPadding, config }) {
 
-  const topRow = '12    03    06    09    12    15    18    21    '
+  // const topRow = '12    03    06    09    12    15    18    21    '
+  // const topRow = '0...1...2...3...4...5...6...7...8...9...10..11..12..1...2...3...4...5...6...7...8...9...10..11..'
+  const topRow = '00. . . . . 06. . . . . 12. . . . . 18. . . . .'
 
   const projects = {}
 
@@ -45,13 +48,13 @@ module.exports = function ({ punches, date, labelPadding, config }) {
     projects[name].punches.push(punch)
   }
 
-  const inc = lineLength / 24;
+  const inc = 24 / lineLength;
   const increments = []
   let start = startOfDay(date)
 
   for (let i = 0; i < lineLength; i++) {
-    start.setHours(Math.round(i / inc))
     increments.push(new Date(start))
+    start = addHours(start, inc)
   }
 
   let longestName = 0
@@ -81,7 +84,7 @@ module.exports = function ({ punches, date, labelPadding, config }) {
 
   str += ''.padEnd(labelPadding)
   str += topRow + '\n'
-  
+
   for (const project in projects) {
     const p = projects[project]
 

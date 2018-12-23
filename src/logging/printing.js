@@ -289,14 +289,14 @@ function dayPunches (punches, date, config) {
       str += chalk.grey(s)
     }
 
-    if (config.showPunchIDs) {
+    if (config.display.showPunchIDs) {
       str += '   ' + chalk.grey(`ID: ${punch.id}`) + '\n'
     }
 
     if (punch.comments.length > 0) {
       punch.comments.forEach((comment, i) => {
         str += chalk.grey(`   ${symbols.logSessionBullet} `)
-        if (config.showCommentIndices) {
+        if (config.display.showCommentIndices) {
           str += chalk.bold(`[${i}] `)
         }
         if (config.display.showCommentTimestamps) {
@@ -354,14 +354,14 @@ function simplePunches (punches, config) {
     }
     str += '\n'
 
-    if (config.showPunchIDs) {
+    if (config.display.showPunchIDs) {
       str += '   ' + chalk.grey(`ID: ${punch.id}`) + '\n'
     }
 
     if (punch.comments.length > 0) {
       punch.comments.forEach((comment, i) => {
         str += chalk.grey(`   ${symbols.logSessionBullet} `)
-        if (config.showCommentIndices) {
+        if (config.display.showCommentIndices) {
           str += chalk.bold(`[${i}] `)
         }
         if (config.display.showCommentTimestamps) {

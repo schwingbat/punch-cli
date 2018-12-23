@@ -29,7 +29,7 @@ module.exports = function ({ config, punches, date, summary, project, interval }
     } else {
       message = 'No sessions for ' + formatDate(date, config.display.dateFormat)
     }
-    
+
     return console.log('\n' + message)
   }
 
@@ -40,7 +40,7 @@ module.exports = function ({ config, punches, date, summary, project, interval }
   console.log(`\n${daySummaryHeader({ date, dateFormat: config.display.dateFormat })}`)
   console.log('  ' + dayPunches(punches, date, config).replace(/\n/g, '\n  '))
 
-  if (config.showDayGraphics) {
+  if (config.display.showDayGraphics) {
     console.log(dayGraphic({
       punches,
       date,

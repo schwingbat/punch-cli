@@ -19,7 +19,7 @@ module.exports = function ({ config, punches, date, summary }) {
     for (let i = 0; i < punches.length; i++) {
       const project = config.projects[punches[i].project]
       const name = project ? project.name : punches[i].project
-  
+
       if (name.length > longestProjectName) {
         longestProjectName = name.length
       }
@@ -45,7 +45,7 @@ module.exports = function ({ config, punches, date, summary }) {
       punches: day.punches
     }))
 
-    if (config.showDayGraphics) {
+    if (config.display.showDayGraphics) {
       console.log(dayGraphic({
         punches: day.punches,
         date: day.date,

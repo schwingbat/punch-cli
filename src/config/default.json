@@ -20,10 +20,13 @@
     "timeFormat": "h:mm A"
   },
   "display": {
-    "textColors": true,
     "dateFormat": "dddd, MMMM Do YYYY",
     "timeFormat": "h:mm A",
-    "wordWrapWidth": 65
+    "textColors": true,
+    "wordWrapWidth": 65,
+    "showPunchIDs": false,
+    "showCommentIndices": false,
+    "showDayGraphics": false
   },
   "storageType": "ledger"
 }
