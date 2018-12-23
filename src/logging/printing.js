@@ -7,11 +7,9 @@ const Table = require('../format/table')
 const formatCurrency = require('../format/currency')
 const formatDuration = require('../format/duration')
 const formatDate = require('date-fns/format')
-// const printLength = require('../utils/print-length')
 const wordWrap = require('@fardog/wordwrap')(0, 80, {
   lengthFn: require('../utils/print-length.js')
 })
-// const wordWrap = value => value
 const realTime = require('../utils/real-time')
 
 function delimitedList (items, inners = ' / ', outers) {
@@ -137,10 +135,13 @@ function summaryTable (projects, opts = {}) {
     const rtime = realTime(punches)
     const time = formatDuration(total.time)
 
+    // Display to the second would look different.
+    const timeDiffers = ~~(rtime / 1000) !== ~~(total.time / 1000)
+
     str += '\n' + chalk.bold.cyan('TOTAL') + ' '
     str += delimitedList([
-      rtime !== total.time ? `${formatDuration(rtime)} ${chalk.cyan('[Real]')}` : null,
-      rtime !== total.time ? `${time} ${chalk.cyan('[Tracked]')}` : time,
+      timeDiffers ? `${formatDuration(rtime)} ${chalk.cyan('[Real]')}` : null,
+      timeDiffers ? `${time} ${chalk.cyan('[Tracked]')}` : time,
       formatCurrency(total.pay),
       total.punchCount + ' punch' + (total.punchCount === 1 ? '' : 'es')
     ].filter(x => x), ' / ', ['(', ')'])
@@ -158,14 +159,10 @@ function monthSummaryHeader ({ date, stats, dateFormat }) {
   return header + '\n'
 }
 
-function daySummaryHeader ({ date, stats, dateFormat }) {
-  let header = ''
-  header += chalk.bold.underline(formatDate(date, dateFormat || 'ddd, MMM Do'))
-  if (stats) {
-    header += ' ' + delimitedList(stats, ' / ', ['(', ')'])
-  }
-  return header + '\n'
-}
+
+/*
+ * A date header followed by an entry for each punch occurring on a given day.
+ */
 
 function projectDay ({ date, stats, punches, config }) {
   let str = ''
@@ -176,6 +173,15 @@ function projectDay ({ date, stats, punches, config }) {
   return str
 }
 
+function daySummaryHeader ({ date, stats, dateFormat }) {
+  let header = ''
+  header += chalk.bold.underline(formatDate(date, dateFormat || 'ddd, MMM Do'))
+  if (stats) {
+    header += ' ' + delimitedList(stats, ' / ', ['(', ')'])
+  }
+  return header + '\n'
+}
+
 function dayPunches (punches, date, config) {
   const symbols = config.symbols
   let str = ''
@@ -184,6 +190,9 @@ function dayPunches (punches, date, config) {
   dateStart.setHours(0, 0, 0, 0)
   const dateEnd = new Date(dateStart)
   dateEnd.setHours(23, 59, 59, 999)
+
+  // Calculate length of 12:00pm formatted, which should be as long as a time with a given format could be.
+  const maxTimeLength = formatDate(new Date(2000, 11, 15, 12, 0, 0), config.display.timeFormat).length
 
   punches.forEach(punch => {
     let start
@@ -209,18 +218,18 @@ function dayPunches (punches, date, config) {
 
     let timeSpan = ''
     if (carryBack) {
-      timeSpan += ''.padStart(8) + ' - '
+      timeSpan += ''.padStart(maxTimeLength) + ' - '
     } else {
-      timeSpan += formatDate(start, config.display.timeFormat).padStart(8) + ' - '
+      timeSpan += formatDate(start, config.display.timeFormat).padStart(maxTimeLength) + ' - '
     }
     if (punch.out) {
       if (carryForward) {
-        timeSpan += ''.padStart(8)
+        timeSpan += ''.padStart(maxTimeLength)
       } else {
-        timeSpan += formatDate(end, config.display.timeFormat).padStart(8)
+        timeSpan += formatDate(end, config.display.timeFormat).padStart(maxTimeLength)
       }
     } else {
-      timeSpan += 'NOW'.padStart(8)
+      timeSpan += 'NOW'.padStart(maxTimeLength)
     }
 
     if (punch.out) {
@@ -243,8 +252,8 @@ function dayPunches (punches, date, config) {
       let s = ''
       let hrs = punch.durationWithinInterval({ start: punch.in, end: dateStart }) / 3600000
 
-      s += formatDate(punch.in, config.display.timeFormat).padStart(8) + ' - '
-      s += ''.padEnd(8)
+      s += formatDate(punch.in, config.display.timeFormat).padStart(maxTimeLength) + ' - '
+      s += ''.padEnd(maxTimeLength)
       if (hrs < 1) {
         s += `${~~(hrs * 60)}m`.padStart(6)
       } else {
@@ -267,8 +276,8 @@ function dayPunches (punches, date, config) {
       let s = ''
       let hrs = punch.durationWithinInterval({ start: dateEnd, end: out }) / 3600000
 
-      s += ''.padStart(8) + ' - '
-      s += formatDate(out, config.display.timeFormat).padStart(8)
+      s += ''.padStart(maxTimeLength) + ' - '
+      s += formatDate(out, config.display.timeFormat).padStart(maxTimeLength)
       if (hrs < 1) {
         s += `${~~(hrs * 60)}m`.padStart(6)
       } else {
