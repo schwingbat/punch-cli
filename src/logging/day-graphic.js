@@ -2,8 +2,14 @@ const startOfDay = require('date-fns/start_of_day')
 const closestIndexTo = require('date-fns/closest_index_to')
 const chalk = require('chalk')
 
-const onChar = '■'
-const offChar = '░'
+// const onChar = '■'
+// const onChar = '▓'
+// const offChar = '░'
+
+const onChar = '▊'
+const offChar = chalk.level > 0 ? chalk.grey('▊') : '-'
+
+
 const lineLength = 48
 const colors = [
   // 'red',
@@ -16,20 +22,9 @@ const colors = [
   'white'
 ]
 
-function shuffle(a) {
-  var j, x, i;
-  for (i = a.length - 1; i > 0; i--) {
-      j = Math.floor(Math.random() * (i + 1));
-      x = a[i];
-      a[i] = a[j];
-      a[j] = x;
-  }
-  return a;
-}
-
 module.exports = function ({ punches, date, labelPadding, config }) {
 
-  const topRow = '12    03    06    09    12    03    06    09    '
+  const topRow = '12    03    06    09    12    15    18    21    '
 
   const projects = {}
 
@@ -44,23 +39,22 @@ module.exports = function ({ punches, date, labelPadding, config }) {
       projects[name] = {
         label: name,
         punches: [],
-        color: 'cyan',
         line
       }
     }
     projects[name].punches.push(punch)
   }
 
+  const inc = lineLength / 24;
   const increments = []
   let start = startOfDay(date)
 
   for (let i = 0; i < lineLength; i++) {
-    start.setHours(i / (lineLength / 24))
+    start.setHours(Math.round(i / inc))
     increments.push(new Date(start))
   }
 
   let longestName = 0
-  let col = colors.map(c => c)
 
   // Calculate each project's line.
   for (const project in projects) {
@@ -68,19 +62,13 @@ module.exports = function ({ punches, date, labelPadding, config }) {
       longestName = project.length
     }
 
-    const color = col.shift()
-    if (col.length === 0) {
-      col = colors.map(c => c)
-    }
-    projects[project].color = color
-
     for (const punch of projects[project].punches) {
       const start = Math.max(0, Math.min(lineLength, closestIndexTo(punch.in, increments)))
       const end = Math.max(0, Math.min(lineLength, closestIndexTo(punch.out || new Date(), increments)))
       const p = projects[project]
 
       for (let i = start; i <= end; i++) {
-        p.line[i] = chalk[color](onChar);
+        p.line[i] = onChar;
       }
     }
   }
@@ -97,7 +85,7 @@ module.exports = function ({ punches, date, labelPadding, config }) {
   for (const project in projects) {
     const p = projects[project]
 
-    str += chalk[p.color](`${project}`.padEnd(labelPadding))
+    str += `${project}`.padEnd(labelPadding)
     str += p.line.join('') + '\n'
   }
 
