@@ -184,7 +184,7 @@ command('in <project>', {
     name: 'time',
     short: 't',
     description: 'time to set as punch in time (defaults to current time)',
-    type: parseDateTime 
+    type: parseDateTime
   }, {
     name: 'dry-run',
     description: 'run but don\'t commit punch',
@@ -224,7 +224,7 @@ command('in <project>', {
 
         // const time = format(new Date(), config.display.timeFormat)
         loader.stop(chalk.green(config.symbols.success) + ` Punched in on ${getLabelFor(args.project)}. ${getMessageFor('punched-in', { default: '' })}`)
-        
+
         if (!dryRun) {
           handleSync()
         }
@@ -265,7 +265,7 @@ command('out [project]', {
     const dryRun = args.options['dry-run']
 
     loader.start('Punching out...')
-    
+
     await handleSync({ silent: true })
 
     let current
@@ -309,7 +309,7 @@ command('out [project]', {
         loader.stop()
         return
       }
-      
+
       const formatDate = require('date-fns/format')
       const formatDuration = require('./format/duration')
       const formatCurrency = require('./format/currency')
@@ -342,6 +342,12 @@ command('out [project]', {
 
 command('log [when...]', {
   description: 'show a summary of punches for a given period ("last month", "this week", "two days ago", etc)',
+  examples: [
+    'punch log today',
+    'punch log last tuesday',
+    'punch log this month',
+    'punch log -s 2018-11-25 -e 2018-12-25 -p punch'
+  ],
   arguments: [{
     name: 'when',
     description: 'time period to log',
@@ -349,6 +355,16 @@ command('log [when...]', {
     parse: words => words.join(' ')
   }],
   options: [{
+    name: 'start',
+    short: 's',
+    type: 'string',
+    description: 'log punches between specific dates (use with --end)'
+  }, {
+    name: 'end',
+    short: 'e',
+    type: 'string',
+    description: 'log punches between specific dates (use with --start)'
+  }, {
     name: 'project',
     short: 'p',
     type: 'string',
@@ -369,7 +385,27 @@ command('log [when...]', {
   }],
   run: function (args) {
     const fuzzyParse = require('./utils/fuzzy-parse')
-    const interval = fuzzyParse(args.when)
+    const parseDateTime = require('./utils/parse-datetime')
+    let interval
+
+    let start = args.options['start']
+    let end = args.options['end']
+
+    if (start && !end || !start && end) {
+      console.log('--start and --end options must be used together')
+      return
+    }
+
+    if (start && end) {
+      interval = {
+        unit: 'period',
+        modifier: 0,
+        start: parseDateTime(start).setHours(0, 0, 0),
+        end: parseDateTime(end).setHours(23, 59, 59)
+      }
+    } else {
+      interval = fuzzyParse(args.when)
+    }
 
     if (args.options['with-ids']) {
       config.showPunchIDs = true

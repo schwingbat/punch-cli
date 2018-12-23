@@ -44,6 +44,7 @@ module.exports = function Logger (config, Punch) {
   const printWeek = require('./log-week')
   const printMonth = require('./log-month')
   const printYear = require('./log-year')
+  const printPeriod = require('./log-period')
 
   return {
     async forInterval (interval, args = {}) {
@@ -112,7 +113,8 @@ module.exports = function Logger (config, Punch) {
         printDay(logData)
         break
       default:
-        throw new Error(`Unknown unit: ${unit}`)
+        printPeriod(logData)
+        break
       }
     },
     _summarize: summarize
