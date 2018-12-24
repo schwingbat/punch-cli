@@ -48,6 +48,12 @@ module.exports = function ({ config, punches, date, summary, project, interval }
     }))
   }
 
-  console.log(summaryTable(summary))
+  const start = new Date(date)
+  const end = new Date(date)
+
+  start.setHours(0, 0, 0, 0)
+  end.setHours(23, 59, 59, 999)
+
+  console.log(summaryTable(summary, { start, end }))
   console.log()
 }

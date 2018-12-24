@@ -8,9 +8,11 @@
  * Returns a number of total milliseconds represented by the spans.
  */
 
-module.exports = function (spans) {
+module.exports = function (spans, { start, end } = {}) {
   /*
    * spans = [{ start: Date, end: Date }, ...]
+   *
+   * Also takes an optional
    */
 
   // Clone so we can mutate
@@ -32,6 +34,16 @@ module.exports = function (spans) {
 
   // 2. Cut time from beginning of spans if they overlap with another.
   for (const span of spans) {
+
+    // Limit to bounds if any were passed.
+    if (start && span.start < start) {
+      span.start = start
+    }
+
+    if (end && span.end > end) {
+      span.end = end
+    }
+
     for (const compared of spans) {
       if (span !== compared) {
         if (span.start >= compared.start && span.start <= compared.end) {

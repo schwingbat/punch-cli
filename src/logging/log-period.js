@@ -25,6 +25,9 @@ module.exports = function ({ config, punches, summary }) {
     }
   }
 
+  let earliest
+  let latest
+
   console.log()
   days.forEach(day => {
     // console.log(day)
@@ -33,6 +36,14 @@ module.exports = function ({ config, punches, summary }) {
 
     start.setHours(0, 0, 0, 0)
     end.setHours(23, 59, 59, 999)
+
+    if (!earliest || start < earliest) {
+      earliest = start
+    }
+
+    if (!latest || end > latest) {
+      latest = end
+    }
 
     console.log(projectDay({
       config,
@@ -56,5 +67,5 @@ module.exports = function ({ config, punches, summary }) {
     }
   })
 
-  console.log(summaryTable(summary) + '\n')
+  console.log(summaryTable(summary, { start: earliest, end: latest }) + '\n')
 }

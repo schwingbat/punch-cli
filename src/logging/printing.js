@@ -132,7 +132,7 @@ function summaryTable (projects, opts = {}) {
       })))
     }
 
-    const rtime = realTime(punches)
+    const rtime = realTime(punches, { start: opts.start, end: opts.end })
     const time = formatDuration(total.time)
 
     // Display to the second would look different.

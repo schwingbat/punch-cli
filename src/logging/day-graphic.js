@@ -24,10 +24,9 @@ const colors = [
 ]
 
 module.exports = function ({ punches, date, labelPadding, config }) {
-
-  // const topRow = '12    03    06    09    12    15    18    21    '
-  // const topRow = '0...1...2...3...4...5...6...7...8...9...10..11..12..1...2...3...4...5...6...7...8...9...10..11..'
-  const topRow = '00. . . . . 06. . . . . 12. . . . . 18. . . . .'
+  const topRow = config.display.use24HourTime
+    ? '00. . . . . 06. . . . . 12. . . . . 18. . . . .'
+    : '12. . 3 . . 6 . . 9 . . 12. . 3 . . 6 . . 9 . .'
 
   const projects = {}
 
@@ -71,7 +70,7 @@ module.exports = function ({ punches, date, labelPadding, config }) {
       const p = projects[project]
 
       for (let i = start; i <= end; i++) {
-        p.line[i] = onChar;
+        p.line[i] = !punch.out ? chalk.green(onChar) : onChar;
       }
     }
   }
