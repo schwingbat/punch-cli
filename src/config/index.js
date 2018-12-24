@@ -87,6 +87,8 @@ module.exports = function (configPath) {
     console.log(config)
   }
 
+  config.display.timeFormat = config.display.use24HourTime ? 'H:mm' : 'h:mm A'
+
   config.configPath = configPath + (configFormat || '.mon')
   config.punchPath = punchPath
   config.symbols = require('../utils/symbols')(config)

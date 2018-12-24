@@ -21,7 +21,7 @@
   },
   "display": {
     "dateFormat": "dddd, MMMM Do YYYY",
-    "timeFormat": "h:mm A",
+    "use24HourTime": false,
     "textColors": true,
     "wordWrapWidth": 65,
     "showPunchIDs": false,
