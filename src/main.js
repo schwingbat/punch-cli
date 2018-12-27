@@ -400,20 +400,20 @@ command('log [when...]', {
       interval = {
         unit: 'period',
         modifier: 0,
-        start: parseDateTime(start).setHours(0, 0, 0),
-        end: parseDateTime(end).setHours(23, 59, 59)
+        start: fuzzyParse(start).start,
+        end: fuzzyParse(end).end
       }
     } else {
       interval = fuzzyParse(args.when)
     }
 
     if (args.options['with-ids']) {
-      config.showPunchIDs = true
-      config.showCommentIndices = true
+      config.display.showPunchIDs = true
+      config.display.showCommentIndices = true
     }
 
     if (args.options['with-graphics']) {
-      config.showDayGraphics = true
+      config.display.showDayGraphics = true
     }
 
     if (interval) {
