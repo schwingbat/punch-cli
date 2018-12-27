@@ -41,10 +41,9 @@ module.exports = function Logger (config, Punch) {
   const padWithLines = require('../logging/pad-with-lines')
   const messageFor = require('../utils/message-for')
   const printDay = require('./log-day')
-  const printWeek = require('./log-week')
-  const printMonth = require('./log-month')
   const printYear = require('./log-year')
   const printPeriod = require('./log-period')
+  const heatmap = require('../utils/heatmap')
 
   return {
     async forInterval (interval, args = {}) {
@@ -106,15 +105,22 @@ module.exports = function Logger (config, Punch) {
         break
       case 'month':
         printPeriod(logData)
+        // TODO: Print month heatmap.
+        // const hmap = heatmap.month(interval.start, punches, config)
+        // console.log(hmap + '\n')
         break
       case 'week':
-        printPeriod(logData)
+        const { longestProjectName } = printPeriod(logData)
+        const hmap = heatmap.week(punches, config, {
+          labelPadding: longestProjectName + 3
+        })
+        console.log(hmap + '\n')
         break
       case 'day':
         printDay(logData)
         break
       default:
-        // Month, week & other intervals
+        // Catchall for custom intervals
         printPeriod(logData)
         break
       }
