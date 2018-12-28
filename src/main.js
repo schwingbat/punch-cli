@@ -290,6 +290,18 @@ command('out [project]', {
     }
 
     if (current) {
+      if (args.options.time) {
+        if (args.options.time < current.in) {
+          loader.stop('You can\'t punch out before you punched in.')
+          return
+        }
+
+        if (!confirmAdjustedTime(args.options.time, `Punch out at $?`)) {
+          loader.stop()
+          return
+        }
+      }
+
       if (current.comments.length === 0 && !args.options.comment) {
         let noComment
 
@@ -303,11 +315,6 @@ command('out [project]', {
           loader.stop(`Use the --comment or -c flags to add a comment:\n  usage: punch out -c "This is a comment."\n`)
           return
         }
-      }
-
-      if (args.options.time && !confirmAdjustedTime(args.options.time, 'Punch out at $?')) {
-        loader.stop()
-        return
       }
 
       const formatDate = require('date-fns/format')
@@ -726,6 +733,11 @@ command('create <project>', {
       pay = 'N/A'
     }
 
+    if (timeOut < timeIn) {
+      console.log('Punch can\'t end before it starts.')
+      return
+    }
+
     let str = '\n'
     str += `   Project: ${project.name} (${project.alias})\n`
     str += `   Time In: ${formatDate(timeIn, 'dddd, MMM Do YYYY [@] h:mma')}\n`
@@ -817,6 +829,11 @@ command('adjust <punchID>', {
 
       if (args.options.start) punch.in = args.options.start
       if (args.options.end) punch.out = args.options.end
+
+      if (punch.out < punch.in) {
+        console.log('Punch can\'t end before it starts.')
+        return
+      }
 
       // TODO: Show comparison/preview of changes with a real confirmation
 
