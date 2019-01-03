@@ -26,7 +26,11 @@
     "wordWrapWidth": 65,
     "showPunchIDs": false,
     "showCommentIndices": false,
-    "showDayGraphics": false
+    "showDayGraphics": false,
+    "commentRelativeTimestamps": {
+      "enabled": true,
+      "fromPreviousComment": true
+    }
   },
   "storageType": "ledger"
 }

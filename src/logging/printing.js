@@ -293,21 +293,44 @@ function dayPunches (punches, date, config) {
       str += '   ' + chalk.grey(`ID: ${punch.id}`) + '\n'
     }
 
+    let lastCommentStamp = punch.in
+
     if (punch.comments.length > 0) {
-      punch.comments.forEach((comment, i) => {
+      for (let c = 0; c < punch.comments.length; c++) {
+        const comment = punch.comments[c]
+
         str += chalk.grey(`   ${symbols.logSessionBullet} `)
+
         if (config.display.showCommentIndices) {
-          str += chalk.bold(`[${i}] `)
+          str += chalk.bold(`[${c}] `)
         }
-        if (config.display.showCommentTimestamps) {
+
+        if (config.display.showCommentTimestamps && !config.display.commentRelativeTimestamps.enabled) {
           str += formatDate(comment.timestamp, config.display.timeFormat) + ': '
         }
+
+        if (config.display.commentRelativeTimestamps.enabled) {
+          let diff
+
+          if (config.display.commentRelativeTimestamps.fromPreviousComment) {
+            diff = Math.min(punch.out || new Date, comment.timestamp) - lastCommentStamp
+          } else {
+            diff = Math.min(punch.out || new Date, comment.timestamp) - punch.in
+          }
+
+          str += chalk.cyan('+' + formatDuration(diff, { resolution: 'minutes', padded: true }) + ': ')
+
+          lastCommentStamp = comment.timestamp
+        } 
+
         str += wordWrap(comment.toString()).replace('\n', '\n     ')
 
-        if (punch.comments[i + 1]) {
+        // Break line if this comment isn't the last.
+        if (punch.comments[c + 1]) {
           str += '\n'
         }
-      })
+      }
+
       str += '\n'
     }
   })

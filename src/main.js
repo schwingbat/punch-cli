@@ -470,9 +470,14 @@ command('comment <comment...>', {
   }],
   options: [{
     name: 'project',
-    alias: 'p',
+    short: 'p',
     description: 'the active project to add the comment to',
     type: 'string'
+  }, {
+    name: 'time',
+    short: 't',
+    description: 'set a custom timestamp for the comment (defaults to now)',
+    type: parseDateTime
   }],
   run: async function (args) {
 
@@ -497,7 +502,7 @@ command('comment <comment...>', {
     const { dayPunches } = require('./logging/printing')
 
     if (current) {
-      current.addComment(args.comment)
+      current.addComment(args.comment, args.options.time || null)
       await current.save()
 
       console.log('\n  ' + dayPunches([current], Date.now(), config).replace(/\n/g, '\n  '))

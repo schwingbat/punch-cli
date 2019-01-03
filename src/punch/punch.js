@@ -144,8 +144,8 @@ module.exports = function (config, Storage) {
       this.updated = new Date(props.updated || new Date())
     }
 
-    addComment (comment) {
-      this.comments.push(new Comment(comment))
+    addComment (comment, timestamp) {
+      this.comments.push(new Comment(comment, timestamp))
 
       this.update()
     }
@@ -199,7 +199,9 @@ module.exports = function (config, Storage) {
         in: this.in.getTime(),
         out: this.out ? this.out.getTime() : null,
         rate: this.rate,
-        comments: this.comments.map(comment => comment.toJSON()),
+        comments: this.comments
+          .filter(comment => !comment.deleted)
+          .map(comment => comment.toJSON()),
         created: this.created.getTime(),
         updated: this.updated.getTime()
       }
