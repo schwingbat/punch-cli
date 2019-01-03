@@ -155,7 +155,7 @@ module.exports = function (config, Storage) {
       
       this.update()
 
-      if (comment) this.addComment(comment)
+      if (comment) this.addComment(comment, this.out)
       if (options.autosave) await this.save()
     }
 
