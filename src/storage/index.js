@@ -1,7 +1,6 @@
 const services = {
-  // punchfile: require('./services/punchfile.service'),
+  mock: require('./services/mock.service'),
   sqlite: require('./services/sqlite.service'),
-  // nedb: require('./services/nedb.service'),
   ledger: require('./services/ledger.service')
 }
 

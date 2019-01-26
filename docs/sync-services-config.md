@@ -1,9 +1,21 @@
 # Sync Services
 
+## Punch Server
+
+```mon
+{
+  name "punch-server"
+  label "My Punch Server"
+  url "https://punch-sync.tonymccoy.me"
+  credentials {
+    key "asdf"
+  }
+}
+```
 
 ## S3
 
-```ini
+```mon
 {
   name "s3"
   label "Anything you want..."
@@ -23,12 +35,12 @@
 
 ## DigitalOcean Spaces
 
-```ini
+```mon
 {
   name "spaces"
   label "Anything you want..."
-  
-  # can be 'bucket' or 'space'
+
+  # key can be 'bucket' or 'space'
   space "space-name"
 
   # use region OR endpoint - endpoint includes a region and will override the region

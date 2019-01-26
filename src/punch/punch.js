@@ -1,8 +1,8 @@
 const uuid = require('uuid/v1')
 const is = require('@schwingbat/is')
-const extractObjects = require('./comment-objects/extract.js')
-const parseObjects = require('./comment-objects/parse.js')
+const extractObjects = require('./comment-objects/extract')
 const chalk = require('chalk')
+const { ascendingBy } = require('../utils/sort-factories')
 
 module.exports = function (config, Storage) {
 
@@ -10,25 +10,13 @@ module.exports = function (config, Storage) {
   ||       Comments        ||
   \*=======================*/
 
-  class Tag {
-    constructor (tag) {
-      this.value = tag.value
-      this.index = tag.index
-    }
-
-    toString () {
-      return `#${this.value}`
-    }
-  }
-
   class Comment {
     constructor (comment, timestamp = new Date(), id = uuid()) {
       const extracted = extractObjects(comment)
       this.id = id
-      this.raw = comment
-      this.objects = parseObjects(extracted.objects)
-      this.tags = extracted.tags.map(t => new Tag(t))
-      this.comment = extracted.comment
+      this.objects = extracted.objects
+      this.tags = extracted.tags
+      this.comment = comment.trim()
       this.timestamp = new Date(parseInt(timestamp) || Date.now())
     }
 
@@ -46,24 +34,73 @@ module.exports = function (config, Storage) {
       return false
     }
 
+    /**
+     * Returns a decorated string for printing to the console.
+     */
     toString () {
+      // Skip logic if possible
+      if (this.objects.length === 0 && this.tags.length === 0) {
+        return this.comment
+      }
+
       let comment = this.comment
-      if (this.tags.length > 0) {
-        this.tags.forEach(tag => {
-          comment = comment.slice(0, tag.index)
-                  + (comment[tag.index] === ' ' ? '' : ' ')
-                  + chalk.red(tag.toString())
-                  + comment.slice(tag.index)
+      let slices = []
+
+      for (let tag of this.tags) {
+        slices.push({
+          start: tag.start,
+          end: tag.end,
+          value: chalk.magenta(comment.slice(tag.start, tag.end))
         })
       }
-      if (this.objects.length > 0) {
-        comment += ' ' + chalk.green(this.objects.map(o => o.toLogString()).join(' '))
+
+      for (let object of this.objects) {
+        let value = ''
+        
+        value += chalk.grey('@')
+        value += chalk.green(object.key.string)
+        value += chalk.grey(':'),
+        value += chalk.yellow(object.value.string)
+
+        slices.push({
+          start: object.key.start - 1,
+          end: object.value.end,
+          value
+        })
       }
-      return comment
+
+      // Fill in normal unformatted text in between tags and objects
+      let marker = 0
+      let newSlices = []
+
+      slices.sort(ascendingBy('start'))
+
+      for (let slice of slices) {
+        newSlices.push({
+          start: marker,
+          end: slice.start - 1,
+          value: comment.slice(marker, slice.start)
+        })
+
+        marker = slice.end
+      }
+
+      if (marker < comment.length) {
+        // Add end if there's still more to go.
+        newSlices.push({
+          start: marker,
+          end: comment.length - 1,
+          value: comment.slice(marker, comment.length)
+        })
+      }
+
+      return slices.concat(newSlices)
+        .sort(ascendingBy('start'))
+        .map(s => s.value).join('')
     }
 
     toStringPlain () {
-      return this.raw
+      return this.comment
     }
 
     objects () {
@@ -71,23 +108,8 @@ module.exports = function (config, Storage) {
     }
 
     toJSON () {
-      let comment = this.comment
-      if (this.tags.length > 0) {
-        this.tags.forEach(tag => {
-          comment = comment.slice(0, tag.index)
-                  + (comment[tag.index] === ' ' ? '' : ' ')
-                  + tag.toString()
-                  + comment.slice(tag.index)
-        })
-      }
-      if (this.objects.length > 0) {
-        comment += ' ' + this.objects.map(o => o.toString()).join(' ')
-      }
-
-      // if (this.tags.length > 0) console.log(comment)
-
       return {
-        comment,
+        comment: this.comment,
         timestamp: this.timestamp.getTime()
       }
     }
@@ -247,7 +269,6 @@ module.exports = function (config, Storage) {
   }
 
   Punch.Comment = Comment
-  Punch.Comment.Tag = Tag
 
   return Punch
 }

@@ -3,76 +3,83 @@ module.exports = function (comment) {
   const tags = []
 
   let i = 0
-  let inKey = false
-  let inValue = false
-  let inTag = false
-  let buffer = ''
-  let tagIndex = 0
-  let key
 
   while (i < comment.length) {
-    switch (comment[i]) {
-      case '@':
-        if (!inKey) {
-          inKey = true
-        }
-        break
-      case ':':
-        if (inKey) {
-          inKey = false
+    let char = comment[i]
+
+    // Parse @key:value object
+    if (char === '@') {
+      let startIndex = i
+      i++ // Skip @
+
+      let keyStart = i
+      let keyEnd
+      let valueStart
+
+      let key = ''
+      let value = ''
+      let inValue = false
+
+      // Run until the next space or the end of the string
+      while (comment[i] !== ' ' && i < comment.length) {
+        char = comment[i]
+
+        if (char === ':') {
           inValue = true
-          key = buffer
-          buffer = ''
+          keyEnd = i
+          valueStart = i + 1
+          i++
+          continue
         }
-        break
-      case ' ':
+
         if (inValue) {
-          inValue = false
-          objects.push({ key, value: buffer })
-          key = undefined
-          buffer = ''
-        } else if (inTag) {
-          inTag = false
-          tags.push({ index: tagIndex, value: buffer })
-          buffer = ''
+          value += char
+        } else {
+          key += char
         }
-        break
-      case '#':
-        if (inTag) {
-          if (buffer.length > 0) {
-            // End tag and start another
-            tags.push({ index: tagIndex, value: buffer })
-            buffer = ''
-          } else {
-            // Two hashtags in a row?!
-            // I'm not sure what to do here...
-          }
-        } else if ((inKey || inValue) && buffer.length > 0) {
-          objects.push({ key, value: buffer })
-          inKey = false
-          inValue = false
+
+        i++
+      }
+
+      objects.push({
+        key: {
+          start: keyStart,
+          end: keyEnd,
+          string: key
+        },
+        value: {
+          start: valueStart,
+          end: i,
+          string: value
         }
-        inTag = true
-        tagIndex = i
-        break
-      default:
-        if (inKey || inValue || inTag) {
-          buffer += comment[i]
-        }
-        break
+      })
+
+      continue
+    }
+
+    // Parse #tag object
+    if (char === '#') {
+      let startIndex = i
+
+      // Run until the next space or the end of the string
+      while (comment[i] !== ' ' && i < comment.length) {
+        i++
+      }
+
+      tags.push({
+        start: startIndex,
+        end: i,
+        string: comment.slice(startIndex + 1, i)
+      })
+
+      continue
     }
 
     i++
   }
 
-  if (inValue) {
-    objects.push({ key, value: buffer })
-  } else if (inTag) {
-    tags.push({ index: tagIndex, value: buffer })
-  }
-
   return {
-    comment: comment.replace(/@.+:.+/g, '').replace(/#[\w\d\-_\.]+/g, '').trim(),
+    comment: comment.trim(),
     objects,
     tags
   }

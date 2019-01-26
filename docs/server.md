@@ -85,6 +85,22 @@ Returns:
 }
 ```
 
+### `POST /api/v1/punches/delete`
+
+Sends a list of IDs to the server to delete.
+
+POST data:
+```json
+{
+  "ids": [
+    "2137a565-62f1-46ce-ab8d-1e1f56160e6e",
+    "6bc3c99e-9200-45a8-80d6-a924408845e7"
+  ]
+}
+```
+
+Returns 204 on successful delete.
+
 ## Multi User Server
 
 The standard Punch server only supports one user. Another future project would be a standalone server program that manages punches for many users.
