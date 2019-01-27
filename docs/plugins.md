@@ -16,7 +16,7 @@ A plugin is the following:
 ~/.punch/plugins
   | my-cool-plugin
     | plugin.js
-    | package.json (with "main": "plugin.js")
+    | package.json (with "main" pointing to "plugin.js")
 ```
 
 Inside `plugin.js`:

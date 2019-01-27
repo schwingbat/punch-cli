@@ -1,0 +1,90 @@
+const { confirm } = require("../punch/utils");
+const { simplePunches } = require("../logging/printing");
+const chalk = require("chalk");
+const formatDate = require("date-fns/format");
+const fs = require("fs");
+const path = require("path");
+
+const loadImporter = (name, config) => {
+  let formatter;
+  let formatterPath = path.join(config.punchPath, "importers", name + ".js");
+  try {
+    formatter = require(formatterPath);
+  } catch (err) {
+    console.log(chalk.red(`\nNo formatter for '${name}'`));
+    console.log(`You can create ${chalk.green(formatterPath)} to define it.`);
+    console.log("Formatters should be a single exported function that takes a file's contents as a string and returns an array of Punch objects.\n");
+    console.log("Here's a good starting point:");
+    console.log(`
+module.exports = function (fileContentsStr, Punch) {
+  const punches = []
+
+  // Do your thing!
+  // punches.push(new Punch(...))
+
+  return punches
+}
+`);
+    return;
+  }
+
+  return formatter;
+};
+
+module.exports = ({ config, Punch }) => ({
+  signature: "import <file>",
+  description: "imports punch data from a file",
+  examples: [
+    "punch import ~/export.csv -f hourstracker"
+  ],
+  arguments: [{
+    name: "file",
+    description: "path to a file of importable data",
+  }],
+  options: [{
+    name: "format",
+    short: "f",
+    description: "name of function to handle import (defined in ~/.punch/formatters/import)",
+    type: "string"
+  }],
+  run: async function (args) {
+    let contents;
+    try {
+      contents = fs.readFileSync(args.file, "utf8");
+    } catch (err) {
+      console.log("Error loading file: " + err.message);
+    }
+
+    if (!args.options.format) {
+      return console.log("Must pass --format with value");
+    }
+
+    const formatter = loadImporter(args.options.format);
+    if (formatter) {
+      const punches = formatter(contents, Punch);
+
+      const byDate = {};
+
+      for (const punch of punches) {
+        const key = formatDate(punch.in, config.display.dateFormat);
+        if (!byDate[key]) byDate[key] = [];
+        byDate[key].push(punch);
+      }
+
+      console.log();
+      for (const date in byDate) {
+        console.log(chalk.white.bold.underline(date) + "\n");
+        console.log(simplePunches(byDate[date], config));
+      }
+
+      // TODO: Add overlap detection
+
+      if (confirm("Import these punches?")) {
+        for (const punch of punches) {
+          await punch.save();
+        }
+        console.log(`${punches.length} punches imported.`);
+      }
+    }
+  }
+});
