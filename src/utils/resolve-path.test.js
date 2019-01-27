@@ -8,7 +8,6 @@ describe('resolvePath', () => {
   })
 
   it('resolves a path not starting with \'~\'', () => {
-    // works when run from punch root directory
-    expect(resolvePath('./test')).toBe(path.join(__dirname, '..', 'test'))
+    expect(resolvePath('./test')).toBe(path.join(process.cwd(), 'test'))
   })
 })

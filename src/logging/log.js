@@ -29,7 +29,7 @@ function summarize (config, punches, interval) {
   for (const alias in projects) {
     projectArray.push({
       alias,
-      isPaid: config.projects[alias] && config.projects[alias].hourlyRate,
+      isPaid: !!(config.projects[alias] && config.projects[alias].hourlyRate),
       ...projects[alias]
     })
   }
@@ -41,9 +41,9 @@ module.exports = function Logger (config, Punch) {
   const padWithLines = require('../logging/pad-with-lines')
   const messageFor = require('../utils/message-for')
   const printDay = require('./log-day')
-  // const printWeek = require('./log-week')
-  const printMonth = require('./log-month')
   const printYear = require('./log-year')
+  const printPeriod = require('./log-period')
+  const heatmap = require('../utils/heatmap')
 
   return {
     async forInterval (interval, args = {}) {
@@ -51,48 +51,28 @@ module.exports = function Logger (config, Punch) {
       const now = Date.now()
       let punches
 
+      if (interval.unit === 'week') {
+        interval.start = addDays(interval.start, 1)
+        interval.end = addDays(interval.end, 1)
+      }
+
       if (interval.start > new Date()) {
         return console.log(messageFor('future-punch-log'))
       }
 
-      // SQLite optimizations
-      // Filter with SQL and avoid instantiating when possible
-      if (Punch.storage.name === 'sqlite' && !object) {
-        punches = Punch.storage.run((db, instantiatePunch) => {
-          let intervalStart = interval.start.getTime()
-          let intervalEnd = interval.end.getTime()
-          let now = Date.now()
-          let query = `
-            SELECT * FROM punches
-            WHERE (
-              (outAt IS NOT NULL AND outAt >= ${intervalStart})
-              OR
-              (outAt IS NULL AND ${now} >= ${intervalStart})
-            ) AND (inAt <= ${intervalEnd})
-          `
-          if (project) {
-            query += ` AND project = '${project}'`
-          }
-
-          return db.prepare(query)
-            .all()
-            .map(instantiatePunch)
-        })
-      } else {
-        punches = await Punch.select(p => {
-          // Reject if start date is out of the interval's range
-          if (!((p.out || now) >= interval.start && p.in <= interval.end)) {
-            return false
-          }
-          if (project && p.project !== project) {
-            return false
-          }
-          if (object && !p.hasCommentWithObject(object)) {
-            return false
-          }
-          return true
-        })
-      }
+      punches = await Punch.select(p => {
+        // Reject if start date is out of the interval's range
+        if (!((p.out || now) >= interval.start && p.in <= interval.end)) {
+          return false
+        }
+        if (project && p.project !== project) {
+          return false
+        }
+        if (object && !p.hasCommentWithObject(object)) {
+          return false
+        }
+        return true
+      })
 
       if (punches.length === 0) {
         // Figure out what to say if there are no results
@@ -120,20 +100,29 @@ module.exports = function Logger (config, Punch) {
 
       switch (interval.unit) {
       case 'year':
+        // Shows a higher level summary
         printYear(logData, summarize)
         break
       case 'month':
-        printMonth(logData)
+        printPeriod(logData)
+        // TODO: Print month heatmap.
+        // const hmap = heatmap.month(interval.start, punches, config)
+        // console.log(hmap + '\n')
         break
       case 'week':
-        console.log('Weekly logs are not implemented yet')
-        // printWeek(logData)
+        const { longestProjectName } = printPeriod(logData)
+        const hmap = heatmap.week(punches, config, {
+          labelPadding: longestProjectName + 3
+        })
+        console.log(hmap + '\n')
         break
       case 'day':
         printDay(logData)
         break
       default:
-        throw new Error(`Unknown unit: ${unit}`)
+        // Catchall for custom intervals
+        printPeriod(logData)
+        break
       }
     },
     _summarize: summarize

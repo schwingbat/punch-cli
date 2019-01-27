@@ -20,11 +20,17 @@
     "timeFormat": "h:mm A"
   },
   "display": {
-    "textColors": true,
     "dateFormat": "dddd, MMMM Do YYYY",
-    "timeFormat": "h:mm A",
-    "wordWrapWidth": 65
+    "use24HourTime": false,
+    "textColors": true,
+    "wordWrapWidth": 65,
+    "showPunchIDs": false,
+    "showCommentIndices": false,
+    "showDayGraphics": false,
+    "commentRelativeTimestamps": {
+      "enabled": true,
+      "fromPreviousComment": true
+    }
   },
-  "storageType": "ledger",
-  "invoiceAPI": "http://invoice.api.punch.sh/v1/"
+  "storageType": "ledger"
 }

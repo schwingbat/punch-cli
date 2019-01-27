@@ -3,11 +3,25 @@ const path = require('path')
 const resolvePath = require('../../utils/resolve-path')
 const SyncService = require('../syncservice.js')
 const MON = require('@schwingbat/mon')
-const is = require('@schwingbat/is')
 
 class S3SyncService extends SyncService {
   constructor (appConfig, serviceConfig, Punch, S3 = require('aws-sdk').S3) {
-    let creds = new S3Credentials(serviceConfig.credentials, appConfig)
+    let creds
+
+    if (!serviceConfig.credentials) {
+      throw new Error('S3 sync configuration does not specify any `credentials` field. This can be either a path to a file or an object.')
+    }
+
+    if (typeof serviceConfig.credentials === 'string') {
+      if (path.isAbsolute(serviceConfig.credentials)) {
+        creds = credentialsFromAbsolutePath(serviceConfig.credentials)
+      } else {
+        creds = credentialsFromRelativePath(serviceConfig.credentials, path.dirname(appConfig.configPath))
+      }
+    } else {
+      creds = credentialsFromObject(serviceConfig.credentials)
+    }
+
     creds.region = serviceConfig.region || 'us-west-2'
     creds.endpoint = serviceConfig.endpoint || 's3.amazonaws.com'
     
@@ -142,47 +156,51 @@ class S3SyncService extends SyncService {
   }
 }
 
-class S3Credentials {
-  constructor (credentials, appConfig) {
-    if (!credentials) {
-      throw new Error('S3 config has no credentials')
-    }
+/*==========================*\
+||    Credential Loaders    ||
+\*==========================*/
 
-    if (is.string(credentials)) {
-      let credPath = resolvePath(credentials, path.dirname(appConfig.configPath))
-
-      if (fs.existsSync(credPath)) {
-        const ext = path.extname(credentials).toLowerCase()
-        const read = fs.readFileSync(credPath, 'utf8')
-
-        try {
-          switch (ext) {
-          case '.json':
-            credentials = JSON.parse(read)
-            break
-          case '.mon':
-            credentials = MON.parse(read)
-            break
-          default:
-            throw new Error(`${ext} files are not supported as credential sources - use .json or .mon`)
-          }
-        } catch (err) {
-          throw new Error('There was a problem reading the S3 credentials file: ' + err)
-        }
-      } else {
-        throw new Error('Credentials is a path, but the file does not exist: ' + credPath)
-      }
-    } else if (is.object(credentials)) {
-      throw new Error('Credentials should either be a path to a JSON file containing your S3 credentials or an object containing the credentials themselves.')
-    }
-
-    if (!credentials.hasOwnProperty('accessKeyId') || !credentials.hasOwnProperty('secretAccessKey')) {
-      throw new Error('Credentials must include both accessKeyId and secretAccessKey.')
-    }
-
-    this.accessKeyId = credentials.accessKeyId
-    this.secretAccessKey = credentials.secretAccessKey
+function credentialsFromObject(obj) {
+  if (!obj.hasOwnProperty('accessKeyId') || !obj.hasOwnProperty('secretAccessKey')) {
+    throw new Error('S3 credentials must include both accessKeyId and secretAccessKey.')
   }
+
+  return {
+    accessKeyId: obj.accessKeyId,
+    secretAccessKey: obj.secretAccessKey
+  }
+}
+
+function credentialsFromAbsolutePath(p) {
+  if (fs.existsSync(p)) {
+    const ext = path.extname(p).toLowerCase()
+    const read = fs.readFileSync(p, 'utf8')
+
+    let parsed
+
+    try {
+      switch (ext) {
+      case '.json':
+        parsed = JSON.parse(read)
+        break
+      case '.mon':
+        parsed = MON.parse(read)
+        break
+      default:
+        throw new Error(`${ext} files are not supported as credential sources - must be .json or .mon`)
+      }
+    } catch (err) {
+      throw new Error('There was a problem reading the S3 credentials file: ' + err)
+    }
+
+    return credentialsFromObject(parsed)
+  } else {
+    throw new Error('Credentials is a path, but the file does not exist: ' + p)
+  }
+}
+
+function credentialsFromRelativePath(p, root) {
+  return credentialsFromAbsolutePath(resolvePath(p, root))
 }
 
 module.exports = S3SyncService

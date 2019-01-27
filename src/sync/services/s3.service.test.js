@@ -1,7 +1,12 @@
 const path = require('path')
-const Service = require('./s3.service.js')
+const Service = require('./s3.service')
+
+/*==================================*\
+||          Config & Mocks          ||
+\*==================================*/
 
 const credsPath = path.join(__dirname, '../../test/s3creds.json')
+
 const config = {
   name: 'S3',
   credentials: {
@@ -95,11 +100,15 @@ class MockPunch {
   }
 }
 
+/*==================================*\
+||          Actual Testing          ||
+\*==================================*/
+
 describe('S3SyncService', () => {
   let service
 
   beforeEach(() => {
-    service = new Service(config, MockPunch, MockS3)
+    service = new Service({}, config, MockPunch, MockS3)
     S3Calls = {}
 
     throwListError = false
@@ -122,7 +131,7 @@ describe('S3SyncService', () => {
     })
 
     it('loads S3 credentials from a JSON file if credentials is a path', () => {
-      service = new Service({
+      service = new Service({}, {
         name: 'S3',
         credentials: credsPath
       }, MockPunch, MockS3)
@@ -133,26 +142,26 @@ describe('S3SyncService', () => {
 
     it('throws an error if credentials are not included in config', () => {
       expect(() => {
-        service = new Service({ name: 'S3' }, MockPunch, MockS3)
-      }).toThrow(new Error('S3 config has no credentials'))
+        service = new Service({}, { name: 'S3' }, MockPunch, MockS3)
+      }).toThrow(new Error('S3 sync configuration does not specify any `credentials` field. This can be either a path to a file or an object.'))
     })
 
     it('throws an error if credentials is missing a required property', () => {
       expect(() => {
-        service = new Service({
+        service = new Service({}, {
           name: 'S3',
           credentials: { secretAccessKey: '123' }
         }, MockPunch, MockS3)
-      }).toThrow(new Error('Credentials must include both accessKeyId and secretAccessKey.'))
+      }).toThrow(new Error('S3 credentials must include both accessKeyId and secretAccessKey.'))
     })
 
     it('throws an error if credentials are not a string or object', () => {
       expect(() => {
-        service = new Service({
+        service = new Service({}, {
           name: 'S3',
           credentials: 12
-        })
-      }).toThrow(new Error('Credentials should either be a path to a JSON file containing your S3 credentials or an object containing the credentials themselves.'))
+        }, MockPunch)
+      }).toThrow(new Error('S3 credentials must include both accessKeyId and secretAccessKey.'))
     })
   })
 

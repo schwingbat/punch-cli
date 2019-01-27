@@ -81,11 +81,10 @@ module.exports = function (configPath) {
 
   // If THAT doesn't work, yer screwed.
   } else {
-    console.log('No config file found!')
-
-    const config = require('./setup')()
-    console.log(config)
+    // No config file found
   }
+
+  config.display.timeFormat = config.display.use24HourTime ? 'H:mm' : 'h:mm A'
 
   config.configPath = configPath + (configFormat || '.mon')
   config.punchPath = punchPath

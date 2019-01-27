@@ -37,6 +37,10 @@ describe('duration', () => {
       .toBe('4 hours, 0 minutes and 0 seconds')
   })
 
+  it('wraps seconds into minutes at 60', () => {
+    expect(formatDuration(39180000)).toBe('10h 53m 0s')
+  })
+
   describe('resolutions', () => {
     let duration1 = fromParts({ hours: 5, minutes: 13, seconds: 12, milliseconds: 124 })
     let duration2 = fromParts({ minutes: 58, seconds: 15, milliseconds: 662 })

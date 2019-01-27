@@ -13,6 +13,7 @@
 module.exports = function ({ config, punches, date, summary, project, interval }) {
   const { ascendingBy } = require('../utils/sort-factories')
   const { dayPunches, summaryTable, daySummaryHeader } = require('./printing')
+  const dayGraphic = require('./day-graphic')
   const formatDate = require('date-fns/format')
 
   if (punches.length === 0) {
@@ -28,7 +29,7 @@ module.exports = function ({ config, punches, date, summary, project, interval }
     } else {
       message = 'No sessions for ' + formatDate(date, config.display.dateFormat)
     }
-    
+
     return console.log('\n' + message)
   }
 
@@ -38,6 +39,21 @@ module.exports = function ({ config, punches, date, summary, project, interval }
 
   console.log(`\n${daySummaryHeader({ date, dateFormat: config.display.dateFormat })}`)
   console.log('  ' + dayPunches(punches, date, config).replace(/\n/g, '\n  '))
-  console.log(summaryTable(summary))
+
+  if (config.display.showDayGraphics) {
+    console.log(dayGraphic({
+      punches,
+      date,
+      config
+    }))
+  }
+
+  const start = new Date(date)
+  const end = new Date(date)
+
+  start.setHours(0, 0, 0, 0)
+  end.setHours(23, 59, 59, 999)
+
+  console.log(summaryTable(summary, { start, end }))
   console.log()
 }

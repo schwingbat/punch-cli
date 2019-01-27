@@ -8,12 +8,6 @@ describe('Config', () => {
     expect(config(path.join(__dirname, 'default.json'))).toEqual(defaultConfig)
   })
 
-  it('throws an error if a project references a nonexistent client', () => {
-    expect(() => {
-      config(brokenConfigPath)
-    }).toThrow()
-  })
-
   it('loads the default config when not given a path', () => {
     expect(config()).toBeTruthy()
   })
