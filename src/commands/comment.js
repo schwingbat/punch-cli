@@ -75,7 +75,7 @@ module.exports = ({ config, Punch }) => ({
       str += "\n\n";
 
       if (confirm(str)) {
-        latest.addComment(args.comment);
+        latest.addComment(args.comment, args.options.time || null);
         await latest.save();
 
         console.log("\nComment saved.");
