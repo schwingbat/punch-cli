@@ -64,7 +64,7 @@ module.exports = ({ config, Punch }) => ({
 
         msg += chalk.green(config.symbols.success);
         msg += " Punched in on " + getLabelFor(config, args.project) + ".";
-        msg += getMessageFor("punched-in", { default: "" });
+        msg += " " + getMessageFor("punched-in", { default: "" });
 
         loader.stop(msg);
 
