@@ -7,8 +7,10 @@ module.exports = (config, current) => {
   let label = "";
   if (typeof current === "string") {
     label = current;
-  } else if (current.in) {
+  } else if (current && current.in) {
     label = getLabelFor(config, current.project);
+  } else {
+    // Keep empty string
   }
 
   fs.writeFileSync(path.join(path.dirname(config.configPath), "current"), label);

@@ -110,7 +110,7 @@ module.exports = ({ config, Punch }) => ({
       }
       loader.stop(chalk.green(config.symbols.success) + " " + str + ".");
 
-      updateCurrentMarker(config, "");
+      updateCurrentMarker(config, null);
       if (!dryRun) {
         await handleSync({ config, Punch });
       }
