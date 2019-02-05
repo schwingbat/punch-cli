@@ -1,44 +1,44 @@
 module.exports = function (comment) {
-  const objects = []
-  const tags = []
+  const objects = [];
+  const tags = [];
 
-  let i = 0
+  let i = 0;
 
   while (i < comment.length) {
-    let char = comment[i]
+    let char = comment[i];
 
     // Parse @key:value object
-    if (char === '@') {
-      let startIndex = i
-      i++ // Skip @
+    if (char === "@") {
+      // let startIndex = i;
+      i++; // Skip @
 
-      let keyStart = i
-      let keyEnd
-      let valueStart
+      let keyStart = i;
+      let keyEnd;
+      let valueStart;
 
-      let key = ''
-      let value = ''
-      let inValue = false
+      let key = "";
+      let value = "";
+      let inValue = false;
 
       // Run until the next space or the end of the string
-      while (comment[i] !== ' ' && i < comment.length) {
-        char = comment[i]
+      while (comment[i] !== " " && i < comment.length) {
+        char = comment[i];
 
-        if (char === ':') {
-          inValue = true
-          keyEnd = i
-          valueStart = i + 1
-          i++
-          continue
+        if (char === ":") {
+          inValue = true;
+          keyEnd = i;
+          valueStart = i + 1;
+          i++;
+          continue;
         }
 
         if (inValue) {
-          value += char
+          value += char;
         } else {
-          key += char
+          key += char;
         }
 
-        i++
+        i++;
       }
 
       objects.push({
@@ -52,35 +52,35 @@ module.exports = function (comment) {
           end: i,
           string: value
         }
-      })
+      });
 
-      continue
+      continue;
     }
 
     // Parse #tag object
-    if (char === '#') {
-      let startIndex = i
+    if (char === "#") {
+      let startIndex = i;
 
       // Run until the next space or the end of the string
-      while (comment[i] !== ' ' && i < comment.length) {
-        i++
+      while (comment[i] !== " " && i < comment.length) {
+        i++;
       }
 
       tags.push({
         start: startIndex,
         end: i,
         string: comment.slice(startIndex + 1, i)
-      })
+      });
 
-      continue
+      continue;
     }
 
-    i++
+    i++;
   }
 
   return {
     comment: comment.trim(),
     objects,
     tags
-  }
-}
+  };
+};
