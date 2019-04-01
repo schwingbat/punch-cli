@@ -11,7 +11,7 @@ module.exports = ({ config, Punch }) => ({
   arguments: [{
     name: "project",
     description: "name of the project",
-    parse: function (name) {
+    parse: function(name) {
       const data = config.projects[name];
       if (data) {
         return data;
@@ -21,13 +21,13 @@ module.exports = ({ config, Punch }) => ({
     }
   }],
   options: [{
-    name: "time-in",
-    short: "i",
+    name: "start",
+    short: "s",
     description: "start time and date (e.g. MM/DD/YYYY@12:00PM)",
     type: parseDateTime
   }, {
-    name: "time-out",
-    short: "o",
+    name: "end",
+    short: "e",
     description: "end time and date",
     type: parseDateTime
   }, {
@@ -36,16 +36,16 @@ module.exports = ({ config, Punch }) => ({
     description: "a description of what you worked on",
     type: "string"
   }],
-  run: async function (args) {
+  run: async function(args) {
     const { project } = args;
-    const timeIn = args.options["time-in"];
-    const timeOut = args.options["time-out"];
-    const comment = args.options["comment"];
+    const timeIn = args.options.start;
+    const timeOut = args.options.end;
+    const comment = args.options.comment;
 
     const duration = timeOut.getTime() - (timeIn || new Date()).getTime();
     let pay;
     if (project.hourlyRate) {
-      pay = formatCurrency(duration / 3600000 * project.hourlyRate);
+      pay = formatCurrency((duration / 3600000) * project.hourlyRate);
     } else {
       pay = "N/A";
     }

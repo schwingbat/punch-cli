@@ -4,6 +4,6 @@ css ["standard.css"]
 #   "js/Chart.bundle.min.js"
 #   "js/draw-chart.js"
 # ]
-fonts [
-  "fonts/sentinel"
-]
+# fonts [
+#   "fonts/sentinel"
+# ]
