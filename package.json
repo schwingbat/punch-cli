@@ -39,6 +39,7 @@
     "date-fns": "^1.30.1",
     "log-update": "^3.1.0",
     "mkdirp": "^0.5.1",
+    "node-fetch": "^2.3.0",
     "readline-sync": "^1.4.9",
     "time-require": "^0.1.2",
     "uuid": "^3.3.2"
