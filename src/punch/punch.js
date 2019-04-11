@@ -19,8 +19,6 @@ module.exports = function(config, Storage) {
 
       if (timestamp instanceof Date) {
         this.timestamp = timestamp;
-      } else if (typeof timestamp === "string") {
-        this.timestamp = new Date(timestamp || Date.now());
       } else {
         this.timestamp = new Date(parseInt(timestamp) || Date.now());
       }

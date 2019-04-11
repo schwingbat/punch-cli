@@ -1,12 +1,8 @@
-const fs = require("fs");
-const path = require("path");
-const resolvePath = require("../../utils/resolve-path");
 const SyncService = require("../syncservice.js");
-const MON = require("@schwingbat/mon");
 
 class S3SyncService extends SyncService {
   constructor(appConfig, serviceConfig, Punch, S3 = require("aws-sdk").S3) {
-    let creds;
+    super(serviceConfig);
 
     if (!serviceConfig.credentials) {
       throw new Error(
@@ -14,7 +10,11 @@ class S3SyncService extends SyncService {
       );
     }
 
-    const creds = this.loadCredentialsFrom(serviceConfig, appConfig.configPath);
+    const creds = this.loadCredentialsFrom(
+      serviceConfig.credentials,
+      appConfig.configPath
+    );
+    console.log(creds);
     if (!creds.accessKeyId || !creds.secretAccessKey) {
       throw new Error(
         "S3 credentials object must include both 'accessKeyId' and 'secretAccessKey' fields"
@@ -25,8 +25,6 @@ class S3SyncService extends SyncService {
     creds.endpoint = serviceConfig.endpoint || "s3.amazonaws.com";
 
     serviceConfig.auto = serviceConfig.auto == null ? true : serviceConfig.auto;
-
-    super(serviceConfig);
 
     this._punch = Punch;
     this._s3 = new S3(creds);

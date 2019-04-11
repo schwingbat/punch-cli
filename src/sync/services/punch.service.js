@@ -31,14 +31,7 @@ class PunchSyncService extends SyncService {
         headers: this.getHeaders()
       });
 
-      const json = await response.json();
-      const parsed = {};
-
-      for (const id in json) {
-        parsed[id] = new Date(json[id]);
-      }
-
-      return parsed;
+      return response.json();
     } catch (err) {
       throw err;
     }
@@ -51,19 +44,7 @@ class PunchSyncService extends SyncService {
         method: "PUT",
         headers: this.getHeaders(),
         body: JSON.stringify({
-          punches: uploads.map(p => ({
-            id: p.id,
-            project: p.project,
-            in: p.in.toISOString(),
-            out: p.out ? p.out.toISOString() : null,
-            rate: p.rate,
-            created: p.created.toISOString(),
-            updated: p.updated.toISOString(),
-            comments: p.comments.map(c => ({
-              comment: c.comment,
-              timestamp: c.timestamp.toISOString()
-            }))
-          }))
+          punches: uploads
         })
       });
 
@@ -89,7 +70,6 @@ class PunchSyncService extends SyncService {
       });
 
       const punches = await response.json();
-
       return punches.map(p => new this.Punch(p));
     } catch (err) {
       throw err;

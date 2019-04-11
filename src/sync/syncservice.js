@@ -1,5 +1,7 @@
+const fs = require("fs");
 const path = require("path");
 const resolvePath = require("../utils/resolve-path");
+const MON = require("@schwingbat/mon");
 
 class SyncService {
   constructor(config) {
@@ -82,7 +84,7 @@ function credentialsFromAbsolutePath(p) {
       );
     }
 
-    return credentialsFromObject(parsed);
+    return parsed;
   } else {
     throw new Error("Credentials is a path, but the file does not exist: " + p);
   }
