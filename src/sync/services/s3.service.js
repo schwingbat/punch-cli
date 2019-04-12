@@ -14,7 +14,6 @@ class S3SyncService extends SyncService {
       serviceConfig.credentials,
       appConfig.configPath
     );
-    console.log(creds);
     if (!creds.accessKeyId || !creds.secretAccessKey) {
       throw new Error(
         "S3 credentials object must include both 'accessKeyId' and 'secretAccessKey' fields"
