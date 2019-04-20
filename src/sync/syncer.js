@@ -99,8 +99,6 @@ function Syncer(config, Punch) {
         uploaded = await service.upload(uploads, manifest);
         downloaded = await service.download(downloads);
 
-        console.log(downloads, downloaded);
-
         for (let i = 0; i < downloaded.length; i++) {
           await downloaded[i].save();
         }
