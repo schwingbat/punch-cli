@@ -25,24 +25,24 @@ for (let i = 0; i < ARGS.length; i++) {
 
   if (arg[0] === "-") {
     switch (arg.toLowerCase()) {
-    case "-v":
-    case "--version":
-      console.log("punch v" + pkg.version);
-      process.exit();
-      break;
-    case "--verbose":
-      flags.VERBOSE = true;
-      break;
-    case "-b":
-    case "--benchmark":
-      flags.BENCHMARK = true;
-      require("time-require");
-      break;
-    case "-ns":
-    case "--nosync":
-    case "--no-sync":
-      flags.NO_SYNC = true;
-      break;
+      case "-v":
+      case "--version":
+        console.log("punch v" + pkg.version);
+        process.exit();
+        break;
+      case "--verbose":
+        flags.VERBOSE = true;
+        break;
+      case "-b":
+      case "--benchmark":
+        flags.BENCHMARK = true;
+        require("time-require");
+        break;
+      case "-ns":
+      case "--nosync":
+      case "--no-sync":
+        flags.NO_SYNC = true;
+        break;
     }
   }
 }
@@ -85,6 +85,10 @@ command(require("./commands/add-comment")(injectables));
 command(require("./commands/delete-comment")(injectables));
 command(require("./commands/replace-comment")(injectables));
 
+// ----- Managing Tags ----- //
+
+command(require("./commands/tags")(injectables));
+
 // ----- Logging ----- //
 
 command(require("./commands/log")(injectables));
@@ -115,7 +119,6 @@ command(require("./commands/watch")(injectables));
 command(require("./commands/config")(injectables));
 command(require("./commands/rename-comment-object")(injectables));
 command(require("./commands/adjust-rate")(injectables));
-
 
 run(ARGS);
 
