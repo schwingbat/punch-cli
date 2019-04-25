@@ -2,12 +2,7 @@
   "user": {
     "name": "Your Name",
     "company": "Alpaca Factory, LLC",
-    "address": {
-      "street": "999 Boulevard Ct.",
-      "city": "Citytown",
-      "state": "NJ",
-      "zip": "54637"
-    }
+    "address": "999 Boulevard Ct.\nCitytown, NJ 54637"
   },
   "projects": {},
   "clients": {},

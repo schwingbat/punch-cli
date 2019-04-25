@@ -67,6 +67,9 @@ function credentialsFromAbsolutePath(p) {
 
     try {
       switch (ext) {
+        case ".yaml":
+          parsed = require("js-yaml").safeLoad(read);
+          break;
         case ".json":
           parsed = JSON.parse(read);
           break;

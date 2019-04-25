@@ -4,8 +4,6 @@ module.exports = function(configPath) {
   const path = require("path");
   const home = require("os").homedir();
   const merge = require("../utils/deep-merge.js");
-  const is = require("@schwingbat/is");
-  const derefProjects = require("./deref-projects");
 
   const punchPath = process.env.PUNCH_PATH || path.join(home, ".punch");
 
@@ -15,79 +13,33 @@ module.exports = function(configPath) {
     configPath = path.resolve(configPath);
   }
 
+  // Create the config path if it doesn't yet exist.
   mkdirp.sync(path.dirname(configPath));
 
-  let config = require("./defaults.json");
-  let configFormat;
+  let defaults = require("./defaults.json");
+  let loaded = {};
 
+  // Load config from a file and merge it with the program defaults.
   if (fs.existsSync(configPath + ".yaml")) {
-    // Load YAML config file
-
-    const yaml = require("js-yaml");
-
-    const file = fs.readFileSync(configPath + ".yaml").toString("utf8");
-    const parsed = yaml.safeLoad(file);
-    config = merge(config, parsed);
-    configFormat = ".yaml";
-
-    const errors = derefProjects(config);
-
-    if (errors.length > 0) {
-      for (const e of errors) {
-        console.log(`CONFIG ERROR: ${e}`);
-      }
-    }
+    loaded = require("./loaders/yaml.loader")(configPath);
   } else if (fs.existsSync(configPath + ".mon")) {
-    // Try to load config from MON file.
-
-    const MON = require("@schwingbat/mon");
-
-    const file = fs.readFileSync(configPath + ".mon").toString("utf8");
-    const parsed = MON.parse(file);
-    config = merge(config, parsed);
-    configFormat = ".mon";
-
-    // Store project alias in project object
-    for (const alias in config.projects) {
-      config.projects[alias].alias = alias;
-    }
+    loaded = require("./loaders/mon.loader")(configPath);
   } else if (fs.existsSync(configPath + ".json")) {
-    // If that doesn't work, try to load from JSON file.
-
-    try {
-      config = merge(config, require(configPath));
-      configFormat = ".json";
-
-      const errors = derefProjects(config);
-
-      if (errors.length > 0) {
-        for (const e of errors) {
-          console.log(`CONFIG ERROR: ${e}`);
-        }
-      }
-    } catch (err) {}
-
-    // Turn addresses into strings
-    if (is.object(config.user.address)) {
-      const { street, city, state, zip } = config.user.address;
-      config.user.address = `${street}\n${city}, ${state} ${zip}`;
-    }
-
-    for (const client in config.clients) {
-      const c = config.clients[client];
-      if (is.object(c.address)) {
-        const { street, city, state, zip } = c.address;
-        c.address = `${street}\n${city}, ${state} ${zip}`;
-      }
-    }
+    console.log(
+      "JSON config files are no longer supported. Please convert your punchconfig.json to YAML or MON."
+    );
   } else {
     // If THAT doesn't work, yer screwed.
-    // No config file found
+    // TODO: Probably want to warn people they're using the default config.
   }
 
-  config.display.timeFormat = config.display.use24HourTime ? "H:mm" : "h:mm A";
+  // Apply user config over defaults.
+  const config = merge(defaults, loaded);
 
-  config.configPath = configPath + (configFormat || ".mon");
+  // Set dynamic options.
+
+  config.display.timeFormat = config.display.use24HourTime ? "H:mm" : "h:mm A";
+  config.configPath = configPath + (config.extension || ".mon");
   config.punchPath = punchPath;
   config.symbols = require("../utils/symbols")(config);
   config.invoiceTemplatePath =
@@ -97,13 +49,15 @@ module.exports = function(configPath) {
   config.exporterPath =
     config.exporterPath || path.join(punchPath, "exporters");
 
-  mkdirp(config.invoiceTemplatePath);
-  mkdirp(config.importerPath);
-  mkdirp(config.exporterPath);
-
   if (config.display.textColors === false) {
     require("chalk").level = 0;
   }
+
+  // Ensure customization directories exist.
+
+  mkdirp(config.invoiceTemplatePath);
+  mkdirp(config.importerPath);
+  mkdirp(config.exporterPath);
 
   return config;
 };
