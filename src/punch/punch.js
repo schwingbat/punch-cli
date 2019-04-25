@@ -38,6 +38,11 @@ module.exports = function(config, Storage) {
       return false;
     }
 
+    hasTag(tag) {
+      tag = tag.replace(/^#/, "").toLowerCase();
+      return !!this.tags.find(t => t.string.toLowerCase() === tag);
+    }
+
     /**
      * Returns a decorated string for printing to the console.
      */
@@ -225,6 +230,15 @@ module.exports = function(config, Storage) {
     hasCommentWithObject(obj) {
       for (var i = 0; i < this.comments.length; i++) {
         if (this.comments[i].hasObject(obj)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    hasCommentWithTag(tag) {
+      for (const comment of this.comments) {
+        if (comment.hasTag(tag)) {
           return true;
         }
       }

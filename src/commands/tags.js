@@ -1,3 +1,8 @@
+const { ascendingBy, descendingBy } = require("../utils/sort-factories");
+const chalk = require("chalk");
+const distanceInWords = require("date-fns/distance_in_words");
+const Table = require("../format/table");
+
 module.exports = ({ config, Punch }) => ({
   signature: "tags",
   description: "show tags you've used",
@@ -29,6 +34,47 @@ module.exports = ({ config, Punch }) => ({
       }
     }
 
-    console.log(byTag);
+    const counted = [];
+    const tags = Object.keys(byTag);
+
+    for (const tag of tags) {
+      byTag[tag].sort(descendingBy("out"));
+      counted.push({ tag, count: byTag[tag].length });
+    }
+
+    counted.sort(ascendingBy("tag"));
+
+    const table = new Table({
+      columnStyle: [
+        {
+          align: "left",
+          leftPadding: 1,
+          rightPadding: 1
+        },
+        {
+          align: "left",
+          leftPadding: 1,
+          rightPadding: 1
+        },
+        {
+          align: "left",
+          leftPadding: 1,
+          rightPadding: 1
+        }
+      ]
+    });
+
+    console.log();
+    for (const item of counted) {
+      const lastSeen = byTag[item.tag][0];
+
+      table.push([
+        chalk.magenta(`#${item.tag}`),
+        `${item.count} punch${item.count == 1 ? "" : "es"}`,
+        `last used ${distanceInWords(lastSeen.out, new Date())} ago`
+      ]);
+    }
+
+    console.log(table.toString());
   }
 });
