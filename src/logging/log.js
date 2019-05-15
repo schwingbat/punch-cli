@@ -49,8 +49,6 @@ module.exports = function Logger(config, Punch) {
     async forInterval(interval, args = {}) {
       let { project, object, tag } = args;
 
-      console.log(args);
-
       const now = Date.now();
       let punches;
 
