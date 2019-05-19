@@ -18,7 +18,7 @@ const mkdirp = require('mkdirp')
 const Zip = require('jszip')
 
 const distPath = path.join(__dirname, '..', 'dist')
-const changelogPath = path.join(__dirname, '..', 'changelog', `${pkg.version}.md`)
+const changelogPath = path.join(__dirname, '..', 'changelog.md')
 let changelog
 
 const unixReadme = `
@@ -52,7 +52,7 @@ const zipOptions = {
 if (fs.existsSync(changelogPath)) {
   changelog = fs.readFileSync(changelogPath, 'utf8')
 } else {
-  console.log(`Warning! Changelog not found for version ${pkg.version}!`)
+  console.log(`Warning! Changelog not found!`)
 }
 
 mkdirp(path.join(distPath, '_zipped'), (err) => {
