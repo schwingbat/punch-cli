@@ -107,6 +107,9 @@ module.exports = ({ config, Punch }) => ({
           punch.out = args.options.end;
         }
 
+        // Update 'updated' timestamp.
+        punch.update();
+
         await punch.save();
         console.log("Saved");
       }
