@@ -1,13 +1,13 @@
-const { ascendingBy } = require("../utils/sort-factories");
-const { projectSummary } = require("../logging/printing");
-const formatSummary = require("../format/project-summary");
-const getLabelFor = require("../utils/get-label-for");
-const padWithLines = require("../logging/pad-with-lines");
-
 module.exports = ({ config, Punch }) => ({
   signature: "projects [names...]",
   description: "show statistics for all projects in your config file",
-  run: async function (args) {
+  run: async function(args) {
+    const { ascendingBy } = require("../utils/sort-factories");
+    const { projectSummary } = require("../logging/printing");
+    const formatSummary = require("../format/project-summary");
+    const getLabelFor = require("../utils/get-label-for");
+    const padWithLines = require("../logging/pad-with-lines");
+
     let names = args.names || Object.keys(config.projects);
 
     let allPunches = await Punch.all();
@@ -24,11 +24,13 @@ module.exports = ({ config, Punch }) => ({
 
         const projectData = config.projects[project];
         const fullName = getLabelFor(config, project);
-        const totalTime = punches.reduce((sum, punch) => sum + punch.duration(), 0);
+        const totalTime = punches.reduce(
+          (sum, punch) => sum + punch.duration(),
+          0
+        );
         const totalPay = punches.reduce((sum, punch) => sum + punch.pay(), 0);
-        const hourlyRate = projectData && projectData.hourlyRate
-          ? projectData.hourlyRate
-          : 0;
+        const hourlyRate =
+          projectData && projectData.hourlyRate ? projectData.hourlyRate : 0;
 
         summaries.push({
           fullName,
@@ -45,11 +47,9 @@ module.exports = ({ config, Punch }) => ({
 
     let str = "";
 
-    summaries
-      .sort(ascendingBy("fullName"))
-      .forEach(s => {
-        str += projectSummary(formatSummary(config, s)) + "\n\n";
-      });
+    summaries.sort(ascendingBy("fullName")).forEach(s => {
+      str += projectSummary(formatSummary(config, s)) + "\n\n";
+    });
 
     console.log(padWithLines(str, 1));
   }

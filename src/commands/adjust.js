@@ -1,6 +1,3 @@
-const { confirm } = require("../punch/utils");
-const chalk = require("chalk");
-const formatDate = require("date-fns/format");
 const parseDateTime = require("../utils/parse-datetime");
 
 module.exports = ({ config, Punch }) => ({
@@ -29,6 +26,10 @@ module.exports = ({ config, Punch }) => ({
     }
   ],
   run: async function(args) {
+    const { confirm } = require("../punch/utils");
+    const chalk = require("chalk");
+    const formatDate = require("date-fns/format");
+
     const punch = (await Punch.select(p => p.id === args.punchID))[0];
 
     if (punch) {

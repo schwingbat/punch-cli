@@ -1,7 +1,7 @@
 module.exports = function(config, project) {
   // Turn the detailed object into an array of formatted stats.
 
-  const distanceInWords = require("date-fns/distance_in_words");
+  const distanceInWords = require("date-fns/distanceInWords");
   const formatDate = require("date-fns/format");
   const chalk = require("chalk");
   const formatCurrency = require("./currency");

@@ -11,17 +11,16 @@
       "src/resources/**/*"
     ],
     "targets": [
-      "node10"
+      "node12"
     ]
   },
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
-    "bundle": "browserify src/main.js --node --outfile=punch.js",
     "build": "npm run build:mac && npm run build:linux && npm run build:windows",
-    "build:mac": "pkg package.json --out-path dist/mac --target node10-macos-x64",
-    "build:windows": "pkg package.json --out-path dist/windows --target node10-win-x86",
-    "build:linux": "pkg package.json --out-path dist/linux --target node10-linux-x86",
+    "build:mac": "pkg package.json --out-path dist/mac --target node12-macos-x64",
+    "build:windows": "pkg package.json --out-path dist/windows --target node12-win-x86",
+    "build:linux": "pkg package.json --out-path dist/linux --target node12-linux-x86",
     "package": "node ./scripts/package.js"
   },
   "keywords": [],
@@ -32,36 +31,27 @@
     "@fardog/wordwrap": "^1.1.0",
     "@schwingbat/is": "^2.0.0",
     "@schwingbat/mon": "^1.0.0",
-    "ansi-regex": "^4.1.0",
-    "aws-sdk": "^2.442.0",
-    "backblaze-b2": "^1.3.1",
+    "ansi-regex": "^5.0.0",
+    "aws-sdk": "^2.549.0",
+    "backblaze-b2": "^1.4.0",
     "chalk": "^2.4.2",
-    "date-fns": "^1.30.1",
+    "date-fns": "^2.4.1",
     "js-yaml": "^3.13.1",
-    "log-update": "^3.2.0",
+    "log-update": "^3.3.0",
     "mkdirp": "^0.5.1",
-    "node-fetch": "^2.3.0",
-    "readline-sync": "^1.4.9",
+    "node-fetch": "^2.6.0",
+    "readline-sync": "^1.4.10",
     "time-require": "^0.1.2",
-    "uuid": "^3.3.2"
+    "uuid": "^3.3.3"
   },
-  "standard": {
-    "globals": [
-      "describe",
-      "it",
-      "expect",
-      "beforeEach",
-      "beforeAll",
-      "jest"
-    ]
+  "devDependencies": {
+    "eslint": "^6.5.1",
+    "eslint-plugin-jest": "^22.19.0",
+    "jest": "^24.9.0",
+    "jszip": "^3.2.2",
+    "pkg": "^4.4.0"
   },
   "jest": {
     "testEnvironment": "node"
-  },
-  "devDependencies": {
-    "eslint": "^5.16.0",
-    "eslint-plugin-jest": "^22.5.0",
-    "jest": "^24.7.1",
-    "jszip": "^3.2.1"
   }
 }

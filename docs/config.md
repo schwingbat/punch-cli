@@ -17,12 +17,12 @@
     "services": []
   },
   "invoice": {
-    "dateFormat": "MM/DD/YYYY",
+    "dateFormat": "MM/DD/yyyy",
     "timeFormat": "h:mm A"
   },
   "display": {
     "textColors": true,
-    "dateFormat": "dddd, MMMM Do YYYY",
+    "dateFormat": "dddd, MMMM Do yyyy",
     "timeFormat": "h:mm A",
     "wordWrapWidth": 65
   },

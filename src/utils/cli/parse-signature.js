@@ -3,7 +3,7 @@
  * that can be used to match user input.
  */
 
-module.exports = function parseSignature (str) {
+module.exports = function parseSignature(str) {
   let i = 0;
   let end = str.length;
   const argMap = [];
@@ -30,39 +30,37 @@ module.exports = function parseSignature (str) {
 
   while (i < end) {
     switch (str[i]) {
-    case "<":
-      inArg = true;
-      isRequired = true;
-      break;
-    case ">":
-      addArg();
-      break;
-    case "[":
-      inArg = true;
-      isRequired = false;
-      break;
-    case "]":
-      addArg();
-      break;
-    case ".":
-      if (inArg && buffer.length > 0) {
-        let eq = str[i] === "." &&
-                    str[i + 1] === "." &&
-                    str[i + 2] === ".";
+      case "<":
+        inArg = true;
+        isRequired = true;
+        break;
+      case ">":
+        addArg();
+        break;
+      case "[":
+        inArg = true;
+        isRequired = false;
+        break;
+      case "]":
+        addArg();
+        break;
+      case ".":
+        if (inArg && buffer.length > 0) {
+          let eq = str[i] === "." && str[i + 1] === "." && str[i + 2] === ".";
 
-        if (eq) {
-          i += 2;
-          isVariadic = true;
+          if (eq) {
+            i += 2;
+            isVariadic = true;
+          }
         }
-      }
-      break;
-    case " ":
-      break;
-    default:
-      if (inArg) {
-        buffer += str[i];
-      }
-      break;
+        break;
+      case " ":
+        break;
+      default:
+        if (inArg) {
+          buffer += str[i];
+        }
+        break;
     }
 
     i += 1;

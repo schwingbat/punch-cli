@@ -1,41 +1,53 @@
-const { allPunchedIn, confirm, confirmAdjustedTime } = require("../punch/utils");
-const chalk = require("chalk");
-const formatCurrency = require("../format/currency");
-const formatDate = require("date-fns/format");
-const formatDuration = require("../format/duration");
-const getLabelFor = require("../utils/get-label-for");
-const handleSync = require("../utils/handle-sync");
-const Loader = require("../utils/loader");
 const parseDateTime = require("../utils/parse-datetime");
-const updateCurrentMarker = require("../utils/update-current-marker");
 
 module.exports = ({ config, Punch }) => ({
   signature: "out [project]",
   description: "stop tracking time",
-  arguments: [{
-    name: "project",
-    description: "name of the project"
-  }],
-  options: [{
-    name: "comment",
-    short: "c",
-    description: "add a description of what you worked on",
-    type: "string"
-  }, {
-    name: "time",
-    short: "t",
-    description: "time to set as punch out time (defaults to current time)",
-    type: parseDateTime
-  }, {
-    name: "no-comment",
-    description: "punch out without warning about a lack of comments",
-    type: "boolean"
-  }, {
-    name: "dry-run",
-    description: "run but don't commit punch out",
-    type: "boolean"
-  }],
-  run: async function (args) {
+  arguments: [
+    {
+      name: "project",
+      description: "name of the project"
+    }
+  ],
+  options: [
+    {
+      name: "comment",
+      short: "c",
+      description: "add a description of what you worked on",
+      type: "string"
+    },
+    {
+      name: "time",
+      short: "t",
+      description: "time to set as punch out time (defaults to current time)",
+      type: parseDateTime
+    },
+    {
+      name: "no-comment",
+      description: "punch out without warning about a lack of comments",
+      type: "boolean"
+    },
+    {
+      name: "dry-run",
+      description: "run but don't commit punch out",
+      type: "boolean"
+    }
+  ],
+  run: async function(args) {
+    const {
+      allPunchedIn,
+      confirm,
+      confirmAdjustedTime
+    } = require("../punch/utils");
+    const chalk = require("chalk");
+    const formatCurrency = require("../format/currency");
+    const formatDate = require("date-fns/format");
+    const formatDuration = require("../format/duration");
+    const getLabelFor = require("../utils/get-label-for");
+    const handleSync = require("../utils/handle-sync");
+    const Loader = require("../utils/loader");
+    const updateCurrentMarker = require("../utils/update-current-marker");
+
     const loader = Loader();
     const dryRun = args.options["dry-run"];
 
@@ -71,7 +83,9 @@ module.exports = ({ config, Punch }) => ({
           return;
         }
 
-        if (!confirmAdjustedTime(config, args.options.time, "Punch out at $?")) {
+        if (
+          !confirmAdjustedTime(config, args.options.time, "Punch out at $?")
+        ) {
           loader.stop();
           return;
         }
@@ -83,11 +97,15 @@ module.exports = ({ config, Punch }) => ({
         if (args.options["no-comment"]) {
           noComment = true;
         } else {
-          noComment = confirm("Are you sure you want to punch out with no comment?");
+          noComment = confirm(
+            "Are you sure you want to punch out with no comment?"
+          );
         }
 
         if (!noComment) {
-          loader.stop("Use the --comment or -c flags to add a comment:\n  usage: punch out -c \"This is a comment.\"\n");
+          loader.stop(
+            'Use the --comment or -c flags to add a comment:\n  usage: punch out -c "This is a comment."\n'
+          );
           return;
         }
       }
@@ -101,7 +119,10 @@ module.exports = ({ config, Punch }) => ({
 
       const label = getLabelFor(config, current.project);
       const duration = formatDuration(current.duration(args.options.time));
-      const time = formatDate(args.options.time || new Date(), config.display.timeFormat);
+      const time = formatDate(
+        args.options.time || new Date(),
+        config.display.timeFormat
+      );
       const pay = current.pay(args.options.time);
 
       let str = `Punched out on ${label} at ${time}. Worked for ${duration}`;
@@ -115,7 +136,9 @@ module.exports = ({ config, Punch }) => ({
         await handleSync({ config, Punch });
       }
     } else {
-      loader.stop(`${chalk.yellow(config.symbols.warning)} You're not punched in!`);
+      loader.stop(
+        `${chalk.yellow(config.symbols.warning)} You're not punched in!`
+      );
     }
   }
 });

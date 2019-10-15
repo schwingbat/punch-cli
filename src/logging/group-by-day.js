@@ -1,5 +1,5 @@
 // Group punches by day, ordered by date.
-module.exports = function (punches) {
+module.exports = function(punches) {
   const { ascendingBy } = require("../utils/sort-factories");
   const byDay = {};
 
@@ -9,7 +9,8 @@ module.exports = function (punches) {
     let day = punch.in.getDate();
     let out = punch.out || new Date();
     const keyIn = `${year}-${month}-${day}`;
-    const keyOut = `${out.getFullYear()}-${out.getMonth() + 1}-${out.getDate()}`;
+    const keyOut = `${out.getFullYear()}-${out.getMonth() +
+      1}-${out.getDate()}`;
 
     if (!byDay[keyIn]) {
       byDay[keyIn] = [];
@@ -27,7 +28,10 @@ module.exports = function (punches) {
   const days = [];
 
   for (const key in byDay) {
-    const [y, m, d] = key.match(/^(\d+)[-](\d+)[-](\d+)$/).slice(1, 4).map(Number);
+    const [y, m, d] = key
+      .match(/^(\d+)[-](\d+)[-](\d+)$/)
+      .slice(1, 4)
+      .map(Number);
     const date = new Date(y, m - 1, d);
 
     const punches = byDay[key].sort(ascendingBy("in"));

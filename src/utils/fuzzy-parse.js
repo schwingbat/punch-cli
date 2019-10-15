@@ -3,158 +3,145 @@
   and makes it into a useful Interval.
 */
 
-// const startOfDay = require('date-fns/start_of_day')
-// const endOfDay = require('date-fns/end_of_day')
-// const addDays = require('date-fns/add_days')
-// const differenceInDays = require('date-fns/difference_in_days')
-// const startOfWeek = require('date-fns/start_of_week')
-// const endOfWeek = require('date-fns/end_of_week')
-// const addWeeks = require('date-fns/add_weeks')
-// const startOfMonth = require('date-fns/start_of_month')
-// const endOfMonth = require('date-fns/end_of_month')
-// const addMonths = require('date-fns/add_months')
-// const startOfYear = require('date-fns/start_of_year')
-// const endOfYear = require('date-fns/end_of_year')
-// const addYears = require('date-fns/add_years')
+const startOfDay = require("date-fns/startOfDay");
+const endOfDay = require("date-fns/endOfDay");
+const addDays = require("date-fns/addDays");
+const differenceInDays = require("date-fns/differenceInDays");
+const startOfWeek = require("date-fns/startOfWeek");
+const endOfWeek = require("date-fns/endOfWeek");
+const addWeeks = require("date-fns/addWeeks");
+const startOfMonth = require("date-fns/startOfMonth");
+const addMonths = require("date-fns/addMonths");
+const endOfMonth = require("date-fns/endOfMonth");
+const startOfYear = require("date-fns/startOfYear");
+const endOfYear = require("date-fns/endOfYear");
+const addYears = require("date-fns/addYears");
 
-const {
-  startOfDay,
-  endOfDay,
-  addDays,
-  differenceInDays,
-  startOfWeek,
-  endOfWeek,
-  addWeeks,
-  startOfMonth,
-  endOfMonth,
-  addMonths,
-  startOfYear,
-  endOfYear,
-  addYears
-} = require('date-fns')
+const parseDate = require("./parse-date");
 
-const parseDate = require('./parse-date')
+module.exports = function(string, opts = {}) {
+  const { now, pastTendency } = Object.assign(
+    {
+      now: new Date(),
+      pastTendency: true
+    },
+    opts
+  );
 
-module.exports = function (string, opts = {}) {
-  const { now, pastTendency } = Object.assign({
-    now: new Date(),
-    pastTendency: true
-  }, opts)
+  let start;
+  let end;
+  let unit;
+  let modifier;
 
-  let start
-  let end
-  let unit
-  let modifier
-
-  const parsed = parseDate(string)
+  const parsed = parseDate(string);
   if (parsed) {
-    start = startOfDay(parsed)
-    end = endOfDay(parsed)
-    unit = 'day'
-    modifier = differenceInDays(start, now)
+    start = startOfDay(parsed);
+    end = endOfDay(parsed);
+    unit = "day";
+    modifier = differenceInDays(start, now);
   } else {
-    let parts = string.toLowerCase().split(/\s+/)
+    let parts = string.toLowerCase().split(/\s+/);
 
-    if (['now', 'today'].includes(parts[0])) {
-      unit = 'day'
-      modifier = 0
-      start = startOfDay(now)
-      end = endOfDay(now)
+    if (["now", "today"].includes(parts[0])) {
+      unit = "day";
+      modifier = 0;
+      start = startOfDay(now);
+      end = endOfDay(now);
     }
 
-    if (parts[0] === 'yesterday') {
-      unit = 'day'
-      modifier = -1
-      start = startOfDay(addDays(now, -1))
-      end = endOfDay(addDays(now, -1))
+    if (parts[0] === "yesterday") {
+      unit = "day";
+      modifier = -1;
+      start = startOfDay(addDays(now, -1));
+      end = endOfDay(addDays(now, -1));
     }
 
-    if (parts[0] === 'tomorrow') {
-      unit = 'day'
-      modifier = 1
-      start = startOfDay(addDays(now, 1))
-      end = endOfDay(start)
+    if (parts[0] === "tomorrow") {
+      unit = "day";
+      modifier = 1;
+      start = startOfDay(addDays(now, 1));
+      end = endOfDay(start);
     }
 
     if (!start || !end) {
-      let first = parts[0]
-      unit = parts[1]
-      if (first === 'this') {
-        modifier = 0
-      } else if (first === 'last') {
-        modifier = -1
-      } else if (first === 'next') {
-        modifier = 1
+      let first = parts[0];
+      unit = parts[1];
+      if (first === "this") {
+        modifier = 0;
+      } else if (first === "last") {
+        modifier = -1;
+      } else if (first === "next") {
+        modifier = 1;
       } else if (numbers.includes(first)) {
-        modifier = numbers.indexOf(first)
+        modifier = numbers.indexOf(first);
         if (pastTendency) {
-          modifier *= -1
+          modifier *= -1;
         }
       } else if (weekdays.includes(first) || months.includes(first)) {
-        modifier = pastTendency ? -1 : 1
-        unit = first
+        modifier = pastTendency ? -1 : 1;
+        unit = first;
       } else if (/^\d{4,}$/.test(first)) {
         modifier = pastTendency
           ? parseInt(first) - now.getFullYear()
-          : now.getFullYear() - parseInt(first)
-        unit = 'year'
+          : now.getFullYear() - parseInt(first);
+        unit = "year";
       } else if (parseInt(first)) {
-        modifier = parseInt(first) || 0
+        modifier = parseInt(first) || 0;
         if (pastTendency) {
-          modifier *= -1
+          modifier *= -1;
         }
       } else {
-        unit = parts[0]
+        unit = parts[0];
       }
 
       // Singularize the unit.
       if (unit) {
-        unit = unit.replace(/[s|ies]$/, '')
+        unit = unit.replace(/[s|ies]$/, "");
       }
 
-      if (!(modifier === 0 && parts[2] === 'ago')) {
-        modifier = modifier || 0
+      if (!(modifier === 0 && parts[2] === "ago")) {
+        modifier = modifier || 0;
 
-        if (unit === 'day') {
-          start = startOfDay(addDays(now, modifier))
-          end = endOfDay(addDays(now, modifier))
-        } else if (unit === 'week') {
-          start = startOfWeek(addWeeks(now, modifier))
-          end = endOfWeek(addWeeks(now, modifier))
-        } else if (unit === 'month') {
-          start = startOfMonth(addMonths(now, modifier))
-          end = endOfMonth(addMonths(now, modifier))
-        } else if (unit === 'year') {
-          start = startOfYear(addYears(now, modifier))
-          end = endOfYear(addYears(now, modifier))
+        if (unit === "day") {
+          start = startOfDay(addDays(now, modifier));
+          end = endOfDay(addDays(now, modifier));
+        } else if (unit === "week") {
+          start = startOfWeek(addWeeks(now, modifier));
+          end = endOfWeek(addWeeks(now, modifier));
+        } else if (unit === "month") {
+          start = startOfMonth(addMonths(now, modifier));
+          end = endOfMonth(addMonths(now, modifier));
+        } else if (unit === "year") {
+          start = startOfYear(addYears(now, modifier));
+          end = endOfYear(addYears(now, modifier));
         } else if (/^\d+$/.test(unit)) {
-          start = new Date(Number(unit))
-          end = endOfYear(start)
-          unit = 'year'
+          start = new Date(Number(unit));
+          end = endOfYear(start);
+          unit = "year";
         } else if (weekdays.includes(unit)) {
-          let dayIndex = weekdays.indexOf(unit)
-          let distance = 0
-          start = startOfDay(now)
+          let dayIndex = weekdays.indexOf(unit);
+          let distance = 0;
+          start = startOfDay(now);
           while (start.getDay() !== dayIndex) {
-            start = addDays(start, modifier)
-            distance += modifier
+            start = addDays(start, modifier);
+            distance += modifier;
           }
-          end = endOfDay(start)
-          unit = 'day'
-          modifier = distance
+          end = endOfDay(start);
+          unit = "day";
+          modifier = distance;
         } else if (months.includes(unit)) {
-          let monthIndex = months.indexOf(unit)
-          let distance = 0
-          start = startOfMonth(now)
+          let monthIndex = months.indexOf(unit);
+          let distance = 0;
+          start = startOfMonth(now);
           while (start.getMonth() !== monthIndex) {
-            start = addMonths(start, modifier)
-            distance += modifier
+            start = addMonths(start, modifier);
+            distance += modifier;
           }
-          end = endOfMonth(start)
-          unit = 'month'
-          modifier = distance
+          end = endOfMonth(start);
+          unit = "month";
+          modifier = distance;
         } else {
-          console.log({ start, end, unit })
+          console.log({ start, end, unit });
         }
       }
     }
@@ -170,56 +157,56 @@ module.exports = function (string, opts = {}) {
   return {
     start,
     end,
-    unit: unit || '???',
+    unit: unit || "???",
     modifier: modifier || 0
-  }
-}
+  };
+};
 
 const numbers = [
-  'zero',
-  'one',
-  'two',
-  'three',
-  'four',
-  'five',
-  'six',
-  'seven',
-  'eight',
-  'nine',
-  'ten',
-  'eleven',
-  'twelve',
-  'thirteen',
-  'fourteen',
-  'fifteen',
-  'sixteen',
-  'seventeen',
-  'eighteen',
-  'nineteen',
-  'twenty'
-]
+  "zero",
+  "one",
+  "two",
+  "three",
+  "four",
+  "five",
+  "six",
+  "seven",
+  "eight",
+  "nine",
+  "ten",
+  "eleven",
+  "twelve",
+  "thirteen",
+  "fourteen",
+  "fifteen",
+  "sixteen",
+  "seventeen",
+  "eighteen",
+  "nineteen",
+  "twenty"
+];
 
 const months = [
-  'january',
-  'february',
-  'march',
-  'april',
-  'may',
-  'june',
-  'july',
-  'august',
-  'september',
-  'october',
-  'november',
-  'december'
-]
+  "january",
+  "february",
+  "march",
+  "april",
+  "may",
+  "june",
+  "july",
+  "august",
+  "september",
+  "october",
+  "november",
+  "december"
+];
 
 const weekdays = [
-  'sunday',
-  'monday',
-  'tuesday',
-  'wednesday',
-  'thursday',
-  'friday',
-  'saturday'
-]
+  "sunday",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday"
+];

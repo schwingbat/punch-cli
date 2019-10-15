@@ -1,7 +1,7 @@
-const Logger = require('./log')
+const Logger = require("./log");
 
-describe('Logger', () => {
-  it('uh', () => {
-    expect(true).toBe(true)
-  })
-})
+describe("Logger", () => {
+  it("uh", () => {
+    expect(true).toBe(true);
+  });
+});

@@ -18,72 +18,83 @@
 */
 
 const monthNames = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December'
-]
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December"
+];
 
-module.exports = function ({ config, punches, date, summary }, summarizeFn) {
-  const { summaryTable, monthSummaryHeader } = require('./printing')
-  const { ascendingBy } = require('../utils/sort-factories')
-  const formatCurrency = require('../format/currency')
-  const formatDuration = require('../format/duration')
-  const endOfMonth = require('date-fns/end_of_month')
+module.exports = function({ config, punches, date, summary }, summarizeFn) {
+  const { summaryTable, monthSummaryHeader } = require("./printing");
+  const { ascendingBy } = require("../utils/sort-factories");
+  const formatCurrency = require("../format/currency");
+  const formatDuration = require("../format/duration");
+  const endOfMonth = require("date-fns/endOfMonth");
   // const chalk = require('chalk')
 
-  const months = {}
+  const months = {};
 
   punches.forEach(punch => {
-    const key = punch.in.getMonth()
+    const key = punch.in.getMonth();
     if (!months[key]) {
-      months[key] = []
+      months[key] = [];
     }
-    months[key].push(punch)
-  })
+    months[key].push(punch);
+  });
 
-  const monthArray = []
+  const monthArray = [];
 
   for (const key in months) {
-    monthArray.push([key, months[key]])
+    monthArray.push([key, months[key]]);
   }
 
-  console.log()
+  console.log();
 
-  monthArray
-    .sort(ascendingBy(m => Number(m[0])))
-    .forEach(([key, punches]) => {
-      const month = new Date(date.getFullYear(), Number(key))
+  monthArray.sort(ascendingBy(m => Number(m[0]))).forEach(([key, punches]) => {
+    const month = new Date(date.getFullYear(), Number(key));
 
-      const monthSummary = summarizeFn(config, punches, {
-        start: month,
-        end: endOfMonth(month)
-      })
+    const monthSummary = summarizeFn(config, punches, {
+      start: month,
+      end: endOfMonth(month)
+    });
 
-      const monthPay = monthSummary.reduce((sum, project) => sum + project.pay, 0)
-      const monthTime = monthSummary.reduce((sum, project) => sum + project.time, 0)
-      const monthPunches = monthSummary.reduce((sum, project) => sum + project.punches.length, 0)
+    const monthPay = monthSummary.reduce(
+      (sum, project) => sum + project.pay,
+      0
+    );
+    const monthTime = monthSummary.reduce(
+      (sum, project) => sum + project.time,
+      0
+    );
+    const monthPunches = monthSummary.reduce(
+      (sum, project) => sum + project.punches.length,
+      0
+    );
 
-      console.log(monthSummaryHeader({
+    console.log(
+      monthSummaryHeader({
         date: month,
         stats: [
           formatDuration(monthTime),
           formatCurrency(monthPay),
-          monthPunches + ' punch' + (monthPunches === 1 ? '' : 'es')
+          monthPunches + " punch" + (monthPunches === 1 ? "" : "es")
         ]
-      }))
-      console.log('  ' + summaryTable(monthSummary, { total: false }).replace(/\n/g, '\n  '))
-    })
+      })
+    );
+    console.log(
+      "  " + summaryTable(monthSummary, { total: false }).replace(/\n/g, "\n  ")
+    );
+  });
 
   // console.log(months)
 
-  console.log(summaryTable(summary) + '\n')
-}
+  console.log(summaryTable(summary) + "\n");
+};

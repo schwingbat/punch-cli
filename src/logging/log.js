@@ -1,6 +1,6 @@
 const { descendingBy } = require("../utils/sort-factories");
-const isSameDay = require("date-fns/is_same_day");
-const addDays = require("date-fns/add_days");
+const isSameDay = require("date-fns/isSameDay");
+const addDays = require("date-fns/addDays");
 
 function summarize(config, punches, interval) {
   const projects = {};

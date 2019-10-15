@@ -7,10 +7,9 @@ const { command, run, __testRefs } = CLI({
 
 const {
   commands,
-  parseSignature,
   mapArgs,
   applyArgExtras,
-  requiredArgsProvided,
+  requiredArgsProvided
   // makeHelp,
   // makeGeneralHelp
 } = __testRefs;
@@ -18,71 +17,11 @@ const {
 describe("CLI", () => {
   describe("internal", () => {
     /* ======================= *\
-    ||       Args Parsing      ||
-    \* ======================= */
-
-    describe("parseSignature", () => {
-      it("returns empty argMap array if no params are named", () => {
-        expect(parseSignature("command")).toEqual([]);
-      });
-
-      it("returns filled in argMap array for named params", () => {
-        expect(parseSignature("command <one> <two> <three>")).toEqual([
-          {
-            name: "one",
-            required: true,
-            variadic: false
-          },
-          {
-            name: "two",
-            required: true,
-            variadic: false
-          },
-          {
-            name: "three",
-            required: true,
-            variadic: false
-          }
-        ]);
-      });
-
-      it("sets required to false for params in [square brackets]", () => {
-        expect(parseSignature("command <one> [two]")).toEqual([
-          {
-            name: "one",
-            required: true,
-            variadic: false
-          },
-          {
-            name: "two",
-            required: false,
-            variadic: false
-          }
-        ]);
-      });
-
-      it("sets variadic to true for params ending in \"...\"", () => {
-        expect(parseSignature("command <one> [two...]")).toEqual([
-          {
-            name: "one",
-            required: true,
-            variadic: false
-          },
-          {
-            name: "two",
-            required: false,
-            variadic: true
-          }
-        ]);
-      });
-    });
-
-    /* ======================= *\
     ||       Args Mapping      ||
     \* ======================= */
 
     describe("mapArgs", () => {
-      it("stores the list of raw arguments in the \"raw\" array", () => {
+      it('stores the list of raw arguments in the "raw" array', () => {
         const mapped = mapArgs(["one", "two", "three"], []);
         expect(mapped.raw).toEqual(["one", "two", "three"]);
       });
@@ -174,7 +113,7 @@ describe("CLI", () => {
             name: "two",
             required: true,
             variadic: false,
-            parse: function (value) {
+            parse: function(value) {
               return value.toUpperCase();
             }
           }
@@ -192,7 +131,7 @@ describe("CLI", () => {
             name: "test",
             required: true,
             variadic: false,
-            parse: function () {
+            parse: function() {
               throw new Error("test");
             }
           }
@@ -208,39 +147,50 @@ describe("CLI", () => {
       let argMap;
 
       beforeEach(() => {
-        argMap = [{
-          name: "one",
-          required: true,
-          variadic: false
-        }, {
-          name: "two",
-          required: false,
-          variadic: false
-        }];
+        argMap = [
+          {
+            name: "one",
+            required: true,
+            variadic: false
+          },
+          {
+            name: "two",
+            required: false,
+            variadic: false
+          }
+        ];
       });
 
       it("applies extra properties to an argMap", () => {
         let parseFunc = () => null;
 
-        expect(applyArgExtras(argMap, [{
-          name: "one",
-          description: "test description",
-          default: 1
-        }, {
-          name: "two",
-          parse: parseFunc
-        }])).toEqual([{
-          name: "one",
-          required: true,
-          variadic: false,
-          description: "test description",
-          default: 1
-        }, {
-          name: "two",
-          required: false,
-          variadic: false,
-          parse: parseFunc
-        }]);
+        expect(
+          applyArgExtras(argMap, [
+            {
+              name: "one",
+              description: "test description",
+              default: 1
+            },
+            {
+              name: "two",
+              parse: parseFunc
+            }
+          ])
+        ).toEqual([
+          {
+            name: "one",
+            required: true,
+            variadic: false,
+            description: "test description",
+            default: 1
+          },
+          {
+            name: "two",
+            required: false,
+            variadic: false,
+            parse: parseFunc
+          }
+        ]);
       });
 
       it("returns the argMap if no extras are passed", () => {
@@ -250,17 +200,22 @@ describe("CLI", () => {
 
     describe("requiredArgsProvided", () => {
       it("returns true if all required args are provided and false if any are not", () => {
-        const argMap = [{
-          name: "one",
-          required: true,
-          variadic: false
-        }, {
-          name: "two",
-          required: true,
-          variadic: false
-        }];
+        const argMap = [
+          {
+            name: "one",
+            required: true,
+            variadic: false
+          },
+          {
+            name: "two",
+            required: true,
+            variadic: false
+          }
+        ];
 
-        expect(requiredArgsProvided({ one: "one", two: "two" }, argMap)).toBe(true);
+        expect(requiredArgsProvided({ one: "one", two: "two" }, argMap)).toBe(
+          true
+        );
         expect(requiredArgsProvided({ one: "one" }, argMap)).toBe(false);
       });
     });
@@ -277,11 +232,13 @@ describe("CLI", () => {
 
       cmd = {
         signature: "test [optional]",
-        args: [{
-          name: "optional",
-          description: "an optional arg"
-        }],
-        run (args) {
+        args: [
+          {
+            name: "optional",
+            description: "an optional arg"
+          }
+        ],
+        run(args) {
           testArgs = args;
           testBool = true;
         }
@@ -313,7 +270,7 @@ describe("CLI", () => {
         let testBool2 = false;
         const cmd2 = {
           signature: "test2",
-          run (args, { invoke }) {
+          run(args, { invoke }) {
             testBool2 = true;
             invoke("test 5");
           }

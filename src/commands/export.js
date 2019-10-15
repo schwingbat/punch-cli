@@ -1,56 +1,72 @@
-const chalk = require("chalk");
-const fs = require("fs");
 const parseDateTime = require("../utils/parse-datetime");
-const path = require("path");
-const resolvePath = require("../utils/resolve-path");
 
 module.exports = ({ config, Punch }) => ({
   signature: "export",
   description: "exports punch data",
   hidden: true, // While work in progress
   examples: [],
-  options: [{
-    name: "start",
-    short: "s",
-    description: "start date for punch selection",
-    type: parseDateTime
-  }, {
-    name: "end",
-    short: "e",
-    description: "end date for punch selection",
-    type: parseDateTime
-  }, {
-    name: "project",
-    short: "p",
-    description: "project name for punch selection",
-    type: "string"
-  }, {
-    name: "tag",
-    short: "t",
-    description: "comment tag values for punch selection",
-    type: "string"
-  }, {
-    name: "format",
-    short: "f",
-    description: "formatting function file name (looks in ~/.punch/formatters)",
-    type: "string"
-  }, {
-    name: "output",
-    short: "o",
-    description: "file path to save to (prints to console by default)",
-    type: "string"
-  }],
-  run: async function (args) {
+  options: [
+    {
+      name: "start",
+      short: "s",
+      description: "start date for punch selection",
+      type: parseDateTime
+    },
+    {
+      name: "end",
+      short: "e",
+      description: "end date for punch selection",
+      type: parseDateTime
+    },
+    {
+      name: "project",
+      short: "p",
+      description: "project name for punch selection",
+      type: "string"
+    },
+    {
+      name: "tag",
+      short: "t",
+      description: "comment tag values for punch selection",
+      type: "string"
+    },
+    {
+      name: "format",
+      short: "f",
+      description:
+        "formatting function file name (looks in ~/.punch/formatters)",
+      type: "string"
+    },
+    {
+      name: "output",
+      short: "o",
+      description: "file path to save to (prints to console by default)",
+      type: "string"
+    }
+  ],
+  run: async function(args) {
+    const chalk = require("chalk");
+    const fs = require("fs");
+    const path = require("path");
+    const resolvePath = require("../utils/resolve-path");
+
     const { start, end, project, tag, format, output } = args.options;
 
     let formatter;
-    let formatterPath = path.join(config.punchPath, "formatters", "export", format + ".js");
+    let formatterPath = path.join(
+      config.punchPath,
+      "formatters",
+      "export",
+      format + ".js"
+    );
     try {
       formatter = require(formatterPath);
     } catch (err) {
       console.log(chalk.red(`\nNo formatter for '${format}'`));
       console.log(`You can create ${chalk.green(formatterPath)} to define it.`);
-      console.log("Formatters should be a single exported function that takes an array of punch objects and returns a string.\n");
+      console.log(
+        "Formatters should be a single exported function that takes an array of punch objects and returns a string.\n"
+      );
       console.log("Here's a good starting point:");
       console.log(`
 module.exports = function (punches) {

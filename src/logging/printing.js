@@ -174,7 +174,7 @@ function summaryTable(projects, opts = {}) {
 
 function monthSummaryHeader({ date, stats, dateFormat }) {
   let header = "";
-  header += chalk.bold.underline(formatDate(date, dateFormat || "MMMM YYYY"));
+  header += chalk.bold.underline(formatDate(date, dateFormat || "MMMM yyyy"));
   if (stats) {
     header += " " + delimitedList(stats, " / ", ["(", ")"]);
   }

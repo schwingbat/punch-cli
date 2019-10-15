@@ -43,7 +43,9 @@ function Syncer(config, Punch) {
       throw new Error(`Service ${name} is not supported (yet?).`);
     }
 
-    return new services[name](config, serviceConf, Punch);
+    const service = services[name]();
+
+    return new service(config, serviceConf, Punch);
   }
 
   async function diff(manifest) {

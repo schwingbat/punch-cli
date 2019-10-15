@@ -1,8 +1,3 @@
-const { ascendingBy, descendingBy } = require("../utils/sort-factories");
-const chalk = require("chalk");
-const distanceInWords = require("date-fns/distance_in_words");
-const Table = require("../format/table");
-
 module.exports = ({ config, Punch }) => ({
   signature: "tags",
   description: "show tags you've used",
@@ -16,6 +11,11 @@ module.exports = ({ config, Punch }) => ({
     // }
   ],
   run: async function(args) {
+    const { ascendingBy, descendingBy } = require("../utils/sort-factories");
+    const chalk = require("chalk");
+    const distanceInWords = require("date-fns/distanceInWords");
+    const Table = require("../format/table");
+
     // Do something
     // Access args at args.name
     // Access option flag values at args.options.name
