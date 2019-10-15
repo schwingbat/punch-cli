@@ -10,50 +10,62 @@
     ...
 */
 
-module.exports = function ({ config, punches, date, summary, project, interval }) {
-  const { ascendingBy } = require('../utils/sort-factories')
-  const { dayPunches, summaryTable, daySummaryHeader } = require('./printing')
-  const dayGraphic = require('./day-graphic')
-  const formatDate = require('date-fns/format')
+module.exports = function({
+  config,
+  punches,
+  date,
+  summary,
+  project,
+  interval
+}) {
+  const { ascendingBy } = require("../utils/sort-factories");
+  const { dayPunches, summaryTable, daySummaryHeader } = require("./printing");
+  const dayGraphic = require("./day-graphic");
+  const formatDate = require("date-fns/format");
 
   if (punches.length === 0) {
-    const isSameDay = require('date-fns/is_same_day')
-    const addDays = require('date-fns/add_days')
-    const messageFor = require('../utils/message-for')
-    let message
+    const isSameDay = require("date-fns/isSameDay");
+    const addDays = require("date-fns/addDays");
+    const messageFor = require("../utils/message-for");
+    let message;
 
     if (isSameDay(date, new Date())) {
-      message = messageFor('no-sessions-today')
+      message = messageFor("no-sessions-today");
     } else if (isSameDay(date, addDays(new Date(), -1))) {
-      message = messageFor('no-sessions-yesterday')
+      message = messageFor("no-sessions-yesterday");
     } else {
-      message = 'No sessions for ' + formatDate(date, config.display.dateFormat)
+      message =
+        "No sessions for " + formatDate(date, config.display.dateFormat);
     }
 
-    return console.log('\n' + message)
+    return console.log("\n" + message);
   }
 
   punches = punches
     .filter(punch => !project || punch.project !== project)
-    .sort(ascendingBy('in'))
+    .sort(ascendingBy("in"));
 
-  console.log(`\n${daySummaryHeader({ date, dateFormat: config.display.dateFormat })}`)
-  console.log('  ' + dayPunches(punches, date, config).replace(/\n/g, '\n  '))
+  console.log(
+    `\n${daySummaryHeader({ date, dateFormat: config.display.dateFormat })}`
+  );
+  console.log("  " + dayPunches(punches, date, config).replace(/\n/g, "\n  "));
 
   if (config.display.showDayGraphics) {
-    console.log(dayGraphic({
-      punches,
-      date,
-      config
-    }))
+    console.log(
+      dayGraphic({
+        punches,
+        date,
+        config
+      })
+    );
   }
 
-  const start = new Date(date)
-  const end = new Date(date)
+  const start = new Date(date);
+  const end = new Date(date);
 
-  start.setHours(0, 0, 0, 0)
-  end.setHours(23, 59, 59, 999)
+  start.setHours(0, 0, 0, 0);
+  end.setHours(23, 59, 59, 999);
 
-  console.log(summaryTable(summary, { start, end }))
-  console.log()
-}
+  console.log(summaryTable(summary, { start, end }));
+  console.log();
+};

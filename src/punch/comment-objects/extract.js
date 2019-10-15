@@ -1,4 +1,4 @@
-module.exports = function (comment) {
+module.exports = function(comment) {
   const objects = [];
   const tags = [];
 

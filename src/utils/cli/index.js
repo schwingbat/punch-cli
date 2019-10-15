@@ -7,8 +7,8 @@ const parseSignature = require("./parse-signature");
  * Apply any extra properties provided in the arguments array when the command
  * was instantated. Descriptions, parsing functions and other properties are
  * added to their respective arguments.
- */ 
-function applyArgExtras (argMap, extras) {
+ */
+function applyArgExtras(argMap, extras) {
   if (extras) {
     extras.forEach(props => {
       const mapped = argMap.find(arg => arg.name === props.name);
@@ -27,7 +27,7 @@ function applyArgExtras (argMap, extras) {
   return argMap;
 }
 
-function mapArgs (args, argMap, optionMap = []) {
+function mapArgs(args, argMap, optionMap = []) {
   // Using a command's argMap, map the args to their proper names.
 
   const mapped = {
@@ -36,13 +36,15 @@ function mapArgs (args, argMap, optionMap = []) {
   };
 
   // Set default values
-  optionMap.filter(o => o.default).forEach(o => {
-    if (is.func(o.default)) {
-      mapped.options[o.name] = o.default();
-    } else {
-      mapped.options[o.name] = o.default;
-    }
-  });
+  optionMap
+    .filter(o => o.default)
+    .forEach(o => {
+      if (is.func(o.default)) {
+        mapped.options[o.name] = o.default();
+      } else {
+        mapped.options[o.name] = o.default;
+      }
+    });
 
   // Override default values with given ones.
   const withoutFlags = [];
@@ -64,14 +66,18 @@ function mapArgs (args, argMap, optionMap = []) {
             }
 
             switch (map.type.toLowerCase()) {
-            case "string":
-              break;
-            case "number":
-              value = Number(value);
-              break;
-            default:
-              console.log(`Type ${map.type} is not yet supported for options. Pass a function as the type to use it as a custom parser.`);
-              break;
+              case "string":
+                break;
+              case "number":
+                value = Number(value);
+                break;
+              default:
+                console.log(
+                  `Type ${
+                    map.type
+                  } is not yet supported for options. Pass a function as the type to use it as a custom parser.`
+                );
+                break;
             }
 
             mapped.options[map.name] = value;
@@ -84,11 +90,17 @@ function mapArgs (args, argMap, optionMap = []) {
               value = args[i + 1];
               i++;
             }
-            
+
             mapped.options[map.name] = map.type(value);
           }
         } else {
-          console.log(`option.${map.name}: Type must be either a string or a function. Is ${is.what(map.type)}`);
+          console.log(
+            `option.${
+              map.name
+            }: Type must be either a string or a function. Is ${is.what(
+              map.type
+            )}`
+          );
         }
       }
     } else {
@@ -133,7 +145,7 @@ function mapArgs (args, argMap, optionMap = []) {
  * Returns true if all required args for the command are satisfied. Returns
  * false if they are not.
  */
-function requiredArgsProvided (mappedArgs, argMap) {
+function requiredArgsProvided(mappedArgs, argMap) {
   for (let i = 0; i < argMap.length; i++) {
     const marg = argMap[i];
     if (marg.required && mappedArgs[marg.name] == null) {
@@ -147,10 +159,12 @@ function requiredArgsProvided (mappedArgs, argMap) {
 const paramExplanation = `
   a ${chalk.bold("<param>")} is required
   a ${chalk.bold("[param]")} is optional
-  a ${chalk.bold("param...")} groups any arguments after this point into one argument
+  a ${chalk.bold(
+    "param..."
+  )} groups any arguments after this point into one argument
 `;
 
-function indent (depth = 1) {
+function indent(depth = 1) {
   let str = "";
   while (str.length < depth * 2) {
     str += "  ";
@@ -158,9 +172,12 @@ function indent (depth = 1) {
   return str;
 }
 
-function argTable (args) {
+function argTable(args) {
   let signatures = args.map(a => a[0]);
-  let minSigLength = signatures.reduce((max, sig) => sig.length > max ? sig.length : max, 0);
+  let minSigLength = signatures.reduce(
+    (max, sig) => (sig.length > max ? sig.length : max),
+    0
+  );
   let str = "";
 
   args.forEach(([sig, desc]) => {
@@ -172,7 +189,13 @@ function argTable (args) {
   return str;
 }
 
-function makeHelp (programName, commandName, command, mapped, highlightMissing = true) {
+function makeHelp(
+  programName,
+  commandName,
+  command,
+  mapped,
+  highlightMissing = true
+) {
   let str = "\n";
 
   if (command.description) {
@@ -274,7 +297,7 @@ function makeHelp (programName, commandName, command, mapped, highlightMissing =
   return str + "\n";
 }
 
-function makeGeneralHelp (program, commands) {
+function makeGeneralHelp(program, commands) {
   let str = "\n";
 
   str += indent() + program.name + " v" + program.version + "\n";
@@ -293,17 +316,23 @@ function makeGeneralHelp (program, commands) {
     }
   }
 
-  return str + "\n" + `Run ${chalk.green("punch <command> --help")} with any of the above commands for more information.\n`;
+  return (
+    str +
+    "\n" +
+    `Run ${chalk.green(
+      "punch <command> --help"
+    )} with any of the above commands for more information.\n`
+  );
 }
 
-function CLI (program) {
+function CLI(program) {
   const commands = {};
 
   /**
    * Turns a plain command obj into a fully processed and mappable command ready
    * for execution.
    */
-  function loadCommand (name) {
+  function loadCommand(name) {
     const cmd = commands[name];
 
     if (!cmd) {
@@ -314,19 +343,18 @@ function CLI (program) {
       signature: cmd.signature,
       description: cmd.description,
       examples: cmd.examples || [],
-      args: applyArgExtras(
-        parseSignature(cmd.signature),
-        cmd.arguments
-      ),
+      args: applyArgExtras(parseSignature(cmd.signature), cmd.arguments),
       options: cmd.options || [],
       hidden: !!cmd.hidden,
       run: cmd.run
     };
   }
 
-  const command = (config) => {
+  const command = config => {
     if (!config || typeof config !== "object") {
-      throw new Error("command requires a config object as the first parameter. Got " + config);
+      throw new Error(
+        "command requires a config object as the first parameter. Got " + config
+      );
     }
 
     if (config.disabled) {
@@ -338,7 +366,7 @@ function CLI (program) {
     commands[command] = config;
   };
 
-  const run = async (args) => {
+  const run = async args => {
     const command = args.shift();
     const cmd = loadCommand(command);
 
@@ -354,7 +382,11 @@ function CLI (program) {
     } else {
       for (let i = 0; i < cmd.args.length; i++) {
         if (cmd.args[i]._error) {
-          return console.log(`There was a problem parsing '${cmd.args[i].name}':\n  ${chalk.red(cmd.args[i]._error.message)}`);
+          return console.log(
+            `There was a problem parsing '${cmd.args[i].name}':\n  ${chalk.red(
+              cmd.args[i]._error.message
+            )}`
+          );
         }
       }
 

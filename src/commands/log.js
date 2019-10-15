@@ -1,6 +1,3 @@
-const fuzzyParse = require("../utils/fuzzy-parse");
-const Log = require("../logging/log");
-
 module.exports = ({ config, Punch }) => ({
   signature: "log [when...]",
   description:
@@ -63,6 +60,9 @@ module.exports = ({ config, Punch }) => ({
     }
   ],
   run: function(args) {
+    const fuzzyParse = require("../utils/fuzzy-parse");
+    const Log = require("../logging/log");
+
     let interval;
 
     let start = args.options["start"];

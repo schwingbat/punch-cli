@@ -1,34 +1,42 @@
-const { allPunchedIn, confirm } = require("../punch/utils");
-const { dayPunches } = require("../logging/printing");
-const chalk = require("chalk");
-const formatDate = require("date-fns/format");
-const handleSync = require("../utils/handle-sync");
 const parseDateTime = require("../utils/parse-datetime");
 
 module.exports = ({ config, Punch }) => ({
   signature: "comment <comment...>",
   description: "add a comment to remember what you worked on",
-  arguments: [{
-    name: "comment",
-    description: "a description of what you worked on",
-    parse: (words) => words.join(" ")
-  }],
-  options: [{
-    name: "project",
-    short: "p",
-    description: "the active project to add the comment to",
-    type: "string"
-  }, {
-    name: "time",
-    short: "t",
-    description: "set a custom timestamp for the comment (defaults to now)",
-    type: parseDateTime
-  }],
-  run: async function (args) {
+  arguments: [
+    {
+      name: "comment",
+      description: "a description of what you worked on",
+      parse: words => words.join(" ")
+    }
+  ],
+  options: [
+    {
+      name: "project",
+      short: "p",
+      description: "the active project to add the comment to",
+      type: "string"
+    },
+    {
+      name: "time",
+      short: "t",
+      description: "set a custom timestamp for the comment (defaults to now)",
+      type: parseDateTime
+    }
+  ],
+  run: async function(args) {
+    const { allPunchedIn, confirm } = require("../punch/utils");
+    const { dayPunches } = require("../logging/printing");
+    const chalk = require("chalk");
+    const formatDate = require("date-fns/format");
+    const handleSync = require("../utils/handle-sync");
+
     const punchedIn = await allPunchedIn({ config, Punch });
 
     if (punchedIn.length > 1 && !args.options.project) {
-      console.log("\nYou are punched in on more than one project. Use the -p flag to specify which project to comment on.");
+      console.log(
+        "\nYou are punched in on more than one project. Use the -p flag to specify which project to comment on."
+      );
       let str = "";
       for (let i = 0; i < punchedIn.length; i++) {
         if (i == 0) {
@@ -48,7 +56,10 @@ module.exports = ({ config, Punch }) => ({
       current.addComment(args.comment, args.options.time || null);
       await current.save();
 
-      console.log("\n  " + dayPunches([current], Date.now(), config).replace(/\n/g, "\n  "));
+      console.log(
+        "\n  " +
+          dayPunches([current], Date.now(), config).replace(/\n/g, "\n  ")
+      );
       console.log("Comment saved.");
       await handleSync({ config, Punch });
     } else {

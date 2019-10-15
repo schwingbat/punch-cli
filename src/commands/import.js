@@ -1,8 +1,4 @@
-const { confirm } = require("../punch/utils");
-const { simplePunches } = require("../logging/printing");
 const chalk = require("chalk");
-const formatDate = require("date-fns/format");
-const fs = require("fs");
 const path = require("path");
 
 const loadImporter = (name, config) => {
@@ -13,7 +9,9 @@ const loadImporter = (name, config) => {
   } catch (err) {
     console.log(chalk.red(`\nNo formatter for '${name}'`));
     console.log(`You can create ${chalk.green(formatterPath)} to define it.`);
-    console.log("Formatters should be a single exported function that takes a file's contents as a string and returns an array of Punch objects.\n");
+    console.log(
+      "Formatters should be a single exported function that takes a file's contents as a string and returns an array of Punch objects.\n"
+    );
     console.log("Here's a good starting point:");
     console.log(`
 module.exports = function (fileContentsStr, Punch) {
@@ -34,20 +32,28 @@ module.exports = function (fileContentsStr, Punch) {
 module.exports = ({ config, Punch }) => ({
   signature: "import <file>",
   description: "imports punch data from a file",
-  examples: [
-    "punch import ~/export.csv -f hourstracker"
+  examples: ["punch import ~/export.csv -f hourstracker"],
+  arguments: [
+    {
+      name: "file",
+      description: "path to a file of importable data"
+    }
   ],
-  arguments: [{
-    name: "file",
-    description: "path to a file of importable data",
-  }],
-  options: [{
-    name: "format",
-    short: "f",
-    description: "name of function to handle import (defined in ~/.punch/formatters/import)",
-    type: "string"
-  }],
-  run: async function (args) {
+  options: [
+    {
+      name: "format",
+      short: "f",
+      description:
+        "name of function to handle import (defined in ~/.punch/formatters/import)",
+      type: "string"
+    }
+  ],
+  run: async function(args) {
+    const formatDate = require("date-fns/format");
+    const fs = require("fs");
+    const { confirm } = require("../punch/utils");
+    const { simplePunches } = require("../logging/printing");
+
     let contents;
     try {
       contents = fs.readFileSync(args.file, "utf8");

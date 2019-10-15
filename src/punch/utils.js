@@ -14,11 +14,14 @@ const allPunchedIn = async ({ config, Punch }) => {
   return punchedIn;
 };
 
-const confirm = (question) => {
+const confirm = question => {
   let response;
 
   while (!["y", "n", "yes", "no"].includes(response)) {
-    response = require("readline-sync").question(`${question} [y/n] `).toLowerCase().trim();
+    response = require("readline-sync")
+      .question(`${question} [y/n] `)
+      .toLowerCase()
+      .trim();
 
     if (response === "y" || response === "yes") {
       return true;
@@ -32,7 +35,7 @@ const confirm = (question) => {
 
 const confirmAdjustedTime = (config, date, template = "Set time to $?") => {
   const format = require("date-fns/format");
-  const isSameDay = require("date-fns/is_same_day");
+  const isSameDay = require("date-fns/isSameDay");
 
   let stringFmt = config.display.timeFormat;
 

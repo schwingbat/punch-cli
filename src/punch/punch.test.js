@@ -5,7 +5,7 @@ const configPath = path.join(__dirname, "../test/testconfig.json");
 const MockStorage = require("../test/mocks/storage.mock");
 const config = require("../config");
 const _punch = require("./punch");
-const isValidDate = require("date-fns/is_valid");
+const isValidDate = require("date-fns/isValid");
 
 describe("Punch", () => {
   let Punch;
@@ -16,7 +16,7 @@ describe("Punch", () => {
     const mockStorage = MockStorage({ storageType: "punchfile" });
     Storage = mockStorage.Storage;
     mock = mockStorage.mock;
-    Punch = _punch(config(configPath), Storage);
+    Punch = _punch(config.load(configPath), Storage);
   });
 
   describe("constructor", () => {
@@ -32,13 +32,16 @@ describe("Punch", () => {
     it("instantiates with comments", () => {
       const punch = new Punch({
         project: "test",
-        comments: [{
-          comment: "test 1",
-          timestamp: 12345
-        }, {
-          comment: "test 2",
-          timestamp: 123456
-        }]
+        comments: [
+          {
+            comment: "test 1",
+            timestamp: 12345
+          },
+          {
+            comment: "test 2",
+            timestamp: 123456
+          }
+        ]
       });
 
       expect(punch.comments.length).toBe(2);
@@ -80,7 +83,14 @@ describe("Punch", () => {
       const timeIn = new Date(2018, 3, 30, 14, 32);
       const timeOut = new Date(2018, 3, 30, 12, 30);
 
-      expect(() => new Punch({ project: "test", in: timeIn.getTime(), out: timeOut.getTime() })).toThrow();
+      expect(
+        () =>
+          new Punch({
+            project: "test",
+            in: timeIn.getTime(),
+            out: timeOut.getTime()
+          })
+      ).toThrow();
     });
   });
 
@@ -145,7 +155,9 @@ describe("Punch", () => {
     it("calculates time correctly", () => {
       const punch = new Punch({ project: "test" });
       punch.punchOut();
-      expect(punch.duration()).toEqual(punch.out.getTime() - punch.in.getTime());
+      expect(punch.duration()).toEqual(
+        punch.out.getTime() - punch.in.getTime()
+      );
     });
   });
 
@@ -153,7 +165,12 @@ describe("Punch", () => {
     it("returns the billable amount for a punch based on punch time and project rate", () => {
       const timeIn = new Date(2018, 3, 15, 12, 10);
       const timeOut = new Date(2018, 3, 15, 14, 40);
-      const punch = new Punch({ project: "test", in: timeIn.getTime(), out: timeOut.getTime(), rate: 62 });
+      const punch = new Punch({
+        project: "test",
+        in: timeIn.getTime(),
+        out: timeOut.getTime(),
+        rate: 62
+      });
       expect(punch.pay()).toBe(155);
     });
   });
@@ -172,11 +189,13 @@ describe("Punch", () => {
         project: "test",
         in: timeIn.getTime(),
         out: timeOut.getTime(),
-        comments: [{
-          comment: "test comment",
-          timestamp: timeOut.getTime()
-        }],
-        rate: 35.00,
+        comments: [
+          {
+            comment: "test comment",
+            timestamp: timeOut.getTime()
+          }
+        ],
+        rate: 35.0,
         created: timeIn.getTime(),
         updated: timeOut.getTime()
       };

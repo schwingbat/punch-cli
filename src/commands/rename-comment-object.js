@@ -2,17 +2,18 @@ module.exports = ({ Punch }) => ({
   signature: "rename-comment-object <from> <to>",
   description: "rename comment objects with name <from> to name <to>",
   hidden: true,
-  examples: [
-    "punch alias-rename task vsts"
+  examples: ["punch alias-rename task vsts"],
+  arguments: [
+    {
+      name: "from",
+      description: 'starting name (e.g. "task" for @task:1500)'
+    },
+    {
+      name: "to",
+      description: 'ending name (e.g. "vsts" to get @vsts:1500)'
+    }
   ],
-  arguments: [{
-    name: "from",
-    description: "starting name (e.g. \"task\" for @task:1500)"
-  }, {
-    name: "to",
-    description: "ending name (e.g. \"vsts\" to get @vsts:1500)"
-  }],
-  run: async function (args) {
+  run: async function(args) {
     const { from, to } = args;
 
     const punches = await Punch.select(p => {

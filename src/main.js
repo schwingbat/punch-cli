@@ -48,7 +48,7 @@ for (let i = 0; i < ARGS.length; i++) {
 }
 
 const bench = require("./utils/bench")({ disabled: !flags.BENCHMARK });
-const config = require("./config")();
+const config = require("./config").load();
 
 bench.mark("config loaded");
 
@@ -92,10 +92,6 @@ command(require("./commands/tags")(injectables));
 // ----- Logging ----- //
 
 command(require("./commands/log")(injectables));
-command(require("./commands/today")(injectables));
-command(require("./commands/yesterday")(injectables));
-command(require("./commands/week")(injectables));
-command(require("./commands/month")(injectables));
 
 command(require("./commands/invoice")(injectables));
 command(require("./commands/sync")(injectables));

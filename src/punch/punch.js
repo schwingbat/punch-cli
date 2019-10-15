@@ -174,13 +174,11 @@ module.exports = function(config, Storage) {
 
       if (this.out && this.out < this.in) {
         const formatDate = require("date-fns/format");
-        const format = "MMM Do YYYY [at] h:mm:ss A";
+        const format = "MMM Do yyyy [at] h:mm:ss A";
         const inTime = formatDate(this.in, format);
         const outTime = formatDate(this.out, format);
         throw new Error(
-          `Punch out occurs before punch in. Project: ${
-            this.project
-          }, in: ${inTime}, out: ${outTime}`
+          `Punch out occurs before punch in. Project: ${this.project}, in: ${inTime}, out: ${outTime}`
         );
       }
 

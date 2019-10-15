@@ -1,42 +1,49 @@
-const { confirm } = require("../punch/utils");
-const formatCurrency = require("../format/currency");
-const formatDate = require("date-fns/format");
-const formatDuration = require("../format/duration");
-const handleSync = require("../utils/handle-sync");
 const parseDateTime = require("../utils/parse-datetime");
 
 module.exports = ({ config, Punch }) => ({
   signature: "create <project>",
   description: "create a punch",
-  arguments: [{
-    name: "project",
-    description: "name of the project",
-    parse: function(name) {
-      const data = config.projects[name];
-      if (data) {
-        return data;
-      } else {
-        throw new Error("Project does not exist in your config file");
+  arguments: [
+    {
+      name: "project",
+      description: "name of the project",
+      parse: function(name) {
+        const data = config.projects[name];
+        if (data) {
+          return data;
+        } else {
+          throw new Error("Project does not exist in your config file");
+        }
       }
     }
-  }],
-  options: [{
-    name: "start",
-    short: "s",
-    description: "start time and date (e.g. MM/DD/YYYY@12:00PM)",
-    type: parseDateTime
-  }, {
-    name: "end",
-    short: "e",
-    description: "end time and date",
-    type: parseDateTime
-  }, {
-    name: "comment",
-    short: "c",
-    description: "a description of what you worked on",
-    type: "string"
-  }],
+  ],
+  options: [
+    {
+      name: "start",
+      short: "s",
+      description: "start time and date (e.g. MM/DD/yyyy@12:00PM)",
+      type: parseDateTime
+    },
+    {
+      name: "end",
+      short: "e",
+      description: "end time and date",
+      type: parseDateTime
+    },
+    {
+      name: "comment",
+      short: "c",
+      description: "a description of what you worked on",
+      type: "string"
+    }
+  ],
   run: async function(args) {
+    const { confirm } = require("../punch/utils");
+    const formatCurrency = require("../format/currency");
+    const formatDate = require("date-fns/format");
+    const formatDuration = require("../format/duration");
+    const handleSync = require("../utils/handle-sync");
+
     const { project } = args;
     const timeIn = args.options.start;
     const timeOut = args.options.end;
@@ -57,8 +64,8 @@ module.exports = ({ config, Punch }) => ({
 
     let str = "\n";
     str += `   Project: ${project.name} (${project.alias})\n`;
-    str += `   Time In: ${formatDate(timeIn, "dddd, MMM Do YYYY [@] h:mma")}\n`;
-    str += `  Time Out: ${formatDate(timeOut, "dddd, MMM Do YYYY [@] h:mma")}\n`;
+    str += `   Time In: ${formatDate(timeIn, "PPPP '@' p")}\n`;
+    str += `  Time Out: ${formatDate(timeOut, "PPPP '@' p")}\n`;
     str += `  Duration: ${formatDuration(duration)}\n`;
     str += `       Pay: ${pay}\n`;
 

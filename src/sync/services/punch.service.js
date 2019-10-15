@@ -1,89 +1,91 @@
-const SyncService = require("../syncservice");
-const fetch = require("node-fetch");
+module.exports = function() {
+  const SyncService = require("../syncservice");
+  const fetch = require("node-fetch");
 
-class PunchSyncService extends SyncService {
-  constructor(punchConfig, svcConfig, Punch) {
-    super(svcConfig);
+  return class PunchSyncService extends SyncService {
+    constructor(punchConfig, svcConfig, Punch) {
+      super(svcConfig);
 
-    const creds = this.loadCredentialsFrom(
-      svcConfig.credentials,
-      punchConfig.configPath
-    );
-    if (!creds.email || !creds.accessToken) {
-      throw new Error(
-        "Punch credentials must include both 'email' and 'accessToken' fields."
+      const creds = this.loadCredentialsFrom(
+        svcConfig.credentials,
+        punchConfig.configPath
       );
+      if (!creds.email || !creds.accessToken) {
+        throw new Error(
+          "Punch credentials must include both 'email' and 'accessToken' fields."
+        );
+      }
+
+      creds.host = svcConfig.host || "https://www.punch.sh";
+
+      this.Punch = Punch;
+      this.punchConfig = punchConfig;
+      this.svcConfig = svcConfig;
+      this.credentials = creds;
     }
 
-    creds.host = svcConfig.host || "https://www.punch.sh";
+    async getManifest() {
+      const url = new URL("./api/v1/sync/manifest", this.credentials.host);
+      try {
+        const response = await fetch(url, {
+          method: "GET",
+          headers: this.getHeaders()
+        });
 
-    this.Punch = Punch;
-    this.punchConfig = punchConfig;
-    this.svcConfig = svcConfig;
-    this.credentials = creds;
-  }
-
-  async getManifest() {
-    const url = new URL("./api/v1/sync/manifest", this.credentials.host);
-    try {
-      const response = await fetch(url, {
-        method: "GET",
-        headers: this.getHeaders()
-      });
-
-      return response.json();
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  async upload(uploads = [], manifest = {}) {
-    const url = new URL("/api/v1/sync/upload", this.credentials.host);
-    try {
-      await fetch(url, {
-        method: "PUT",
-        headers: this.getHeaders(),
-        body: JSON.stringify({
-          punches: uploads
-        })
-      });
-
-      return uploads;
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  async download(ids = []) {
-    if (ids.length === 0) {
-      return [];
+        return response.json();
+      } catch (err) {
+        throw err;
+      }
     }
 
-    const url = new URL("/api/v1/sync/download", this.credentials.host);
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: this.getHeaders(),
-        body: JSON.stringify({
-          ids
-        })
-      });
+    async upload(uploads = [], manifest = {}) {
+      const url = new URL("/api/v1/sync/upload", this.credentials.host);
+      try {
+        await fetch(url, {
+          method: "PUT",
+          headers: this.getHeaders(),
+          body: JSON.stringify({
+            punches: uploads
+          })
+        });
 
-      const punches = await response.json();
-      return punches.map(p => new this.Punch(p));
-    } catch (err) {
-      throw err;
+        return uploads;
+      } catch (err) {
+        throw err;
+      }
     }
-  }
 
-  getHeaders() {
-    const email = Buffer.from(this.credentials.email).toString("base64");
-    const token = Buffer.from(this.credentials.accessToken).toString("base64");
-    return {
-      Authorization: `Bearer ${email}.${token}`,
-      "Content-Type": "application/json"
-    };
-  }
-}
+    async download(ids = []) {
+      if (ids.length === 0) {
+        return [];
+      }
 
-module.exports = PunchSyncService;
+      const url = new URL("/api/v1/sync/download", this.credentials.host);
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: this.getHeaders(),
+          body: JSON.stringify({
+            ids
+          })
+        });
+
+        const punches = await response.json();
+        return punches.map(p => new this.Punch(p));
+      } catch (err) {
+        throw err;
+      }
+    }
+
+    getHeaders() {
+      const email = Buffer.from(this.credentials.email).toString("base64");
+      const token = Buffer.from(this.credentials.accessToken).toString(
+        "base64"
+      );
+      return {
+        Authorization: `Bearer ${email}.${token}`,
+        "Content-Type": "application/json"
+      };
+    }
+  };
+};

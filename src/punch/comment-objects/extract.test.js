@@ -19,13 +19,13 @@ describe("extract", () => {
       comment,
       objects: [
         {
-          key:   { start: 32, end: 36, string: "task" },
+          key: { start: 32, end: 36, string: "task" },
           value: { start: 37, end: 41, string: "1234" }
         },
         {
-          key:   { start: 43, end: 49, string: "pickle" },
+          key: { start: 43, end: 49, string: "pickle" },
           value: { start: 50, end: 55, string: "flarf" }
-        },
+        }
       ],
       tags: []
     });
@@ -34,18 +34,16 @@ describe("extract", () => {
   it("handles strings with objects not at the end", () => {
     const comment = "This one's got @some:objects right #in-the-middle of it";
     const result = extract(comment);
-    
+
     expect(result).toEqual({
       comment,
       objects: [
         {
-          key:   { start: 16, end: 20, string: "some" },
+          key: { start: 16, end: 20, string: "some" },
           value: { start: 21, end: 28, string: "objects" }
-        },
+        }
       ],
-      tags: [
-        { start: 35, end: 49, string: "in-the-middle" }
-      ]
+      tags: [{ start: 35, end: 49, string: "in-the-middle" }]
     });
   });
 
@@ -56,12 +54,12 @@ describe("extract", () => {
       comment,
       objects: [
         {
-          key:   { start: 32, end: 36, string: "vsts" },
+          key: { start: 32, end: 36, string: "vsts" },
           value: { start: 37, end: 41, string: "1234" }
-        },
+        }
       ],
       tags: [
-        { start:  9, end: 17, string: "awesome" },
+        { start: 9, end: 17, string: "awesome" },
         { start: 42, end: 47, string: "tags" }
       ]
     });

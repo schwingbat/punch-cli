@@ -13,5 +13,8 @@ module.exports = (config, current) => {
     // Keep empty string
   }
 
-  fs.writeFileSync(path.join(path.dirname(config.configPath), "current"), label);
+  fs.writeFileSync(
+    path.join(path.dirname(config.configPath), "current"),
+    label
+  );
 };
