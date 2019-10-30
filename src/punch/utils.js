@@ -40,7 +40,7 @@ const confirmAdjustedTime = (config, date, template = "Set time to $?") => {
   let stringFmt = config.display.timeFormat;
 
   if (!isSameDay(new Date(), date)) {
-    stringFmt += ` [on] ${config.display.dateFormat}`;
+    stringFmt += ` 'on' ${config.display.dateFormat}`;
   }
 
   return confirm(template.replace("$", format(date, stringFmt)));

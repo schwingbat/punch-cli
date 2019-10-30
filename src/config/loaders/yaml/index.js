@@ -19,6 +19,7 @@ module.exports = function loadYAMLConfig(configPath) {
     }
   }
 
+  config.configPath = configPath + ".yaml";
   config.extension = ".yaml";
   config.projects = projects;
 

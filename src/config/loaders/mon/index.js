@@ -5,6 +5,7 @@ module.exports = function loadMONConfig(configPath) {
   const file = fs.readFileSync(configPath + ".mon").toString("utf8");
   const config = MON.parse(file);
 
+  config.configPath = configPath + ".mon";
   config.extension = ".mon";
 
   // Store project alias in project object

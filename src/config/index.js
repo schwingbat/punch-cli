@@ -20,7 +20,6 @@ exports.load = (configPath = null) => {
   const { punchPath } = config;
 
   // Set dynamic options.
-  config.configPath = configPath + (config.extension || ".mon");
   config.punchPath = punchPath;
   config.symbols = require("../utils/symbols")(config);
   config.invoiceTemplatePath =
@@ -55,3 +54,15 @@ exports.current = () => {
 
   return current;
 };
+
+/*=============================*\
+||     FOR TESTING PURPOSES    ||
+\*=============================*/
+
+exports.__clear_current__ = () => {
+  current = null;
+}
+
+exports.__get_raw_current__ = () => {
+  return current;
+}
