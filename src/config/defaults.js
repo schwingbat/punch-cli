@@ -11,7 +11,7 @@ module.exports = {
     services: []
   },
   invoice: {
-    dateFormat: "MM/DD/yyyy",
+    dateFormat: "MM/dd/yyyy",
     timeFormat: "p"
   },
   display: {
