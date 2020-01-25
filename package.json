@@ -36,6 +36,7 @@
     "aws-sdk": "^2.610.0",
     "chalk": "^3.0.0",
     "date-fns": "^2.9.0",
+    "handlebars": "^4.7.2",
     "js-yaml": "^3.13.1",
     "log-update": "^3.3.0",
     "mkdirp": "^1.0.3",
