@@ -2,52 +2,20 @@
 
 global.appRoot = __dirname;
 
-const CLI = require("./utils/cli/index.js");
 const pkg = require("../package.json");
 
-const { command, run } = CLI({
+const BENCHMARK = process.argv.includes("--benchmark");
+
+if (BENCHMARK) {
+  require("time-require");
+}
+
+const { command, invoke } = require("@ratwizard/cli")({
   name: "punch",
   version: pkg.version
 });
 
-const flags = {
-  VERBOSE: false,
-  BENCHMARK: false,
-  NO_SYNC: false
-};
-
-// Process command line args into params/flags
-
-const ARGS = process.argv.slice(2);
-
-for (let i = 0; i < ARGS.length; i++) {
-  const arg = ARGS[i];
-
-  if (arg[0] === "-") {
-    switch (arg.toLowerCase()) {
-      case "-v":
-      case "--version":
-        console.log("punch v" + pkg.version);
-        process.exit();
-        break;
-      case "--verbose":
-        flags.VERBOSE = true;
-        break;
-      case "-b":
-      case "--benchmark":
-        flags.BENCHMARK = true;
-        require("time-require");
-        break;
-      case "-ns":
-      case "--nosync":
-      case "--no-sync":
-        flags.NO_SYNC = true;
-        break;
-    }
-  }
-}
-
-const bench = require("./utils/bench")({ disabled: !flags.BENCHMARK });
+const bench = require("./utils/bench")({ disabled: !BENCHMARK });
 const config = require("./config").load();
 
 bench.mark("config loaded");
@@ -61,10 +29,7 @@ bench.mark("punch loaded");
 ||          Commands         ||
 \* ========================= */
 
-// Each command is a closure that takes config objects and returns a CLI
-// command object.
-
-const injectables = {
+const props = {
   config,
   Punch,
   Storage
@@ -72,51 +37,70 @@ const injectables = {
 
 // ----- Managing Punches ----- //
 
-command(require("./commands/in")(injectables));
-command(require("./commands/out")(injectables));
-command(require("./commands/create")(injectables));
-command(require("./commands/delete")(injectables));
-command(require("./commands/adjust")(injectables));
+command("in")
+  .fromPath(__dirname, "commands/in")
+  .withProps(props);
+
+// command("out")
+//   .fromPath("./commands/out")
+//   .withProps(props);
+
+// command("create")
+//   .fromPath("./commands/create")
+//   .withProps(props);
+
+// command("delete")
+//   .fromPath("./commands/delete")
+//   .withProps(props);
+
+// command("adjust")
+//   .fromPath("./commands/adjust")
+//   .withProps(props);
 
 // ----- Managing Comments ----- //
 
-command(require("./commands/comment")(injectables));
-command(require("./commands/add-comment")(injectables));
-command(require("./commands/delete-comment")(injectables));
-command(require("./commands/replace-comment")(injectables));
+// command(require("./commands/comment")(props));
+// command(require("./commands/add-comment")(props));
+// command(require("./commands/delete-comment")(props));
+// command(require("./commands/replace-comment")(props));
 
 // ----- Managing Tags ----- //
 
-command(require("./commands/tags")(injectables));
+// command(require("./commands/tags")(props));
 
 // ----- Logging ----- //
 
-command(require("./commands/log")(injectables));
+command("log")
+  .fromPath(__dirname, "commands/log")
+  .withProps(props);
 
-command(require("./commands/invoice")(injectables));
-command(require("./commands/sync")(injectables));
+// command(require("./commands/invoice")(props));
+// command(require("./commands/sync")(props));
 
 // ----- Data Import/Export ----- //
 
-command(require("./commands/import")(injectables));
-command(require("./commands/export")(injectables));
+// command(require("./commands/import")(props));
+// command(require("./commands/export")(props));
 
 // ----- Managing Projects ----- //
 
-command(require("./commands/projects")(injectables));
-command(require("./commands/rename-project")(injectables));
-command(require("./commands/purge-project")(injectables));
+command("projects")
+  .fromPath(__dirname, "commands/projects")
+  .withProps(props);
+
+// command(require("./commands/rename-project")(props));
+// command(require("./commands/purge-project")(props));
 
 // ----- Misc ----- //
 
-command(require("./commands/migrate-from-sqlite")(injectables));
-command(require("./commands/timestamp")(injectables));
-command(require("./commands/watch")(injectables));
-command(require("./commands/config")(injectables));
-command(require("./commands/rename-comment-object")(injectables));
-command(require("./commands/adjust-rate")(injectables));
+// command(require("./commands/migrate-from-sqlite")(props));
+// command(require("./commands/timestamp")(props));
+// command(require("./commands/watch")(props));
+// command(require("./commands/config")(props));
+// command(require("./commands/rename-comment-object")(props));
+// command(require("./commands/adjust-rate")(props));
 
-run(ARGS);
+invoke();
 
 bench.mark("parsed and run");
 bench.printAll();

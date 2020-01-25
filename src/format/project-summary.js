@@ -1,7 +1,7 @@
 module.exports = function(config, project) {
   // Turn the detailed object into an array of formatted stats.
 
-  const distanceInWords = require("date-fns/distanceInWords");
+  const formatDistance = require("date-fns/formatDistance");
   const formatDate = require("date-fns/format");
   const chalk = require("chalk");
   const formatCurrency = require("./currency");
@@ -19,7 +19,7 @@ module.exports = function(config, project) {
   } = project;
 
   let lastActive = latestPunch.out
-    ? distanceInWords(latestPunch.out, new Date()) + " ago"
+    ? formatDistance(latestPunch.out, new Date()) + " ago"
     : chalk.bold.green("Now");
 
   return {
