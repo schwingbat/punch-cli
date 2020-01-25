@@ -14,7 +14,7 @@ module.exports = (config, current) => {
   }
 
   fs.writeFileSync(
-    path.join(path.dirname(config.configPath), "current"),
+    path.join(path.dirname(config.punchPath), "current"),
     label
   );
 };

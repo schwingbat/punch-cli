@@ -19,11 +19,11 @@ module.exports = ({ config, Punch }) => ({
   run: async function(args) {
     const updateCurrentMarker = require("../utils/update-current-marker");
     const Syncer = require("../sync/syncer");
+    const syncer = new Syncer(config, Punch);
 
-    await new Syncer(config, Punch).syncAll({
-      services: args.services,
-      check: args.options.check || false
-    });
+    await syncer.syncAll(
+      args.services || config.sync.services.map(s => s.name)
+    );
 
     updateCurrentMarker(config, await Punch.current());
   }

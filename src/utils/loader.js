@@ -48,6 +48,13 @@ module.exports = function({
       }
       return this;
     },
+    update(newText = text) {
+      clearInterval(interval);
+      interval = setInterval(() => {
+        logUpdate(chalk.yellow(frames[i]) + " " + newText);
+        i = (i + 1) % frames.length;
+      }, 1000 / fps);
+    },
     stop(stopText) {
       clearInterval(interval);
       interval = null;

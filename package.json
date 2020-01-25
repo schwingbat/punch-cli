@@ -17,7 +17,8 @@
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
-    "build": "npm run build:mac && npm run build:linux && npm run build:windows",
+    "test:coverage": "jest --coverage",
+    "build": "yarn build:mac && yarn build:linux && yarn build:windows",
     "build:mac": "pkg package.json --out-path dist/mac --target node12-macos-x64",
     "build:windows": "pkg package.json --out-path dist/windows --target node12-win-x86",
     "build:linux": "pkg package.json --out-path dist/linux --target node12-linux-x86",
@@ -32,24 +33,23 @@
     "@schwingbat/is": "^2.0.0",
     "@schwingbat/mon": "^1.0.0",
     "ansi-regex": "^5.0.0",
-    "aws-sdk": "^2.549.0",
-    "backblaze-b2": "^1.4.0",
-    "chalk": "^2.4.2",
-    "date-fns": "^2.4.1",
+    "aws-sdk": "^2.610.0",
+    "chalk": "^3.0.0",
+    "date-fns": "^2.9.0",
     "js-yaml": "^3.13.1",
     "log-update": "^3.3.0",
-    "mkdirp": "^0.5.1",
+    "mkdirp": "^1.0.3",
     "node-fetch": "^2.6.0",
     "readline-sync": "^1.4.10",
     "time-require": "^0.1.2",
-    "uuid": "^3.3.3"
+    "uuid": "^3.4.0"
   },
   "devDependencies": {
-    "eslint": "^6.5.1",
-    "eslint-plugin-jest": "^22.19.0",
-    "jest": "^24.9.0",
+    "eslint": "^6.8.0",
+    "eslint-plugin-jest": "^23.6.0",
+    "jest": "^25.1.0",
     "jszip": "^3.2.2",
-    "pkg": "^4.4.0"
+    "pkg": "^4.4.2"
   },
   "jest": {
     "testEnvironment": "node"

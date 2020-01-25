@@ -1,14 +1,5 @@
 const path = require("path");
-const chalk = require("chalk");
-const is = require("@schwingbat/is");
-
-const services = {
-  dummy: require("./services/dummy.service"),
-  s3: require("./services/s3.service"),
-  b2: require("./services/b2.service"),
-  spaces: require("./services/spaces.service"),
-  punch: require("./services/punch.service")
-};
+const fs = require("fs");
 
 function Syncer(config, Punch) {
   if (!config) {
@@ -20,200 +11,162 @@ function Syncer(config, Punch) {
     );
   }
 
-  function loadService(serviceName) {
-    let serviceConf;
-    let name;
+  function loadService(name) {
+    let conf;
 
-    if (is.object(serviceName)) {
-      serviceConf = serviceName;
-      name = serviceConf.name.toLowerCase();
-    } else {
-      name = serviceName.toLowerCase();
-      serviceConf = config.sync.services.find(
-        s => s.name.toLowerCase() === name
-      );
-    }
+    name = name.toLowerCase();
+    conf = config.sync.services.find(s => s.name.toLowerCase() === name);
+    conf.credentials = loadCredentials(conf, config.configPath);
 
-    if (!serviceConf) {
+    if (!conf) {
       throw new Error(
-        `Service ${name} is not configured in config.sync.services`
+        `Service ${serviceName} is not configured in config.sync.services`
       );
     }
-    if (!services[name]) {
-      throw new Error(`Service ${name} is not supported (yet?).`);
+
+    // Try loading from user's config path where custom sync handlers can be defined.
+    // If nothing is found there try loading a built in handler.
+
+    const localPath = path.join(__dirname, "handlers", `${name}.js`);
+    const userPath = path.join(
+      config.configPath,
+      "sync",
+      "handlers",
+      `${name}.js`
+    );
+
+    if (fs.existsSync(userPath)) {
+      return require(userPath)(conf, Punch);
     }
 
-    const service = services[name]();
+    if (fs.existsSync(localPath)) {
+      return require(localPath)(conf, Punch);
+    }
 
-    return new service(config, serviceConf, Punch);
+    throw new Error(
+      `Sync handler ${serviceName} is not supported yet, but you can add support yourself: https://punch.sh/docs/sync#handlers`
+    );
   }
 
+  /**
+   * Determines changes between local punches and a manifest of remote punches from the sync target.
+   *
+   * @param {{ [id: string]: Date }} manifest - Manifest of IDs and updated dates for punches from a remote source.
+   * @returns an object containing punches to be uploaded and punch IDs to be downloaded.
+   */
   async function diff(manifest) {
     const punches = await Punch.all();
 
+    // Punches should be uploaded if they don't exist remotely or if the local copy is newer.
     const uploads = punches.filter(punch => {
-      // Upload if punch doesn't exist remotely or if local copy is newer.
-      return !manifest[punch.id] || manifest[punch.id] < punch.updated;
+      return (
+        !manifest.hasOwnProperty(punch.id) || manifest[punch.id] < punch.updated
+      );
     });
 
+    // Punches should be downloaded if they don't exist locally or if the remote copy is newer.
     const downloads = [];
     for (const id in manifest) {
-      // Download if punch doesn't exist locally or if remote copy is newer.
       const punch = punches.find(p => p.id === id);
       if (!punch || punch.updated < manifest[id]) {
         downloads.push(id);
       }
     }
 
-    return { uploads, downloads };
+    // Delete a punch if the manifest has the literal null value instead of a timestamp
+    const deletions = punches.filter(punch => {
+      return manifest[punch.id] === null;
+    });
+
+    return { uploads, downloads, deletions };
   }
 
-  async function sync(service, check = false) {
-    /*
-      Multi-sync
-      - Get all manifests
-      - Compare manifests and local against each other
-      - Build upload/download lists for each service
-      - Order requests so newest punches are fetched first
-
-      For now it's just single sync
-    */
-
-    if (is.not.object(service) || is.not.func(service.getManifest)) {
-      throw new Error(
-        "sync() takes an instance of a sync service as a parameter.\nUse loadService to obtain one."
-      );
-    }
-
+  async function sync(service) {
     try {
       const manifest = await service.getManifest();
       const result = await diff(manifest);
 
       const { uploads, downloads } = result;
-      let uploaded;
-      let downloaded;
 
-      if (check) {
-        // If 'check' is true, only check for differences and don't actually upload anything
-        uploaded = uploads;
-        downloaded = downloads;
-      } else {
-        uploaded = await service.upload(uploads, manifest);
-        downloaded = await service.download(downloads);
+      const uploaded = await service.upload(uploads, manifest);
+      const downloaded = await service.download(downloads);
 
-        for (let i = 0; i < downloaded.length; i++) {
-          await downloaded[i].save();
-        }
+      for (let i = 0; i < downloaded.length; i++) {
+        await downloaded[i].save();
       }
 
       return { uploaded, downloaded };
     } catch (err) {
-      const label = service._config.label || service._config.name;
+      console.error(err);
+      const label = service.config.label || service.config.name;
       const message = `[${label}] Sync Error: ${err.message}`;
       throw new Error(message);
     }
   }
 
-  async function syncAll({ silent, services, check, auto } = {}) {
+  async function syncAll(services) {
+    /**
+     * Multi-sync
+     * - Get all manifests
+     * - Compare manifests and local against each other
+     * - Build upload/download lists for each service
+     * - Order requests so newest punches are fetched first
+
+     * For now it's just single sync at a time
+     */
+
     const loader = require("../utils/loader")();
     const { symbols } = config;
 
-    const syncIt = async service => {
-      const start = Date.now();
+    const { grey, magenta, cyan, green } = require("chalk");
 
-      if (!silent) {
-        loader.start(service.getSyncingMessage());
-      }
+    for (const name of services) {
+      const service = loadService(name);
 
-      try {
-        const results = await sync(service);
+      loader.start("Syncing with " + service.config.label + "...");
 
-        if (!silent) {
-          const elapsed = (Date.now() - start) / 1000;
-          const up = `${chalk.grey("[")}${chalk.magenta(symbols.syncUpload)} ${
-            results.uploaded.length
-          }${chalk.grey("]")}`;
-          const down = `${chalk.grey("[")}${chalk.cyan(symbols.syncDownload)} ${
-            results.downloaded.length
-          }${chalk.grey("]")}`;
-          let message;
+      // const uploader = loader();
+      // const downloader = loader();
 
-          if (check) {
-            let label = service._config.label || service._config.name;
-            message = `${chalk.bold("Checked")} ${label}`;
-          } else {
-            message = service.getSyncCompleteMessage();
-          }
+      const up = value =>
+        `${grey("[")}${magenta(symbols.syncUpload)} ${value}${grey("]")}`;
+      const down = value =>
+        `${grey("[")}${cyan(symbols.syncDownload)} ${value}${grey("]")}`;
 
-          loader.stop(
-            `${chalk.green(
-              symbols.syncSuccess
-            )} ${up}${down} ${message} (${elapsed.toFixed(2)}s)`
-          );
-        }
-      } catch (err) {
-        if (!silent) {
-          loader.stop(chalk.red(symbols.error) + " " + err.message);
-          // console.log()
-        } else {
-          console.log(chalk.red(symbols.error) + " " + err.message);
-        }
-      }
-    };
+      // loader.stop(
+      //   `${green(
+      //     symbols.syncSuccess
+      //   )} ${up}${down} ${message} (${elapsed.toFixed(2)}s)`
+      // );
 
-    if (services) {
-      services = services
-        .map(s => {
-          const key = s.toLowerCase();
-          const service = config.sync.services.find(service => {
-            return (
-              service.name.toLowerCase() === key ||
-              service.label.toLowerCase() === key
-            );
-          });
+      // service.events.on("upload:start", data => {
+      //   uploader.start(up(`0 of ${data.total}`));
+      // });
+      // service.events.on("upload:progress", data => {
+      //   uploader.update(up(`${data.progress} of ${data.total}`));
+      // });
+      // service.events.on("upload:end", data => {
+      //   uploader.stop("");
+      // });
 
-          if (service) {
-            try {
-              return loadService(service);
-            } catch (err) {
-              const label = service.label || service.name;
-              console.log(
-                chalk.yellow(symbols.warning) +
-                  ` [${label}] Sync Warning: ${err.message}`
-              );
-            }
-          } else {
-            console.log(
-              chalk.yellow(symbols.warning) +
-                ` Service "${s}" is not in your config file`
-            );
-          }
-        })
-        .filter(s => s != null);
-    } else {
-      services = config.sync.services
-        .map((service, i) => {
-          try {
-            return loadService(service);
-          } catch (err) {
-            const label = service.label || service.name;
-            console.log(
-              chalk.yellow(symbols.warning) +
-                ` [${label}] Sync Warning: ${err.message}`
-            );
-          }
-        })
-        .filter(s => s != null && (!auto || s._config.auto));
-      // Filter services if 'auto' prop is off during autosync
+      // service.events.on("download:start", data => {
+      //   downloader.start(down(`0 of ${data.total}`));
+      // });
+      // service.events.on("download:progress", data => {
+      //   downloader.update(down(`${data.progress} of ${data.total}`));
+      // });
+      // service.events.on("download:end", data => {
+      //   downloader.stop("");
+      // });
+
+      const { uploaded, downloaded } = await sync(service);
+
+      loader.stop(
+        `${green(symbols.syncSuccess)} ${up(uploaded.length)}${down(
+          downloaded.length
+        )} Synced with ${service.config.label}`
+      );
     }
-
-    for (let i = 0; i < services.length; i++) {
-      await syncIt(services[i]);
-      console.log();
-    }
-
-    return Promise.resolve();
-    // return Promise.all(services.map(async s => await syncIt(s)))
   }
 
   return {
@@ -225,3 +178,58 @@ function Syncer(config, Punch) {
 }
 
 module.exports = Syncer;
+
+/*==========================*\
+||    Credential Loaders    ||
+\*==========================*/
+
+function loadCredentials(config, punchConfigPath) {
+  const { credentials } = config;
+
+  if (typeof credentials === "object" && !Array.isArray(credentials)) {
+    return credentials;
+  } else if (typeof credentials === "string") {
+    let credentialsPath = credentials;
+
+    if (!path.isAbsolute(credentialsPath)) {
+      credentialsPath = path.resolve(
+        path.dirname(punchConfigPath),
+        credentialsPath
+      );
+    }
+
+    if (fs.existsSync(credentialsPath)) {
+      const ext = path.extname(credentialsPath).toLowerCase();
+      const read = fs.readFileSync(credentialsPath, "utf8");
+
+      let parsed;
+
+      try {
+        switch (ext) {
+          case ".yaml":
+            parsed = require("js-yaml").safeLoad(read);
+            break;
+          case ".json":
+            parsed = JSON.parse(read);
+            break;
+          default:
+            throw new Error(
+              `${ext} files are not supported as credential sources - must be .json or .yaml`
+            );
+        }
+      } catch (err) {
+        throw new Error(
+          "There was a problem reading the credentials file: " + err
+        );
+      }
+
+      return parsed;
+    } else {
+      throw new Error(
+        "Credentials is a path, but the file does not exist: " + credentialsPath
+      );
+    }
+  } else {
+    throw new Error("Credentials must be an object or a path to a file.");
+  }
+}
