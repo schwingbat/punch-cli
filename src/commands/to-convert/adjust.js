@@ -1,4 +1,4 @@
-const parseDateTime = require("../utils/parse-datetime");
+const parseDateTime = require("../../utils/parse-datetime");
 
 module.exports = ({ config, Punch }) => ({
   signature: "adjust <punchID>",
@@ -26,7 +26,7 @@ module.exports = ({ config, Punch }) => ({
     }
   ],
   run: async function(args) {
-    const { confirm } = require("../punch/utils");
+    const { confirm } = require("../../punch/utils");
     const chalk = require("chalk");
     const formatDate = require("date-fns/format");
 

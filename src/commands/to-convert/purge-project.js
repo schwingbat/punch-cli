@@ -2,9 +2,9 @@ module.exports = ({ config, Punch }) => ({
   signature: "purge-project <project>",
   description: "destroy all punches for a given project",
   run: async function(args) {
-    const { confirm } = require("../punch/utils");
-    const formatDuration = require("../format/duration");
-    const getLabelFor = require("../utils/get-label-for");
+    const { confirm } = require("../../punch/utils");
+    const formatDuration = require("../../format/duration");
+    const getLabelFor = require("../../utils/get-label-for");
 
     const { project } = args;
     const label = getLabelFor(config, project);
@@ -17,9 +17,7 @@ module.exports = ({ config, Punch }) => ({
       // Confirm and commit changes to files.
       if (
         confirm(
-          `Purging ${label} would delete ${
-            punches.length
-          } punches totalling ${duration}. Are you sure?`
+          `Purging ${label} would delete ${punches.length} punches totalling ${duration}. Are you sure?`
         )
       ) {
         for (const punch in punches) {

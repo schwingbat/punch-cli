@@ -10,9 +10,6 @@ const { confirmAdjustedTime } = require("../punch/utils");
 module.exports = command =>
   command
     .description("start tracking time on a project")
-    // .example("punch in my-project")
-    // .example("punch in -t 9:15AM my-project")
-    // .example("punch in --start=2019-05-14@12:41PM my-project")
     .examples([
       "punch in my-project",
       "punch in -t 9:15am my-project",

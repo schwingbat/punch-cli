@@ -1,4 +1,4 @@
-const parseDateTime = require("../utils/parse-datetime");
+const parseDateTime = require("../../utils/parse-datetime");
 
 module.exports = ({ config, Punch }) => ({
   signature: "create <project>",
@@ -38,11 +38,11 @@ module.exports = ({ config, Punch }) => ({
     }
   ],
   run: async function(args) {
-    const { confirm } = require("../punch/utils");
-    const formatCurrency = require("../format/currency");
+    const { confirm } = require("../../punch/utils");
+    const formatCurrency = require("../../format/currency");
     const formatDate = require("date-fns/format");
-    const formatDuration = require("../format/duration");
-    const handleSync = require("../utils/handle-sync");
+    const formatDuration = require("../../format/duration");
+    const handleSync = require("../../utils/handle-sync");
 
     const { project } = args;
     const timeIn = args.options.start;

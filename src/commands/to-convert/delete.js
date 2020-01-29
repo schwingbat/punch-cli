@@ -17,11 +17,11 @@ module.exports = ({ config, Punch }) => ({
     }
   ],
   run: async function(args) {
-    const { confirm } = require("../punch/utils");
+    const { confirm } = require("../../punch/utils");
     const punch = (await Punch.select(p => p.id === args.punchID))[0];
 
     if (punch) {
-      const { dayPunches } = require("../logging/printing");
+      const { dayPunches } = require("../../logging/printing");
 
       console.log(
         "\n  " + dayPunches([punch], punch.in, config).replace(/\n/g, "\n  ")

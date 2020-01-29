@@ -1,4 +1,4 @@
-const parseDateTime = require("../utils/parse-datetime");
+const parseDateTime = require("../../utils/parse-datetime");
 
 module.exports = ({ Punch }) => ({
   signature: "adjust-rate <project> <newRate>",
@@ -28,7 +28,7 @@ module.exports = ({ Punch }) => ({
     }
   ],
   run: async function(args) {
-    const { confirm } = require("../punch/utils");
+    const { confirm } = require("../../punch/utils");
 
     const { project, newRate } = args;
     const { start, end } = args.options;

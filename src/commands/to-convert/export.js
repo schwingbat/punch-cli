@@ -1,4 +1,4 @@
-const parseDateTime = require("../utils/parse-datetime");
+const parseDateTime = require("../../utils/parse-datetime");
 
 module.exports = ({ config, Punch }) => ({
   signature: "export",
@@ -48,7 +48,7 @@ module.exports = ({ config, Punch }) => ({
     const chalk = require("chalk");
     const fs = require("fs");
     const path = require("path");
-    const resolvePath = require("../utils/resolve-path");
+    const resolvePath = require("../../utils/resolve-path");
 
     const { start, end, project, tag, format, output } = args.options;
 

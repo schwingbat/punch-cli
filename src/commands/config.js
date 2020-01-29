@@ -7,13 +7,6 @@ module.exports = command =>
     )
     .flag("editor", "e", {
       description: "editor command (vim, code, etc.)"
-      // default: () => {
-      //   return (
-      //     process.env.VISUAL ||
-      //     process.env.EDITOR ||
-      //     (/^win/.test(process.platform) ? "notepad" : "vim")
-      //   );
-      // }
     })
     .action((args, props) => {
       const { config } = props;

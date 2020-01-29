@@ -14,9 +14,9 @@ module.exports = ({ config, Punch }) => ({
     }
   ],
   run: async function(args) {
-    const { confirm } = require("../punch/utils");
-    const { dayPunches } = require("../logging/printing");
-    const handleSync = require("../utils/handle-sync");
+    const { confirm } = require("../../punch/utils");
+    const { dayPunches } = require("../../logging/printing");
+    const handleSync = require("../../utils/handle-sync");
     const chalk = require("chalk");
 
     const punch = (await Punch.select(p => p.id === args.punchID))[0];

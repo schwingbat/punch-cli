@@ -1,4 +1,4 @@
-const parseDateTime = require("../utils/parse-datetime");
+const parseDateTime = require("../../utils/parse-datetime");
 
 module.exports = ({ config, Punch }) => ({
   signature: "comment <comment...>",
@@ -25,11 +25,11 @@ module.exports = ({ config, Punch }) => ({
     }
   ],
   run: async function(args) {
-    const { allPunchedIn, confirm } = require("../punch/utils");
-    const { dayPunches } = require("../logging/printing");
+    const { allPunchedIn, confirm } = require("../../punch/utils");
+    const { dayPunches } = require("../../logging/printing");
     const chalk = require("chalk");
     const formatDate = require("date-fns/format");
-    const handleSync = require("../utils/handle-sync");
+    const handleSync = require("../../utils/handle-sync");
 
     const punchedIn = await allPunchedIn({ config, Punch });
 

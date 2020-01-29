@@ -1,5 +1,5 @@
-const parseDate = require("../utils/parse-date");
-const resolvePath = require("../utils/resolve-path");
+const parseDate = require("../../utils/parse-date");
+const resolvePath = require("../../utils/resolve-path");
 
 module.exports = ({ config, Punch }) => ({
   signature: "invoice <project> <startDate> <endDate> <outputFile>",
@@ -47,12 +47,12 @@ module.exports = ({ config, Punch }) => ({
     }
   ],
   run: async function(args) {
-    const { confirm } = require("../punch/utils");
-    const { labelTable } = require("../logging/printing");
+    const { confirm } = require("../../punch/utils");
+    const { labelTable } = require("../../logging/printing");
     const formatDate = require("date-fns/format");
-    const getLabelFor = require("../utils/get-label-for");
-    const Invoicer = require("../invoicing/invoicer");
-    const Loader = require("../utils/loader");
+    const getLabelFor = require("../../utils/get-label-for");
+    const Invoicer = require("../../invoicing/invoicer");
+    const Loader = require("../../utils/loader");
     const path = require("path");
 
     const active = await Punch.current();

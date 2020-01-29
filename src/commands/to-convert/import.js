@@ -51,8 +51,8 @@ module.exports = ({ config, Punch }) => ({
   run: async function(args) {
     const formatDate = require("date-fns/format");
     const fs = require("fs");
-    const { confirm } = require("../punch/utils");
-    const { simplePunches } = require("../logging/printing");
+    const { confirm } = require("../../punch/utils");
+    const { simplePunches } = require("../../logging/printing");
 
     let contents;
     try {

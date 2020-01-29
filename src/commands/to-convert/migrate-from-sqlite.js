@@ -8,8 +8,8 @@ module.exports = ({ config, Punch }) => ({
       return;
     }
 
-    const SQLiteStorage = require("../storage/services/sqlite.service.js");
-    const SQLitePunch = require("../punch/punch")(config, SQLiteStorage);
+    const SQLiteStorage = require("../../storage/services/sqlite.service.js");
+    const SQLitePunch = require("../../punch/punch")(config, SQLiteStorage);
 
     const punches = await SQLitePunch.all();
 

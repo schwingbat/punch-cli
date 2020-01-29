@@ -14,10 +14,10 @@ module.exports = ({ config, Punch }) => ({
     }
   ],
   run: async function(args) {
-    const { confirm } = require("../punch/utils");
-    const { dayPunches } = require("../logging/printing");
+    const { confirm } = require("../../punch/utils");
+    const { dayPunches } = require("../../logging/printing");
     const chalk = require("chalk");
-    const handleSync = require("../utils/handle-sync");
+    const handleSync = require("../../utils/handle-sync");
 
     const punch = (await Punch.select(p => p.id === args.punchID))[0];
 

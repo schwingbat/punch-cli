@@ -13,7 +13,7 @@ const handleSync = require("../utils/handle-sync");
 const Loader = require("../utils/loader");
 const updateCurrentMarker = require("../utils/update-current-marker");
 
-module.exports = async command =>
+module.exports = command =>
   command
     .description("stop tracking time")
     .examples(["punch out", "punch out my-project"])

@@ -11,10 +11,10 @@ module.exports = ({ config, Punch }) => ({
     // }
   ],
   run: async function(args) {
-    const { ascendingBy, descendingBy } = require("../utils/sort-factories");
+    const { ascendingBy, descendingBy } = require("../../utils/sort-factories");
     const chalk = require("chalk");
     const distanceInWords = require("date-fns/distanceInWords");
-    const Table = require("../format/table");
+    const Table = require("../../format/table");
 
     // Do something
     // Access args at args.name
