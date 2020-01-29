@@ -12,7 +12,8 @@ if (BENCHMARK) {
 
 const { command, invoke } = require("@ratwizard/cli")({
   name: "punch",
-  version: pkg.version
+  version: pkg.version,
+  author: "Tony McCoy <tony@ratwizard.io>"
 });
 
 const bench = require("./utils/bench")({ disabled: !BENCHMARK });
@@ -41,9 +42,9 @@ command("in")
   .fromPath(__dirname, "commands/in")
   .withProps(props);
 
-// command("out")
-//   .fromPath("./commands/out")
-//   .withProps(props);
+command("out")
+  .fromPath(__dirname, "commands/out")
+  .withProps(props);
 
 // command("create")
 //   .fromPath("./commands/create")
@@ -75,7 +76,10 @@ command("log")
   .withProps(props);
 
 // command(require("./commands/invoice")(props));
-// command(require("./commands/sync")(props));
+
+command("sync")
+  .fromPath(__dirname, "commands/sync")
+  .withProps(props);
 
 // ----- Data Import/Export ----- //
 
@@ -95,8 +99,15 @@ command("projects")
 
 // command(require("./commands/migrate-from-sqlite")(props));
 // command(require("./commands/timestamp")(props));
-// command(require("./commands/watch")(props));
-// command(require("./commands/config")(props));
+
+command("watch")
+  .fromPath(__dirname, "commands/watch")
+  .withProps(props);
+
+command("config")
+  .fromPath(__dirname, "commands/config")
+  .withProps(props);
+
 // command(require("./commands/rename-comment-object")(props));
 // command(require("./commands/adjust-rate")(props));
 

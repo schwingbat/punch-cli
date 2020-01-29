@@ -10,6 +10,14 @@ const { confirmAdjustedTime } = require("../punch/utils");
 module.exports = command =>
   command
     .description("start tracking time on a project")
+    // .example("punch in my-project")
+    // .example("punch in -t 9:15AM my-project")
+    // .example("punch in --start=2019-05-14@12:41PM my-project")
+    .examples([
+      "punch in my-project",
+      "punch in -t 9:15am my-project",
+      "punch in my-project --start=2019-05-14@12:41pm"
+    ])
     .arg("project", {
       description: "name of the project"
     })
@@ -25,7 +33,7 @@ module.exports = command =>
       const { config, Punch } = props;
 
       const loader = Loader();
-      const time = args.options.time || args.options.start;
+      const time = args.flags.time || args.flags.start;
       const { project } = args;
 
       loader.start("Punching in...");
@@ -67,9 +75,7 @@ module.exports = command =>
 
           loader.stop(msg);
 
-          if (!dryRun) {
-            await handleSync({ config, Punch });
-          }
+          await handleSync({ config, Punch });
         } else {
           let msg = "";
 

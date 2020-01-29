@@ -30,6 +30,7 @@
   "license": "MIT",
   "dependencies": {
     "@fardog/wordwrap": "^1.1.0",
+    "@ratwizard/cli": "^0.2.0",
     "@schwingbat/is": "^2.0.0",
     "@schwingbat/mon": "^1.0.0",
     "ansi-regex": "^5.0.0",

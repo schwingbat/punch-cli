@@ -6,7 +6,7 @@ const padWithLines = require("../logging/pad-with-lines");
 
 module.exports = command =>
   command
-    .description("show statistics for all projects in your config file")
+    .description("show statistics for projects in your config file")
     .arg("names", {
       description: "names of the projects to show",
       optional: true,
