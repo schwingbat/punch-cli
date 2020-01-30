@@ -46,13 +46,13 @@ command("out")
   .fromPath(__dirname, "commands/out")
   .withProps(props);
 
-// command("create")
-//   .fromPath("./commands/create")
-//   .withProps(props);
+command("create")
+  .fromPath(__dirname, "commands/create")
+  .withProps(props);
 
-// command("delete")
-//   .fromPath("./commands/delete")
-//   .withProps(props);
+command("delete")
+  .fromPath(__dirname, "commands/delete")
+  .withProps(props);
 
 // command("adjust")
 //   .fromPath("./commands/adjust")
@@ -64,13 +64,23 @@ command("comment")
   .fromPath(__dirname, "commands/comment")
   .withProps(props);
 
-// command(require("./commands/add-comment")(props));
-// command(require("./commands/delete-comment")(props));
-// command(require("./commands/replace-comment")(props));
+// command("comment:add")
+//   .fromPath(__dirname, "commands/comment-add")
+//   .withProps(props);
+
+// command("comment:delete")
+//   .fromPath(__dirname, "commands/comment-delete")
+//   .withProps(props);
+
+// command("comment:replace")
+//   .fromPath(__dirname, "commands/comment-replace")
+//   .withProps(props);
 
 // ----- Managing Tags ----- //
 
-// command(require("./commands/tags")(props));
+// command("tags")
+//   .fromPath(__dirname, "commands/tags")
+//   .withProps(props);
 
 // ----- Logging ----- //
 
@@ -78,7 +88,9 @@ command("log")
   .fromPath(__dirname, "commands/log")
   .withProps(props);
 
-// command(require("./commands/invoice")(props));
+// command("invoice")
+//   .fromPath(__dirname, "commands/invoice")
+//   .withProps(props);
 
 command("sync")
   .fromPath(__dirname, "commands/sync")
@@ -86,8 +98,13 @@ command("sync")
 
 // ----- Data Import/Export ----- //
 
-// command(require("./commands/import")(props));
-// command(require("./commands/export")(props));
+// command("import")
+//   .fromPath(__dirname, "commands/import")
+//   .withProps(props);
+
+// command("export")
+//   .fromPath(__dirname, "commands/export")
+//   .withProps(props);
 
 // ----- Managing Projects ----- //
 
@@ -95,13 +112,15 @@ command("projects")
   .fromPath(__dirname, "commands/projects")
   .withProps(props);
 
-// command(require("./commands/rename-project")(props));
-// command(require("./commands/purge-project")(props));
+// command("project:rename")
+//   .fromPath(__dirname, "commands/project-rename")
+//   .withProps(props);
+
+// command("project:purge")
+//   .fromPath(__dirname, "commands/project-purge")
+//   .withProps(props);
 
 // ----- Misc ----- //
-
-// command(require("./commands/migrate-from-sqlite")(props));
-// command(require("./commands/timestamp")(props));
 
 command("watch")
   .fromPath(__dirname, "commands/watch")
@@ -111,18 +130,20 @@ command("config")
   .fromPath(__dirname, "commands/config")
   .withProps(props);
 
+// command(require("./commands/migrate-from-sqlite")(props));
+// command(require("./commands/timestamp")(props));
 // command(require("./commands/rename-comment-object")(props));
 // command(require("./commands/adjust-rate")(props));
 
 invoke();
 
-bench.mark("parsed and run");
-bench.printAll();
-
 // Exit cleanup
 
 async function exitHandler(options) {
   await Punch.storage.cleanUp();
+
+  bench.mark("parsed and run");
+  bench.printAll();
 
   if (options.exit) process.exit();
 }
@@ -133,6 +154,6 @@ process.on("uncaughtException", exitHandler.bind(null, { exit: true }));
 // ctrl + c
 process.on("SIGINT", exitHandler.bind(null, { exit: true }));
 
-// kill pid (e.g. nodemon restart)
+// kill pid (e.g. nodemon restart, killall node)
 process.on("SIGUSR1", exitHandler.bind(null, { exit: true }));
 process.on("SIGUSR2", exitHandler.bind(null, { exit: true }));
