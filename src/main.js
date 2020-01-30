@@ -60,7 +60,10 @@ command("out")
 
 // ----- Managing Comments ----- //
 
-// command(require("./commands/comment")(props));
+command("comment")
+  .fromPath(__dirname, "commands/comment")
+  .withProps(props);
+
 // command(require("./commands/add-comment")(props));
 // command(require("./commands/delete-comment")(props));
 // command(require("./commands/replace-comment")(props));
