@@ -10,12 +10,12 @@ let current = null;
 exports.load = (configPath = null) => {
   const mkdirp = require("mkdirp");
   const path = require("path");
-  const merge = require("lodash/merge");
+  const deepmerge = require("deepmerge");
 
   const defaults = require("./defaults.js");
   const userConfig = loadConfig(configPath);
 
-  const config = merge(defaults, userConfig);
+  const config = deepmerge(defaults, userConfig);
 
   const { punchPath } = config;
 
@@ -61,8 +61,8 @@ exports.current = () => {
 
 exports.__clear_current__ = () => {
   current = null;
-}
+};
 
 exports.__get_raw_current__ = () => {
   return current;
-}
+};
