@@ -29,6 +29,8 @@ exports.load = (configPath = null) => {
   config.exporterPath =
     config.exporterPath || path.join(punchPath, "exporters");
 
+  config.runtimeType = undefined;
+
   if (config.display.textColors === false) {
     require("chalk").level = 0;
   }

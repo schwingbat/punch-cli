@@ -1,0 +1,7 @@
+<h1>Projects</h1>
+
+<ul>
+  {{#each projects}}
+    {{>projects/list-item props=@root/props project=.}}
+  {{/each}}
+</ul>

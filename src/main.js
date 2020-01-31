@@ -147,6 +147,12 @@ command("config")
   .fromPath(__dirname, "commands/config")
   .withProps(props);
 
+// ----- Server ----- //
+
+command("serve")
+  .fromPath(__dirname, "commands/serve")
+  .withProps(props);
+
 invoke();
 
 // Exit cleanup

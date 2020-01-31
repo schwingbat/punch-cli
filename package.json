@@ -30,7 +30,7 @@
   "license": "MIT",
   "dependencies": {
     "@fardog/wordwrap": "^1.1.0",
-    "@ratwizard/cli": "^0.3.0",
+    "@ratwizard/cli": "^0.3.1",
     "@schwingbat/is": "^2.0.0",
     "@schwingbat/mon": "^1.0.0",
     "ansi-regex": "^5.0.0",
@@ -38,6 +38,8 @@
     "chalk": "^3.0.0",
     "date-fns": "^2.9.0",
     "deepmerge": "^4.2.2",
+    "express": "^4.17.1",
+    "express-handlebars": "^3.1.0",
     "handlebars": "^4.7.2",
     "js-yaml": "^3.13.1",
     "log-update": "^3.3.0",
