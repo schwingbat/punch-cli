@@ -147,11 +147,6 @@ command("config")
   .fromPath(__dirname, "commands/config")
   .withProps(props);
 
-// command(require("./commands/migrate-from-sqlite")(props));
-// command(require("./commands/timestamp")(props));
-// command(require("./commands/rename-comment-object")(props));
-// command(require("./commands/adjust-rate")(props));
-
 invoke();
 
 // Exit cleanup
