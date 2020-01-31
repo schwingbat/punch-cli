@@ -358,10 +358,10 @@
     "@nodelib/fs.scandir" "2.1.3"
     fastq "^1.6.0"
 
-"@ratwizard/cli@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@ratwizard/cli/-/cli-0.2.0.tgz#94e8f03ceade587927231f5d5eec65411adf8b67"
-  integrity sha512-ahNpU6tCe4xXkACxtXZe/3e7haY0r4pNC/EL7uDJdMbpxYyVUNd8ufwdXXwLP/zQYEq0WWYSV+ZGsMLeIpcl5A==
+"@ratwizard/cli@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@ratwizard/cli/-/cli-0.3.0.tgz#9f36a85590e5006825c0508eef96dcd8d6989347"
+  integrity sha512-A+P+UUgv88JbTd7Z1/M2Wbu2ObweTOWNgswZVPqXn8q9U71XJGr1VgXemIvm+ISq7jqOw7NhaGIqyltlnHTAeg==
 
 "@schwingbat/is@^2.0.0":
   version "2.0.0"
