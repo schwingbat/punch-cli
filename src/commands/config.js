@@ -2,9 +2,7 @@ const { spawn } = require("child_process");
 
 module.exports = command =>
   command
-    .description(
-      "open config file in editor - uses EDITOR env var unless an editor flag is specified."
-    )
+    .description("open config file in editor")
     .flag("editor", "e", {
       description: "editor command (vim, code, etc.)"
     })

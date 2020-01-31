@@ -54,9 +54,9 @@ command("delete")
   .fromPath(__dirname, "commands/delete")
   .withProps(props);
 
-// command("adjust")
-//   .fromPath("./commands/adjust")
-//   .withProps(props);
+command("adjust")
+  .fromPath(__dirname, "commands/adjust")
+  .withProps(props);
 
 // ----- Managing Comments ----- //
 
@@ -78,22 +78,14 @@ command("comment")
 
 // ----- Managing Tags ----- //
 
-// command("tags")
-//   .fromPath(__dirname, "commands/tags")
-//   .withProps(props);
+command("tags")
+  .fromPath(__dirname, "commands/tags")
+  .withProps(props);
 
 // ----- Logging ----- //
 
 command("log")
   .fromPath(__dirname, "commands/log")
-  .withProps(props);
-
-// command("invoice")
-//   .fromPath(__dirname, "commands/invoice")
-//   .withProps(props);
-
-command("sync")
-  .fromPath(__dirname, "commands/sync")
   .withProps(props);
 
 // ----- Data Import/Export ----- //
@@ -105,6 +97,14 @@ command("sync")
 // command("export")
 //   .fromPath(__dirname, "commands/export")
 //   .withProps(props);
+
+command("invoice")
+  .fromPath(__dirname, "commands/invoice")
+  .withProps(props);
+
+command("sync")
+  .fromPath(__dirname, "commands/sync")
+  .withProps(props);
 
 // ----- Managing Projects ----- //
 

@@ -3,13 +3,12 @@ const Log = require("../logging/log");
 
 module.exports = command =>
   command
-    .description(
-      "show a summary of punches for a given period ('last month', 'this week', 'two days ago', etc)"
-    )
+    .description("show a summary of punches for a given period")
     .examples([
       "punch log today",
       "punch log last tuesday",
       "punch log this month",
+      "punch log this week",
       "punch log -s 2018-11-25 -e 2018-12-25 -p punch"
     ])
     .arg("when", {
