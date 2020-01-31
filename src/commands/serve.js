@@ -9,8 +9,13 @@ module.exports = command =>
       default: 5150,
       parse: parseInt
     })
+    .flag("no-open", "n", {
+      key: "noOpen",
+      description: "don't automatically open the page in a browser",
+      boolean: true
+    })
     .action(async (args, props) => {
-      const { port } = args.flags;
+      const { port, noOpen } = args.flags;
 
-      server.start({ port, props });
+      server.start({ port, props, autoOpen: !noOpen });
     });
