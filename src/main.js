@@ -60,21 +60,34 @@ command("adjust")
 
 // ----- Managing Comments ----- //
 
+// Possible API for doing nested comments
+// Would add `punch comment add` and `punch comment delete` subcommands
+
+// group("comment", ({ command }) => {
+//   command("add")
+//     .fromPath(__dirname, "commands/comment-add")
+//     .withProps(props);
+
+//   command("delete")
+//     .fromPath(__dirname, "commands/comment-delete")
+//     .withProps(props);
+// });
+
 command("comment")
   .fromPath(__dirname, "commands/comment")
   .withProps(props);
 
-// command("comment:add")
-//   .fromPath(__dirname, "commands/comment-add")
-//   .withProps(props);
+command("comment:add")
+  .fromPath(__dirname, "commands/comment-add")
+  .withProps(props);
 
-// command("comment:delete")
-//   .fromPath(__dirname, "commands/comment-delete")
-//   .withProps(props);
+command("comment:delete")
+  .fromPath(__dirname, "commands/comment-delete")
+  .withProps(props);
 
-// command("comment:replace")
-//   .fromPath(__dirname, "commands/comment-replace")
-//   .withProps(props);
+command("comment:edit")
+  .fromPath(__dirname, "commands/comment-edit")
+  .withProps(props);
 
 // ----- Managing Tags ----- //
 
@@ -90,13 +103,13 @@ command("log")
 
 // ----- Data Import/Export ----- //
 
-// command("import")
-//   .fromPath(__dirname, "commands/import")
-//   .withProps(props);
+command("import")
+  .fromPath(__dirname, "commands/import")
+  .withProps(props);
 
-// command("export")
-//   .fromPath(__dirname, "commands/export")
-//   .withProps(props);
+command("export")
+  .fromPath(__dirname, "commands/export")
+  .withProps(props);
 
 command("invoice")
   .fromPath(__dirname, "commands/invoice")
@@ -112,13 +125,17 @@ command("projects")
   .fromPath(__dirname, "commands/projects")
   .withProps(props);
 
-// command("project:rename")
-//   .fromPath(__dirname, "commands/project-rename")
-//   .withProps(props);
+command("project:rename")
+  .fromPath(__dirname, "commands/project-rename")
+  .withProps(props);
 
-// command("project:purge")
-//   .fromPath(__dirname, "commands/project-purge")
-//   .withProps(props);
+command("project:purge")
+  .fromPath(__dirname, "commands/project-purge")
+  .withProps(props);
+
+command("project:rerate")
+  .fromPath(__dirname, "commands/project-rerate")
+  .withProps(props);
 
 // ----- Misc ----- //
 

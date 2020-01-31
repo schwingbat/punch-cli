@@ -33,7 +33,7 @@ module.exports = command =>
     .flag("tag", "t", {
       description: "show only punches with a specific #tag"
     })
-    .flag("with-ids", {
+    .flag("with-ids", "i", {
       description: "print punch IDs",
       boolean: true
     })
