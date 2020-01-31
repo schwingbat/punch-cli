@@ -2,52 +2,21 @@
 
 global.appRoot = __dirname;
 
-const CLI = require("./utils/cli/index.js");
 const pkg = require("../package.json");
 
-const { command, run } = CLI({
-  name: "punch",
-  version: pkg.version
-});
+const BENCHMARK = process.argv.includes("--benchmark");
 
-const flags = {
-  VERBOSE: false,
-  BENCHMARK: false,
-  NO_SYNC: false
-};
-
-// Process command line args into params/flags
-
-const ARGS = process.argv.slice(2);
-
-for (let i = 0; i < ARGS.length; i++) {
-  const arg = ARGS[i];
-
-  if (arg[0] === "-") {
-    switch (arg.toLowerCase()) {
-      case "-v":
-      case "--version":
-        console.log("punch v" + pkg.version);
-        process.exit();
-        break;
-      case "--verbose":
-        flags.VERBOSE = true;
-        break;
-      case "-b":
-      case "--benchmark":
-        flags.BENCHMARK = true;
-        require("time-require");
-        break;
-      case "-ns":
-      case "--nosync":
-      case "--no-sync":
-        flags.NO_SYNC = true;
-        break;
-    }
-  }
+if (BENCHMARK) {
+  require("time-require");
 }
 
-const bench = require("./utils/bench")({ disabled: !flags.BENCHMARK });
+const { command, invoke } = require("@ratwizard/cli")({
+  name: "punch",
+  version: pkg.version,
+  author: "Tony McCoy <tony@ratwizard.io>"
+});
+
+const bench = require("./utils/bench")({ disabled: !BENCHMARK });
 const config = require("./config").load();
 
 bench.mark("config loaded");
@@ -61,10 +30,7 @@ bench.mark("punch loaded");
 ||          Commands         ||
 \* ========================= */
 
-// Each command is a closure that takes config objects and returns a CLI
-// command object.
-
-const injectables = {
+const props = {
   config,
   Punch,
   Storage
@@ -72,59 +38,129 @@ const injectables = {
 
 // ----- Managing Punches ----- //
 
-command(require("./commands/in")(injectables));
-command(require("./commands/out")(injectables));
-command(require("./commands/create")(injectables));
-command(require("./commands/delete")(injectables));
-command(require("./commands/adjust")(injectables));
+command("in")
+  .fromPath(__dirname, "commands/in")
+  .withProps(props);
+
+command("out")
+  .fromPath(__dirname, "commands/out")
+  .withProps(props);
+
+command("create")
+  .fromPath(__dirname, "commands/create")
+  .withProps(props);
+
+command("delete")
+  .fromPath(__dirname, "commands/delete")
+  .withProps(props);
+
+command("adjust")
+  .fromPath(__dirname, "commands/adjust")
+  .withProps(props);
 
 // ----- Managing Comments ----- //
 
-command(require("./commands/comment")(injectables));
-command(require("./commands/add-comment")(injectables));
-command(require("./commands/delete-comment")(injectables));
-command(require("./commands/replace-comment")(injectables));
+// Possible API for doing nested comments
+// Would add `punch comment add` and `punch comment delete` subcommands
+
+// group("comment", ({ command }) => {
+//   command("add")
+//     .fromPath(__dirname, "commands/comment-add")
+//     .withProps(props);
+
+//   command("delete")
+//     .fromPath(__dirname, "commands/comment-delete")
+//     .withProps(props);
+// });
+
+command("comment")
+  .fromPath(__dirname, "commands/comment")
+  .withProps(props);
+
+command("comment:add")
+  .fromPath(__dirname, "commands/comment-add")
+  .withProps(props);
+
+command("comment:delete")
+  .fromPath(__dirname, "commands/comment-delete")
+  .withProps(props);
+
+command("comment:edit")
+  .fromPath(__dirname, "commands/comment-edit")
+  .withProps(props);
 
 // ----- Managing Tags ----- //
 
-command(require("./commands/tags")(injectables));
+command("tags")
+  .fromPath(__dirname, "commands/tags")
+  .withProps(props);
 
 // ----- Logging ----- //
 
-command(require("./commands/log")(injectables));
-
-command(require("./commands/invoice")(injectables));
-command(require("./commands/sync")(injectables));
+command("log")
+  .fromPath(__dirname, "commands/log")
+  .withProps(props);
 
 // ----- Data Import/Export ----- //
 
-command(require("./commands/import")(injectables));
-command(require("./commands/export")(injectables));
+command("import")
+  .fromPath(__dirname, "commands/import")
+  .withProps(props);
+
+command("export")
+  .fromPath(__dirname, "commands/export")
+  .withProps(props);
+
+command("invoice")
+  .fromPath(__dirname, "commands/invoice")
+  .withProps(props);
+
+command("sync")
+  .fromPath(__dirname, "commands/sync")
+  .withProps(props);
 
 // ----- Managing Projects ----- //
 
-command(require("./commands/projects")(injectables));
-command(require("./commands/rename-project")(injectables));
-command(require("./commands/purge-project")(injectables));
+command("projects")
+  .fromPath(__dirname, "commands/projects")
+  .withProps(props);
+
+command("project:rename")
+  .fromPath(__dirname, "commands/project-rename")
+  .withProps(props);
+
+command("project:purge")
+  .fromPath(__dirname, "commands/project-purge")
+  .withProps(props);
+
+command("project:rerate")
+  .fromPath(__dirname, "commands/project-rerate")
+  .withProps(props);
 
 // ----- Misc ----- //
 
-command(require("./commands/migrate-from-sqlite")(injectables));
-command(require("./commands/timestamp")(injectables));
-command(require("./commands/watch")(injectables));
-command(require("./commands/config")(injectables));
-command(require("./commands/rename-comment-object")(injectables));
-command(require("./commands/adjust-rate")(injectables));
+command("watch")
+  .fromPath(__dirname, "commands/watch")
+  .withProps(props);
 
-run(ARGS);
+command("config")
+  .fromPath(__dirname, "commands/config")
+  .withProps(props);
 
-bench.mark("parsed and run");
-bench.printAll();
+// command(require("./commands/migrate-from-sqlite")(props));
+// command(require("./commands/timestamp")(props));
+// command(require("./commands/rename-comment-object")(props));
+// command(require("./commands/adjust-rate")(props));
+
+invoke();
 
 // Exit cleanup
 
 async function exitHandler(options) {
   await Punch.storage.cleanUp();
+
+  bench.mark("parsed and run");
+  bench.printAll();
 
   if (options.exit) process.exit();
 }
@@ -135,6 +171,6 @@ process.on("uncaughtException", exitHandler.bind(null, { exit: true }));
 // ctrl + c
 process.on("SIGINT", exitHandler.bind(null, { exit: true }));
 
-// kill pid (e.g. nodemon restart)
+// kill pid (e.g. nodemon restart, killall node)
 process.on("SIGUSR1", exitHandler.bind(null, { exit: true }));
 process.on("SIGUSR2", exitHandler.bind(null, { exit: true }));

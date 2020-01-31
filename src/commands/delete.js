@@ -1,38 +1,32 @@
-module.exports = ({ config, Punch }) => ({
-  signature: "delete <punchID>",
-  description: "delete a punch",
-  arguments: [
-    {
-      name: "punchID",
+const { confirm } = require("../punch/utils");
+const { dayPunches } = require("../logging/printing");
+
+module.exports = command =>
+  command
+    .description("delete a punch")
+    .arg("id", {
       description:
-        'ID of a given punch (use "punch log --with-ids" to find IDs)'
-    }
-  ],
-  options: [
-    {
-      name: "yes",
-      short: "y",
+        "ID of a given punch (use `punch log --with-ids` to find IDs)"
+    })
+    .flag("yes", "y", {
       description: "delete without confirmation",
-      type: "boolean"
-    }
-  ],
-  run: async function(args) {
-    const { confirm } = require("../punch/utils");
-    const punch = (await Punch.select(p => p.id === args.punchID))[0];
+      boolean: true
+    })
+    .action(async (args, props) => {
+      const { config, Punch } = props;
 
-    if (punch) {
-      const { dayPunches } = require("../logging/printing");
+      const punch = (await Punch.select(p => p.id === args.id))[0];
 
-      console.log(
-        "\n  " + dayPunches([punch], punch.in, config).replace(/\n/g, "\n  ")
-      );
+      if (punch) {
+        console.log(
+          "\n  " + dayPunches([punch], punch.in, config).replace(/\n/g, "\n  ")
+        );
 
-      if (args.yes || confirm("Delete this punch?")) {
-        punch.delete();
-        console.log("BOOM! It's gone.");
+        if (args.flags.yes || confirm("Delete this punch?")) {
+          punch.delete();
+          console.log("BOOM! It's gone.");
+        }
+      } else {
+        console.log("Punch not found");
       }
-    } else {
-      console.log("Punch not found");
-    }
-  }
-});
+    });

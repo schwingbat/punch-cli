@@ -1,20 +1,11 @@
-module.exports = ({ config, Punch }) => ({
-  signature: "tags",
-  description: "show tags you've used",
-  arguments: [],
-  options: [
-    // {
-    //   name: "option",
-    //   short: "o",
-    //   description: "description for the help section",
-    //   type: "string"
-    // }
-  ],
-  run: async function(args) {
-    const { ascendingBy, descendingBy } = require("../utils/sort-factories");
-    const chalk = require("chalk");
-    const distanceInWords = require("date-fns/distanceInWords");
-    const Table = require("../format/table");
+const { ascendingBy, descendingBy } = require("../utils/sort-factories");
+const chalk = require("chalk");
+const formatDistance = require("date-fns/formatDistance");
+const Table = require("../format/table");
+
+module.exports = command =>
+  command.description("show tags you've used").action(async (argv, props) => {
+    const { config, Punch } = props;
 
     // Do something
     // Access args at args.name
@@ -39,7 +30,10 @@ module.exports = ({ config, Punch }) => ({
 
     for (const tag of tags) {
       byTag[tag].sort(descendingBy("out"));
-      counted.push({ tag, count: byTag[tag].length });
+      counted.push({
+        tag,
+        count: byTag[tag].length
+      });
     }
 
     counted.sort(ascendingBy("tag"));
@@ -71,10 +65,9 @@ module.exports = ({ config, Punch }) => ({
       table.push([
         chalk.magenta(`#${item.tag}`),
         `${item.count} punch${item.count == 1 ? "" : "es"}`,
-        `last used ${distanceInWords(lastSeen.out, new Date())} ago`
+        `last used ${formatDistance(lastSeen.out, new Date())} ago`
       ]);
     }
 
     console.log(table.toString());
-  }
-});
+  });

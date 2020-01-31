@@ -1,108 +1,92 @@
+const chalk = require("chalk");
+const fs = require("fs");
+const path = require("path");
+const resolvePath = require("../utils/resolve-path");
 const parseDateTime = require("../utils/parse-datetime");
 
-module.exports = ({ config, Punch }) => ({
-  signature: "export",
-  description: "exports punch data",
-  hidden: true, // While work in progress
-  examples: [],
-  options: [
-    {
-      name: "start",
-      short: "s",
+module.exports = command =>
+  command
+    .description("export punch data")
+    .flag("start", "s", {
       description: "start date for punch selection",
-      type: parseDateTime
-    },
-    {
-      name: "end",
-      short: "e",
+      parse: parseDateTime
+    })
+    .flag("end", "e", {
       description: "end date for punch selection",
       type: parseDateTime
-    },
-    {
-      name: "project",
-      short: "p",
-      description: "project name for punch selection",
-      type: "string"
-    },
-    {
-      name: "tag",
-      short: "t",
-      description: "comment tag values for punch selection",
-      type: "string"
-    },
-    {
-      name: "format",
-      short: "f",
+    })
+    .flag("project", "p", {
+      description: "project name for punch selection"
+    })
+    .flag("tag", "t", {
+      description: "comment tag values for punch selection"
+    })
+    .flag("format", "f", {
       description:
-        "formatting function file name (looks in ~/.punch/formatters)",
-      type: "string"
-    },
-    {
-      name: "output",
-      short: "o",
-      description: "file path to save to (prints to console by default)",
-      type: "string"
-    }
-  ],
-  run: async function(args) {
-    const chalk = require("chalk");
-    const fs = require("fs");
-    const path = require("path");
-    const resolvePath = require("../utils/resolve-path");
+        "formatting function file name (looks in ~/.punch/formatters)"
+    })
+    .flag("output", "o", {
+      description: "file path to save to (prints to console by default)"
+    })
+    .action(async (args, props) => {
+      const { config, Punch } = props;
 
-    const { start, end, project, tag, format, output } = args.options;
+      const { start, end, project, tag, format, output } = args.flags;
 
-    let formatter;
-    let formatterPath = path.join(
-      config.punchPath,
-      "formatters",
-      "export",
-      format + ".js"
-    );
-    try {
-      formatter = require(formatterPath);
-    } catch (err) {
-      console.log(chalk.red(`\nNo formatter for '${format}'`));
-      console.log(`You can create ${chalk.green(formatterPath)} to define it.`);
-      console.log(
-        "Formatters should be a single exported function that takes an array of punch objects and returns a string.\n"
+      let formatter;
+      let formatterPath = path.join(
+        config.punchPath,
+        "formatters",
+        "export",
+        format + ".js"
       );
-      console.log("Here's a good starting point:");
-      console.log(`
-module.exports = function (punches) {
-  let str = ''
+      try {
+        formatter = require(formatterPath);
+      } catch (err) {
+        console.log(chalk.red(`\nNo formatter for '${format}'`));
+        console.log(
+          `You can create ${chalk.green(formatterPath)} to define it.`
+        );
+        console.log(
+          "Formatters should be a single exported function that takes an array of punch objects and returns a string.\n"
+        );
+        console.log("Here's a good starting point:");
+        console.log(
+          [
+            "module.exports = function (punches) {",
+            "  let str = ''",
+            " ",
+            "  // Do your thing!",
+            " ",
+            "  return str",
+            "}"
+          ].join("\n")
+        );
+        return;
+      }
 
-  // Do your thing!
+      const punches = await Punch.select(p => {
+        if (start && p.in < start) {
+          return false;
+        }
+        if (end && p.in > end) {
+          return false;
+        }
+        if (project && p.project !== project) {
+          return false;
+        }
+        if (tag && !p.hasCommentObject(tag)) {
+          return false;
+        }
+        return true;
+      });
 
-  return str
-}
-`);
-      return;
-    }
+      const formatted = formatter(config, punches);
 
-    const punches = await Punch.select(p => {
-      if (start && p.in < start) {
-        return false;
+      if (output) {
+        fs.writeFileSync(resolvePath(output), formatted);
+        console.log("Exported punches were saved to " + output);
+      } else {
+        console.log(formatted);
       }
-      if (end && p.in > end) {
-        return false;
-      }
-      if (project && p.project !== project) {
-        return false;
-      }
-      if (tag && !p.hasCommentObject(tag)) {
-        return false;
-      }
-      return true;
     });
-
-    const formatted = formatter(config, punches);
-
-    if (output) {
-      fs.writeFileSync(resolvePath(output), formatted);
-      console.log("Exported punches were saved to " + output);
-    } else {
-      console.log(formatted);
-    }
-  }
-});
