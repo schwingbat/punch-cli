@@ -1,5 +1,3 @@
-const clone = require("lodash/clone");
-
 /**
  * Dereferences any '@client'-style references in projects. This allows multiple projects to share references
  * to the same client without copying and pasting an object multiple times in the config file.
@@ -13,7 +11,9 @@ module.exports = function(config) {
   let _projects = {};
 
   for (const alias in projects) {
-    const project = clone(projects[alias]);
+    const project = {
+      ...projects[alias]
+    };
 
     /**
      * Add the project's alias to the project object itself. This helps to identify the project
