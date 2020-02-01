@@ -31,7 +31,7 @@ module.exports = command =>
       const { project, newRate } = args;
       const { start, end } = args.flags;
 
-      const punches = await Punch.select(
+      const punches = await Punch.filter(
         p =>
           p.project === project &&
           (!start || p.in >= start) &&

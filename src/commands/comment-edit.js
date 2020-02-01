@@ -20,10 +20,15 @@ module.exports = command =>
       key: "newComment",
       description: "new comment text"
     })
+    .flag("update-timestamp", "u", {
+      key: "updateTimestamp",
+      description: "updates the comment's timestamp to the current time",
+      boolean: true
+    })
     .action(async (args, props) => {
       const { config, Punch } = props;
 
-      const punch = (await Punch.select(p => p.id === args.punchId))[0];
+      const punch = await Punch.find(p => p.id === args.punchId);
 
       if (punch) {
         if (punch.comments[args.commentIndex]) {
@@ -48,9 +53,10 @@ module.exports = command =>
           str += "\nReplace comment?";
 
           if (confirm(str)) {
-            // Set old comment to deleted
-            punch.comments[args.commentIndex].comment = args.newComment;
-            punch.update();
+            const id = punch.comments[args.commentIndex].id;
+            const timestamp = args.flags.updateTimestamp && new Date();
+            
+            punch.editComment(id, args.newComment, timestamp);
             await punch.save();
 
             console.log("\nComment replaced.");

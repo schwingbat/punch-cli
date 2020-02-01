@@ -11,12 +11,13 @@ module.exports = command =>
     .action(async (args, { Punch }) => {
       const { from, to } = args;
 
-      const punches = await Punch.select(p => p.project === from);
-      punches.forEach(punch => {
+      const punches = await Punch.filter(p => p.project === from);
+      
+      for (const punch of punches) {
         punch.project = to;
         punch.update();
-        punch.save();
-      });
+        await punch.save();
+      }
 
       console.log(`${punches.length} punches updated`);
     });

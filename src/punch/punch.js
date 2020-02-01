@@ -4,7 +4,7 @@ const extractObjects = require("./comment-objects/extract");
 const chalk = require("chalk");
 const { ascendingBy } = require("../utils/sort-factories");
 
-module.exports = function(config, Storage) {
+module.exports = function(config) {
   /*=======================*\
   ||       Comments        ||
   \*=======================*/
@@ -186,6 +186,12 @@ module.exports = function(config, Storage) {
       this.updated = new Date(props.updated || new Date());
     }
 
+    /**
+     * Adds a new comment to the end of this punch's comment list.
+     *
+     * @param {string} comment - The new comment text.
+     * @param {Date?} timestamp - A custom timestamp. Defaults to the current time.
+     */
     addComment(comment, timestamp) {
       this.comments.push(new Comment(comment, timestamp));
 
@@ -194,6 +200,25 @@ module.exports = function(config, Storage) {
 
     deleteComment(id) {
       this.comments = this.comments.filter(comment => comment.id !== id);
+      
+      this.update();
+    }
+    
+    /**
+     * Replaces an existing comment with a modified one.
+     *
+     * @param {string} id - The existing comment's GUID
+     * @param {string} text - The new comment text
+     * @param {Date?} timestamp - A new timestamp. Reuses existing stamp if not specified.
+     */
+    editComment(id, text, timestamp = null) {
+      this.comments = this.comments.map(comment => {
+        if (comment.id == id) {
+          return new Comment(text, timestamp || comment.timestamp, id);
+        } else {
+          return comment;
+        }
+      })
     }
 
     async punchOut(comment, options = {}) {
@@ -261,6 +286,9 @@ module.exports = function(config, Storage) {
       return json;
     }
 
+    /**
+     * Set updated timestamp to the current time.
+     */
     update() {
       this.updated = new Date();
     }

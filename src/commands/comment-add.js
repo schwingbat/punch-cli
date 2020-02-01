@@ -19,7 +19,7 @@ module.exports = command =>
     .action(async (args, props) => {
       const { config, Punch } = props;
 
-      const punch = (await Punch.select(p => p.id === args.punchId))[0];
+      const punch = await Punch.find(p => p.id === args.punchId);
 
       if (punch) {
         let str = "\n";
@@ -33,7 +33,6 @@ module.exports = command =>
 
         if (confirm(str)) {
           punch.addComment(args.comment);
-          punch.update();
           await punch.save();
 
           console.log("\nComment added.");

@@ -10,7 +10,7 @@ module.exports = command =>
       const { config, Punch } = props;
 
       const label = getLabelFor(config, project);
-      const punches = await Punch.select(p => p.project === project);
+      const punches = await Punch.filter(p => p.project === project);
 
       if (punches.length > 0) {
         const totalTime = punches.reduce((sum, p) => sum + p.duration(), 0);

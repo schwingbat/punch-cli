@@ -43,9 +43,9 @@ module.exports = command =>
           str += "\nDelete comment?";
 
           if (confirm(str)) {
-            // Set deleted to true and the storage service will handle the rest
-            punch.comments[args.commentIndex].deleted = true;
-            punch.update();
+            const id = punch.comments[args.commentIndex].id;
+            
+            punch.deleteComment(id);
             await punch.save();
 
             console.log("\nComment deleted.");

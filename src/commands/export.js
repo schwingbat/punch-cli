@@ -65,7 +65,7 @@ module.exports = command =>
         return;
       }
 
-      const punches = await Punch.select(p => {
+      const punches = await Punch.filter(p => {
         if (start && p.in < start) {
           return false;
         }
