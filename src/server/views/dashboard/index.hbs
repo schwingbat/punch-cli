@@ -1,0 +1,34 @@
+<h1>Dashboard</h1>
+
+{{#with current}}
+  {{#if any}}
+    <h2>Active Punches</h2>
+    <ul>
+    {{#each punches}}
+      <li>{{> activePunch . }}</li>
+    {{/each}}
+    </ul>
+  {{/if}}
+{{/with}}
+
+<a href="/punch/in">Punch In</a>
+
+<h2>Notes</h2>
+
+<h3>Stuff That Goes On This Page</h3>
+<ul>
+  <li>Currently active sessions on all projects</li>
+  <li>Work stats (today, this week, this month)</li>
+  <li>Project summary cards (top three projects?)</li>
+</ul>
+
+<h3>Coming here I want to know</h3>
+<ul>
+  <li>What I'm currently working on (with a way to add a comment or punch out)</li>
+  <li>How much money I've made today</li>
+  <li>How much money I've made this month</li>
+  <li>How many hours I've worked this week</li>
+  <li>Which projects I've worked most on this month</li>
+  <li>Which clients I've worked most for this month</li>
+</ul>
+

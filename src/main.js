@@ -21,8 +21,10 @@ const config = require("./config").load();
 
 bench.mark("config loaded");
 
-const Storage = require("./storage")(config);
-const Punch = require("./punch/punch")(config, Storage);
+const Punch = require("./punch/punch")(config);
+const Storage = require("./storage")(config)(Punch);
+
+Punch.setStorage(Storage);
 
 bench.mark("punch loaded");
 
@@ -158,7 +160,7 @@ invoke();
 // Exit cleanup
 
 async function exitHandler(options) {
-  await Punch.storage.cleanUp();
+  await Storage.cleanUp();
 
   bench.mark("parsed and run");
   bench.printAll();

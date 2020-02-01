@@ -7,14 +7,17 @@ route.get("/", function(req, res) {
   res.render("projects/index", { projects, props });
 });
 
-route.get("/:alias", function(req, res) {
+route.get("/:alias", async function(req, res) {
   const { props } = req;
   const { projects } = props.config;
+  const { config, Punch } = props;
 
   const project = projects[req.params.alias];
 
   if (project) {
-    res.render("projects/show", { project, props });
+    const currentPunch = await Punch.current(project.alias);
+
+    res.render("projects/show", { project, currentPunch, props });
   } else {
     // TODO: Show 404
   }

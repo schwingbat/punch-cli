@@ -82,10 +82,17 @@ module.exports = function(config, Punch) {
         .find(p => !p.deleted && (!project || p.project === project));
     },
 
-    // Returns an array of punches for which the passed
-    // function returns true. Like 'filter'
     async select(fn) {
+      return this.filter(fn);
+    },
+
+    // Returns an array of punches for which the passed function returns true.
+    async filter(fn) {
       return punches.filter(p => !p.deleted && fn(p));
+    },
+
+    async find(fn) {
+      return punches.find(p => !p.deleted && fn(p));
     },
 
     // Deletes a given punch
@@ -99,9 +106,8 @@ module.exports = function(config, Punch) {
       }
     },
 
-    // Called before the program exits.
-    // Close connections and do any necessary cleanup.
-    async cleanUp() {
+    // Write any pending changes to disk.
+    async commit() {
       if (hasChanges) {
         let str = punches
           .filter(p => p != null)
@@ -110,6 +116,12 @@ module.exports = function(config, Punch) {
 
         fs.writeFileSync(ledgerPath, str);
       }
+    },
+
+    // Called before the program exits.
+    // Close connections and do any necessary cleanup.
+    async cleanUp() {
+      this.commit();
     }
   };
 };

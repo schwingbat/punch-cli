@@ -36,7 +36,10 @@ module.exports = function(config) {
         clientName = clientName.slice(1);
       }
 
-      const client = clients[clientName];
+      const client = {
+        name: clientName,
+        ...clients[clientName]
+      };
 
       if (client) {
         project.client = client;

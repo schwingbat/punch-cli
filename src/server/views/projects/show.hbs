@@ -1,1 +1,19 @@
-<h1>{{project.name}} <small>{{project.alias}}</small></h1>
+<h1>{{project.name}} <small>({{project.alias}})</small></h1>
+
+{{#if project.client}}
+  {{#with project.client}}
+    <div>Client: <a href="/clients/{{name}}">{{name}}</a></div>
+  {{/with}}
+{{/if}}
+
+{{#if currentPunch}}
+  <div>Active Now - working since {{formatDateTime currentPunch.in}}</div>
+{{/if}}
+
+<h3>Stuff That Goes On This Page</h3>
+<ul>
+  <li>Currently active session for this project, if punched in</li>
+  <li>Work summary (today, this week, this month)</li>
+  <li>Place to generate an invoice</li>
+  <li>Client info with link to client page</li>
+</ul>

@@ -6,7 +6,7 @@
 module.exports = function loadYAMLConfig(configPath) {
   const fs = require("fs");
   const yaml = require("js-yaml");
-  const deref = require("./dereference-projects");
+  const deref = require("../dereference-projects");
 
   const file = fs.readFileSync(configPath + ".yaml").toString("utf8");
   const config = yaml.safeLoad(file);

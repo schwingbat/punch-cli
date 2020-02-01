@@ -20,9 +20,7 @@ route.get("/", async function(req, res) {
     })
   };
 
-  console.log(current);
-
-  res.render("home/index", { name, current });
+  res.render("dashboard/index", { name, current });
 });
 
 module.exports = route;

@@ -1,0 +1,11 @@
+<h1>Punch In</h1>
+
+<form method="post">
+  <select name="project">
+    {{#each projects}}
+      <option value="{{alias}}">{{name}}</option>
+    {{/each}}
+  </select>
+
+  <input type="submit" value="Punch In">
+</form>

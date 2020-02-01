@@ -1,0 +1,42 @@
+<h1>Punches</h1>
+
+{{#if backUrl}}
+  <a href="{{backUrl}}">Back</a>
+{{else}}
+  <a href="{{backUrl}}" disabled>Back</a>
+{{/if}}
+
+Page {{page}} of {{totalPages}}
+
+{{#if nextUrl}}
+  <a href="{{nextUrl}}">Next</a>
+{{else}}
+  <a href="{{nextUrl}}" disabled>Next</a>
+{{/if}}
+
+{{#each groups}}
+  <h2>{{formatDate date}}</h2>
+  <ul>
+  {{#each punches}}
+    <li>
+      {{project}} // {{formatTime in}} - {{#if out}}{{formatTime out}}{{else}}NOW{{/if}} // {{formatLongDuration in out}}
+      
+      <a href="/punch/{{id}}">View Punch</a>
+    </li>
+  {{/each}}
+  </ul>
+{{/each}}
+
+{{#if backUrl}}
+  <a href="{{backUrl}}">Back</a>
+{{else}}
+  <a href="{{backUrl}}" disabled>Back</a>
+{{/if}}
+
+Page {{page}} of {{totalPages}}
+
+{{#if nextUrl}}
+  <a href="{{nextUrl}}">Next</a>
+{{else}}
+  <a href="{{nextUrl}}" disabled>Next</a>
+{{/if}}

@@ -1,26 +1,18 @@
 const services = {
-  mock: {
-    default: "./services/mock.service"
-  },
-  ledger: {
-    default: "./services/ledger.service",
-    server: "./services/leger.service.server"
-  }
+  mock: "./services/mock.service",
+  ledger: "./services/ledger.service"
 };
 
 module.exports = function(config) {
   const storageName = config.storageType.toLowerCase();
 
   if (services[storageName]) {
-    const { runtimeType } = config;
-    let servicePath = services[storageName].default;
+    let servicePath = services[storageName];
 
-    if (runtimeType && services[storageName][runtimeType]) {
-      servicePath = services[storageName][runtimeType];
-    }
-
-    return require(servicePath);
+    return require(servicePath).bind(null, config);
   } else {
-    throw new Error(`Storage service ${config.storageType} does not exist.`);
+    throw new Error(
+      `Storage service \`${config.storageType}\` does not exist.`
+    );
   }
 };

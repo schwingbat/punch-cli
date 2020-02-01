@@ -23,7 +23,7 @@ module.exports = command =>
           )
         ) {
           for (const punch in punches) {
-            await Punch.storage.delete(punch);
+            await punch.delete();
           }
           console.log(`Deleted ${punches.length} punches.`);
         }

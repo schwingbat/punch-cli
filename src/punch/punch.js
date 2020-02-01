@@ -192,6 +192,10 @@ module.exports = function(config, Storage) {
       this.update();
     }
 
+    deleteComment(id) {
+      this.comments = this.comments.filter(comment => comment.id !== id);
+    }
+
     async punchOut(comment, options = {}) {
       this.out = options.time || new Date();
 
@@ -250,9 +254,7 @@ module.exports = function(config, Storage) {
         in: this.in.getTime(),
         out: this.out ? this.out.getTime() : null,
         rate: this.rate,
-        comments: this.comments
-          .filter(comment => !comment.deleted)
-          .map(comment => comment.toJSON()),
+        comments: this.comments.map(comment => comment.toJSON()),
         created: this.created.getTime(),
         updated: this.updated.getTime()
       };
@@ -272,14 +274,15 @@ module.exports = function(config, Storage) {
     }
   }
 
-  // Gotta love that function scope.
-  // Can't put it above the class because classes can't be referenced
-  // before being defined, but it's used within the class.
-  var storage = (Punch.storage = Storage(config, Punch));
+  let storage;
 
   /*=======================*\
   ||        Static         ||
   \*=======================*/
+
+  Punch.setStorage = function(_storage) {
+    storage = _storage;
+  };
 
   Punch.current = async function(project) {
     return storage.current(project);
@@ -290,7 +293,15 @@ module.exports = function(config, Storage) {
   };
 
   Punch.select = async function(fn) {
-    return storage.select(fn);
+    return storage.filter(fn);
+  };
+
+  Punch.filter = async function(fn) {
+    return storage.filter(fn);
+  };
+
+  Punch.find = async function(fn) {
+    return storage.find(fn);
   };
 
   Punch.all = async function() {

@@ -167,7 +167,7 @@ module.exports = function(config, Punch) {
       }
     },
 
-    async select(fn) {
+    async filter(fn) {
       const selected = [];
       const results = db.prepare("SELECT * FROM punches").all();
       for (let p of results) {
@@ -177,6 +177,10 @@ module.exports = function(config, Punch) {
         }
       }
       return selected;
+    },
+
+    async find(fn) {
+      throw new Error("Storage.find is not yet implemented for this backend");
     },
 
     async delete(punch) {
@@ -191,6 +195,8 @@ module.exports = function(config, Punch) {
         );
       }
     },
+
+    async commit() {},
 
     async cleanUp() {
       db.close();

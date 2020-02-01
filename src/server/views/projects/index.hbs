@@ -2,6 +2,6 @@
 
 <ul>
   {{#each projects}}
-    {{>projects/list-item props=@root/props project=.}}
+    <li><a href="/projects/{{alias}}">{{name}}</a></li>
   {{/each}}
 </ul>
