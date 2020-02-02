@@ -57,10 +57,11 @@ function projectHeader(text, stats) {
   if (stats) {
     str +=
       " " +
-      delimitedList(stats.filter(s => s).map(s => s.toString()), " / ", [
-        "(",
-        ")"
-      ]);
+      delimitedList(
+        stats.filter(s => s).map(s => s.toString()),
+        " / ",
+        ["(", ")"]
+      );
   }
 
   return str;
@@ -338,18 +339,25 @@ function dayPunches(punches, date, config) {
       for (let c = 0; c < punch.comments.length; c++) {
         const comment = punch.comments[c];
 
-        str += chalk.grey(`   ${symbols.logSessionBullet} `);
+        let line = "";
+        let wrapPos = 1;
+
+        line += chalk.grey(`   ${symbols.logSessionBullet} `);
+        wrapPos += 5;
 
         if (config.display.showCommentIndices) {
-          str += chalk.bold(`[${c}] `);
+          line += chalk.bold(`[${c}] `);
+          wrapPos += 3 + c.toString().length;
         }
 
         if (
           config.display.showCommentTimestamps &&
           !config.display.commentRelativeTimestamps.enabled
         ) {
-          str +=
+          let timestamp =
             formatDate(comment.timestamp, config.display.timeFormat) + ": ";
+          line += timestamp;
+          wrapPos += timestamp.length;
         }
 
         if (config.display.commentRelativeTimestamps.enabled) {
@@ -364,16 +372,31 @@ function dayPunches(punches, date, config) {
               Math.min(punch.out || new Date(), comment.timestamp) - punch.in;
           }
 
-          str += chalk.cyan(
+          let timestamp =
             "+" +
-              formatDuration(diff, { resolution: "minutes", padded: true }) +
-              ": "
-          );
+            formatDuration(diff, { resolution: "minutes", padded: true }) +
+            ":";
+
+          // Align to the left accounting for the max width of the user's time format.
+          const timeLength =
+            formatDate(new Date(2020, 1, 1, 12, 00), config.display.timeFormat)
+              .length + 1;
+          if (timestamp.length < timeLength) timestamp = " " + timestamp;
+
+          line += timestamp;
+          wrapPos += timestamp.length;
 
           lastCommentStamp = comment.timestamp;
         }
 
-        str += wordWrap(comment.toString()).replace("\n", "\n     ");
+        line = line.padEnd(25, " ");
+        wrapPos = 16;
+
+        line =
+          chalk.cyan(line) +
+          wordWrap(comment.toString()).replace("\n", "\n".padEnd(wrapPos, " "));
+
+        str += line;
 
         // Break line if this comment isn't the last.
         if (punch.comments[c + 1]) {
