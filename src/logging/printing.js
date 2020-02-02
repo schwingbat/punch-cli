@@ -244,9 +244,16 @@ function dayPunches(punches, date, config) {
       end = out;
     }
 
+    const midnightString = formatDate(
+      new Date(2020, 1, 1, 0, 0),
+      config.display.timeFormat
+    );
+
+    const carryOverValue = midnightString;
+
     let timeSpan = "";
     if (carryBack) {
-      timeSpan += "".padStart(maxTimeLength) + " - ";
+      timeSpan += carryOverValue.padStart(maxTimeLength) + " - ";
     } else {
       timeSpan +=
         formatDate(start, config.display.timeFormat).padStart(maxTimeLength) +
@@ -254,7 +261,7 @@ function dayPunches(punches, date, config) {
     }
     if (punch.out) {
       if (carryForward) {
-        timeSpan += "".padStart(maxTimeLength);
+        timeSpan += carryOverValue.padStart(maxTimeLength);
       } else {
         timeSpan += formatDate(end, config.display.timeFormat).padStart(
           maxTimeLength
@@ -292,7 +299,7 @@ function dayPunches(punches, date, config) {
         formatDate(punch.in, config.display.timeFormat).padStart(
           maxTimeLength
         ) + " - ";
-      s += "".padEnd(maxTimeLength);
+      s += carryOverValue.padEnd(maxTimeLength);
       if (hrs < 1) {
         s += `${~~(hrs * 60)}m`.padStart(6);
       } else {
@@ -316,7 +323,7 @@ function dayPunches(punches, date, config) {
       let hrs =
         punch.durationWithinInterval({ start: dateEnd, end: out }) / 3600000;
 
-      s += "".padStart(maxTimeLength) + " - ";
+      s += carryOverValue.padStart(maxTimeLength) + " - ";
       s += formatDate(out, config.display.timeFormat).padStart(maxTimeLength);
       if (hrs < 1) {
         s += `${~~(hrs * 60)}m`.padStart(6);
@@ -378,9 +385,7 @@ function dayPunches(punches, date, config) {
             ":";
 
           // Align to the left accounting for the max width of the user's time format.
-          const timeLength =
-            formatDate(new Date(2020, 1, 1, 12, 00), config.display.timeFormat)
-              .length + 1;
+          const timeLength = maxTimeLength + 1;
           if (timestamp.length < timeLength) timestamp = " " + timestamp;
 
           line += timestamp;
