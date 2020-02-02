@@ -1,0 +1,57 @@
+<h1>Punch Details</h1>
+
+{{#with project}}
+Project: <a href="/projects/{{alias}}">{{name}}</a><br>
+{{/with}}
+
+{{#with punch}}
+
+  {{#if @root.isActive}}
+
+    started {{formatTime in}} - 
+
+    <span data-ticker="duration" data-ticker-value="{{ dateDiffInMs in out }}">{{ formatDurationDates in out }}</span>
+
+    {{#if @root.isPaid}}
+      <span
+        data-ticker="currency"
+        data-ticker-value="{{ earnings }}"
+        data-ticker-hourly-rate="{{ hourlyRate }}">
+
+        {{ formatCurrency earnings }}
+      </span>
+    {{/if}}
+
+    <br>
+
+    <a href="/punch/out/{{id}}">Punch Out</a>
+
+  {{else}}
+
+    from {{formatTime in}} to {{formatTime out}}
+
+    {{#if @root.isPaid}}
+      - 
+      {{ formatCurrency ../earnings }}
+    {{/if}}
+
+  {{/if}}
+
+
+  <h2>Comments</h2>
+  <ul>
+    {{#each comments}}
+      <li>
+        <div>
+          {{comment}}
+        </div>
+        <div>
+          <a href="/punch/{{@root.punch.id}}/comment/{{id}}/edit">Edit</a>
+          <a href="/punch/{{@root.punch.id}}/comment/{{id}}/delete">Delete</a>
+        </div>
+      </li>
+    {{/each}}
+
+    <li><a href="/punch/{{@root.punch.id}}/comment/new">Add Comment</a></li>
+  </ul>
+{{/with}}

@@ -19,7 +19,7 @@ Page {{page}} of {{totalPages}}
   <ul>
   {{#each punches}}
     <li>
-      {{project}} // {{formatTime in}} - {{#if out}}{{formatTime out}}{{else}}NOW{{/if}} // {{formatLongDuration in out}}
+      {{project}} // {{formatTime in}} - {{#if out}}{{formatTime out}}{{else}}NOW{{/if}} // {{formatDurationDates in out}}
       
       <a href="/punch/{{id}}">View Punch</a>
     </li>

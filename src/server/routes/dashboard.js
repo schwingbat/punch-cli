@@ -20,7 +20,7 @@ route.get("/", async function(req, res) {
     })
   };
 
-  res.render("dashboard/index", { name, current });
+  res.render("sections/dashboard/index", { name, current });
 });
 
 module.exports = route;

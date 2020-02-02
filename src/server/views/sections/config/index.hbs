@@ -1,0 +1,66 @@
+<h1>Config</h1>
+
+<section>
+  {{#with config.user}}
+    <header>
+      <h2>User</h2>
+      <a href="#">Edit</a>
+    </header>
+
+    <table>
+      <tr>
+        <td>Name</td>
+        <td>{{name}}</td>
+      </tr>
+      <tr>
+        <td>Company</td>
+        <td>{{company}}</td>
+      </tr>
+      <tr>
+        <td>Address</td>
+        <td>{{newlineToBreak address}}</td>
+      </tr>
+    </table>
+  {{/with}}
+</section>
+
+<section>
+  {{#with config.sync}}
+    <header>
+      <h2>Sync</h2>
+      <a href="#">Edit</a>
+    </header>
+
+    <table>
+      <tr>
+        <td>Autosync</td>
+        <td>{{autoSync}}</td>
+      </tr>
+      <tr>
+        <td>Services</td>
+        <td>
+          <ul>
+            {{#each services}}
+              <li>{{name}} - {{label}}</li>
+            {{/each}}
+          </ul>
+        </td>
+      </tr>
+    </table>
+  {{/with}}
+</section>
+
+<section>
+  {{#with display}}
+    <header>
+      <h2>Display</h2>
+    </header>
+
+    <table>
+      <tr>
+        <td></td>
+      </tr>
+    </table>
+  {{/with}}
+</section>
+

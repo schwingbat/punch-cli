@@ -13,7 +13,7 @@ route.get("/", function(req, res) {
     });
   }
 
-  res.render("clients/index", {
+  res.render("sections/clients/index", {
     clients: clientsList,
     props
   });
@@ -61,7 +61,7 @@ route.get("/:name", async function(req, res) {
       })
     };
 
-    res.render("clients/show", {
+    res.render("sections/clients/show", {
       client: {
         name: req.params.name,
         ...client

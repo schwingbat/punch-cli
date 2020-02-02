@@ -1,4 +1,6 @@
 const route = require("express").Router();
+const format = require("date-fns/format");
+const parseDateTime = require("../../utils/parse-datetime");
 
 // ----- Punching In & Out ----- //
 
@@ -6,7 +8,7 @@ const route = require("express").Router();
 route.get("/in", async function(req, res) {
   const { projects } = req.props.config;
 
-  res.render("punch/track/in", { projects });
+  res.render("sections/punch/track/in", { projects });
 });
 
 // Create the punch
@@ -27,12 +29,39 @@ route.post("/in", async function(req, res) {
 
 // Show punch out page
 route.get("/out/:id", async function(req, res) {
-  res.render("punch/track/out", {});
+  const { config } = req.props;
+
+  return res.render("sections/punch/track/out", {
+    outTime: format(new Date(), `yyyy-MM-dd '@' ${config.display.timeFormat}`)
+  });
 });
 
 // Punch out
 route.post("/out/:id", async function(req, res) {
   // TODO: End punch and redirect to punch details
+  const { body } = req;
+  const { Punch, Storage } = req.props;
+  const { id } = req.params;
+
+  const comment = body.comment.trim() != "" ? body.comment : null;
+  const timestamp =
+    body.useCustomTimestamp === "on"
+      ? parseDateTime(body.timestamp)
+      : new Date();
+
+  const punch = await Punch.find(p => p.id === id);
+
+  if (punch) {
+    await punch.punchOut(comment, {
+      time: timestamp,
+      autosave: true
+    });
+    await Storage.commit();
+
+    return res.redirect("/");
+  }
+
+  // TODO: Show 404
 });
 
 // ----- Details ----- //
@@ -44,9 +73,17 @@ route.get("/:id", async function(req, res) {
   const punch = await Punch.find(p => p.id === id);
   const project = config.projects[punch.project];
 
-  const isActive = project.out == null;
+  const isActive = punch.out == null;
+  const isPaid = punch.rate > 0;
+  const earnings = punch.pay();
 
-  res.render("punch/show", { punch, project, isActive });
+  res.render("sections/punch/show", {
+    punch,
+    project,
+    isActive,
+    isPaid,
+    earnings
+  });
 });
 
 // ----- Delete ----- //
@@ -60,7 +97,7 @@ route.get("/:id/delete", async function(req, res) {
   if (punch) {
     const project = config.projects[punch.project];
 
-    return res.render("punch/delete", { punch, project });
+    return res.render("sections/punch/delete", { punch, project });
   }
 
   // TODO: Render 404
@@ -86,7 +123,7 @@ route.post("/:id/delete", async function(req, res) {
 
 // Show text editor to enter comment
 route.get("/:punchId/comment/new", async function(req, res) {
-  res.render("punch/comment/new", {});
+  res.render("sections/punch/comment/new", {});
 });
 
 // Add the comment
@@ -123,7 +160,7 @@ route.get("/:punchId/comment/:commentId/edit", async function(req, res) {
     const comment = punch.comments.find(c => c.id === commentId);
 
     if (comment) {
-      return res.render("punch/comment/edit", {
+      return res.render("sections/punch/comment/edit", {
         punchId,
         commentId,
         comment: comment.comment
@@ -162,7 +199,7 @@ route.post("/:punchId/comment/:commentId/edit", async function(req, res) {
 
 // Show delete confirmation page
 route.get("/:punchId/comment/:commentId/delete", async function(req, res) {
-  res.render("punch/comment/delete", {});
+  res.render("sections/punch/comment/delete", {});
 });
 
 // Actually delete the comment

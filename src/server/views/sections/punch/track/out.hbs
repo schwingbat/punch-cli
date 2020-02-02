@@ -1,0 +1,18 @@
+<h1>Punch Out</h1>
+
+<form method="post">
+  <div>
+    <input type="checkbox" name="useCustomTimestamp">
+    <label for="useCustomTimestamp">Use custom timestamp (defaults to now)</label><br>
+
+    <label for="timestamp">Timestamp</label><br>
+    <input type="text" name="timestamp" value="{{outTime}}">
+  </div>
+
+  <div>
+    <label for="comment">Add a comment (optional)</label><br>
+    <input type="text" name="comment">
+  </div>
+
+  <input type="submit" value="Punch Out">
+</form>

@@ -4,7 +4,7 @@ route.get("/", function(req, res) {
   const { props } = req;
   const { projects } = props.config;
 
-  res.render("projects/index", { projects, props });
+  res.render("sections/projects/index", { projects, props });
 });
 
 route.get("/:alias", async function(req, res) {
@@ -17,7 +17,7 @@ route.get("/:alias", async function(req, res) {
   if (project) {
     const currentPunch = await Punch.current(project.alias);
 
-    res.render("projects/show", { project, currentPunch, props });
+    res.render("sections/projects/show", { project, currentPunch, props });
   } else {
     // TODO: Show 404
   }

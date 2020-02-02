@@ -17,7 +17,7 @@ route.get("/", async function(req, res) {
   const nextUrl =
     page < totalPages ? `/log?page=${page + 1}${countQuery}` : null;
 
-  res.render("log/index", {
+  res.render("sections/log/index", {
     groups,
     page,
     count,
