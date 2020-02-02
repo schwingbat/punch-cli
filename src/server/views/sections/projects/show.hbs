@@ -7,8 +7,25 @@
 {{/if}}
 
 {{#if currentPunch}}
-  <div>Active Now - working since {{formatDateTime currentPunch.in}}</div>
+  {{#with currentPunch}}
+    <div>Active Now - working since {{formatDateTime in}} <a href="/punch/out/{{id}}">Punch Out</a></div>
+  {{/with}}
 {{/if}}
+
+<h2>Recent Punches</h2>
+
+<ul>
+  {{#each recentPunches}}
+    <li>
+      <div>{{project}} - started {{formatDateTime in}} - {{formatDurationDates in out}} <a href="/punch/{{id}}">Details</a></div>
+      <ul>
+        {{#each comments}}
+          <li>{{renderComment .}}</li>
+        {{/each}}
+      </ul>
+      </li>
+  {{/each}}
+</ul>
 
 <h3>Stuff That Goes On This Page</h3>
 <ul>
@@ -17,4 +34,5 @@
   <li>Work summary (today, this week, this month)</li>
   <li>Place to generate an invoice</li>
   <li>Client info with link to client page</li>
+  <li>Project edit button</li>
 </ul>

@@ -9,7 +9,7 @@ module.exports = function(comment) {
 
     // Parse @key:value object
     if (char === "@") {
-      // let startIndex = i;
+      let startIndex = i;
       i++; // Skip @
 
       let keyStart = i;
@@ -42,6 +42,8 @@ module.exports = function(comment) {
       }
 
       objects.push({
+        start: startIndex,
+        end: i,
         key: {
           start: keyStart,
           end: keyEnd,

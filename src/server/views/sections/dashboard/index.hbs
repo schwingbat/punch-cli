@@ -1,5 +1,7 @@
 <h1>Dashboard</h1>
 
+<a href="/punch/in">Punch In</a>
+
 {{#with current}}
   {{#if any}}
     <h2>Active Punches</h2>
@@ -11,16 +13,132 @@
   {{/if}}
 {{/with}}
 
-<a href="/punch/in">Punch In</a>
+<h2>Today</h2>
+
+<!--
+  This section:
+
+  - List of all punches for today
+  - Hours worked today (by project and total)
+  - Money earned today (by project and total)
+  - Comparison against average hours worked on this day in past weeks
+-->
+
+{{#with summaries.today}}
+
+  <ul>
+    {{#each punches}}
+      <li>
+        {{project}} - {{formatTime in}} -
+        {{#if out}}
+          {{formatDurationDates in out}}
+        {{else}}
+          <span data-ticker="duration" data-ticker-value="{{ dateDiffInMs in out }}">{{ formatDurationDates in out }}</span>
+        {{/if}}
+      </li>
+    {{/each}}
+  </ul>
+
+  Time worked: {{formatDurationMs duration}}<br>
+  Earnings: {{formatCurrency earnings}}<br>
+  <br>
+
+  {{> dashboard/statsByProject . }}
+
+{{/with}}
+
+<h2>Yesterday</h2>
+
+<!--
+  This section:
+
+  - List of all punches for today
+  - Hours worked today (by project and total)
+  - Money earned today (by project and total)
+  - Comparison against average hours worked on this day in past weeks
+-->
+
+{{#with summaries.yesterday}}
+
+  <ul>
+    {{#each punches}}
+      <li>
+        {{project}} - {{formatTime in}} -
+        {{#if out}}
+          {{formatDurationDates in out}}
+        {{else}}
+          <span data-ticker="duration" data-ticker-value="{{ dateDiffInMs in out }}">{{ formatDurationDates in out }}</span>
+        {{/if}}
+      </li>
+    {{/each}}
+  </ul>
+
+  Time worked: {{formatDurationMs duration}}<br>
+  Earnings: {{formatCurrency earnings}}<br><br>
+
+  {{> dashboard/statsByProject . }}
+
+{{/with}}
+
+<h2>This Week</h2>
+
+<!--
+  This section:
+
+  - Hours worked this week (by project and total)
+  - Money earned this week (by project and total)
+  - Average hours per day this week
+  - Comparison against average hours worked / money earned since last week
+-->
+
+{{#with summaries.thisWeek}}
+  Time worked: {{formatDurationMs duration resolution="hours" short=true}}<br>
+  Earnings: {{formatCurrency earnings}}<br>
+  Daily average: {{formatDurationMs avgDuration resolution="hours" short=true}} / {{formatCurrency avgEarnings}}<br><br>
+
+  {{> dashboard/statsByProject . }}
+{{/with}}
+
+<h2>Last Week</h2>
+
+{{#with summaries.lastWeek}}
+  Time worked: {{formatDurationMs duration resolution="hours" short=true}}<br>
+  Earnings: {{formatCurrency earnings}}<br>
+  Daily average: {{formatDurationMs avgDuration resolution="hours" short=true}} / {{formatCurrency avgEarnings}}<br><br>
+
+  {{> dashboard/statsByProject . }}
+{{/with}}
+
+<h2>This Month</h2>
+
+<!--
+  This section:
+
+  - Hours worked this month (by project and total)
+  - Money earned this month (by project and total)
+  - Average hours per week this month
+  - Comparison against average hours worked / money earned since last month
+-->
+
+{{#with summaries.thisMonth}}
+  Time worked: {{formatDurationMs duration resolution="hours" short=true}}<br>
+  Earnings: {{formatCurrency earnings}}<br>
+  Weekly average: {{formatDurationMs avgWeekDuration resolution="hours" short=true}} / {{formatCurrency avgWeekEarnings}}<br><br>
+
+  {{> dashboard/statsByProject . }}
+{{/with}}
+
+<h2>Last Month</h2>
+
+{{#with summaries.lastMonth}}
+  Time worked: {{formatDurationMs duration resolution="hours" short=true}} / {{formatDurationMs avgWeekDuration resolution="hours" short=true}}/wk<br>
+  Earnings: {{formatCurrency earnings}}<br>
+  Weekly average: {{formatDurationMs avgWeekDuration resolution="hours" short=true}} / {{formatCurrency avgWeekEarnings}}<br><br>
+
+  {{> dashboard/statsByProject . }}
+{{/with}}
 
 <h2>Notes</h2>
-
-<h3>Stuff That Goes On This Page</h3>
-<ul>
-  <li>Currently active sessions on all projects</li>
-  <li>Work stats (today, this week, this month)</li>
-  <li>Project summary cards (top three projects?)</li>
-</ul>
 
 <h3>Coming here I want to know</h3>
 <ul>

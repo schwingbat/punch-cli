@@ -1,6 +1,7 @@
 const route = require("express").Router();
+const { descendingBy } = require("../../utils/sort-factories");
 
-route.get("/", function(req, res) {
+route.get("/", async function(req, res) {
   const { props } = req;
   const { projects } = props.config;
 
@@ -16,8 +17,18 @@ route.get("/:alias", async function(req, res) {
 
   if (project) {
     const currentPunch = await Punch.current(project.alias);
+    const recentPunches = (
+      await Punch.filter(p => p.out != null && p.project === project.alias)
+    )
+      .sort(descendingBy("in"))
+      .slice(0, 5);
 
-    res.render("sections/projects/show", { project, currentPunch, props });
+    res.render("sections/projects/show", {
+      project,
+      currentPunch,
+      recentPunches,
+      props
+    });
   } else {
     // TODO: Show 404
   }

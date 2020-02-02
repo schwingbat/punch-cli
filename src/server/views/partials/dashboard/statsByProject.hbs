@@ -1,0 +1,9 @@
+<table>
+  {{#each statsByProject}}
+    <tr>
+      <td>{{project.name}}</td>
+      <td>{{formatDurationMs duration}}</td>
+      <td>{{formatCurrency earnings}}</td>
+    </tr>
+  {{/each}}
+</table>
