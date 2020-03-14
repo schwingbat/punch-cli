@@ -1,6 +1,17 @@
-<h1>New Comment</h1>
+{{> ui/nav-header title="Add Comment" href=returnUrl }}
 
-<form method="post">
-  <textarea name="comment"></textarea>
-  <input type="submit" value="Save Comment">
-</form>
+<div class="punch-new-comment page">
+  <form method="post">
+    <div class="subsection">
+      <textarea class="text-area" name="comment"></textarea>
+    </div>
+
+    <button class="button button--pill">
+      <!-- <svg class="button__icon">
+        <title>Save Comment</title>
+        <use xlink:href="/icons/ikonate.svg#chat"></use>
+      </svg> -->
+      <span>Save Comment</span>
+    </button>
+  </form>
+</div>

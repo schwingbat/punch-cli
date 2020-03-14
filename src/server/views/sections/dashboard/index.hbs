@@ -1,152 +1,187 @@
-<h1>Dashboard</h1>
+{{> ui/nav-header title="Dashboard" href="/menu" icon="menu" }}
 
-<a href="/punch/in">Punch In</a>
+<div class="dashboard page">
+  <div class="section-row">
+    <div class="clock-header">
+      <span class="clock-header__date">
+        Mon, Feb 3
+      </span>
+      <span class="clock-header__time">
+        10:11 PM
+      </span>
+    </div>
 
-{{#with current}}
-  {{#if any}}
-    <h2>Active Punches</h2>
-    <ul>
-    {{#each punches}}
-      <li>{{> activePunch . }}</li>
-    {{/each}}
-    </ul>
-  {{/if}}
-{{/with}}
+    <section>
+      <header>
+        <h1>Now</h1>
+      </header>
 
-<h2>Today</h2>
-
-<!--
-  This section:
-
-  - List of all punches for today
-  - Hours worked today (by project and total)
-  - Money earned today (by project and total)
-  - Comparison against average hours worked on this day in past weeks
--->
-
-{{#with summaries.today}}
-
-  <ul>
-    {{#each punches}}
-      <li>
-        {{project}} - {{formatTime in}} -
-        {{#if out}}
-          {{formatDurationDates in out}}
+      {{#with current}}
+        {{#if any}}
+          <ul class="active-punches unstyled">
+          {{#each punches}}
+            <li>{{> active-punch . }}</li>
+          {{/each}}
+          </ul>
         {{else}}
-          <span data-ticker="duration" data-ticker-value="{{ dateDiffInMs in out }}">{{ formatDurationDates in out }}</span>
+          <span class="no-active-punches">No active punches</span>
         {{/if}}
-      </li>
-    {{/each}}
-  </ul>
+      {{/with}}
 
-  Time worked: {{formatDurationMs duration}}<br>
-  Earnings: {{formatCurrency earnings}}<br>
-  <br>
+      <a href="/punch/in?r=/" class="button button--pill">
+        <svg class="button__icon">
+          <title>Start</title>
+          <use xlink:href="/icons/ikonate.svg#plus"></use>
+        </svg>
+        <span>Punch In</span>
+      </a>
+    </section>
+  </div>
 
-  {{> dashboard/statsByProject . }}
+  <div class="section-row collapse-dir-reverse">
+    <section>
+      <header>
+        <h1>Today</h1>
+      </header>
 
-{{/with}}
+      {{#with summaries.today}}
+        <div class="subsection">
+          {{> dashboard/section-summary . }}
+        </div>
 
-<h2>Yesterday</h2>
+        <div class="subsection">
+          <header>
+            <span>By Project</span>
+          </header>
 
-<!--
-  This section:
+          {{> dashboard/projects-summary . }}
+        </div>
 
-  - List of all punches for today
-  - Hours worked today (by project and total)
-  - Money earned today (by project and total)
-  - Comparison against average hours worked on this day in past weeks
--->
+        <div class="subsection">
+          <header>
+            <span>Punches</span>
+          </header>
 
-{{#with summaries.yesterday}}
+          {{> punch-list punches=punches }}
+        </div>
+      {{/with}}
+    </section>
 
-  <ul>
-    {{#each punches}}
-      <li>
-        {{project}} - {{formatTime in}} -
-        {{#if out}}
-          {{formatDurationDates in out}}
-        {{else}}
-          <span data-ticker="duration" data-ticker-value="{{ dateDiffInMs in out }}">{{ formatDurationDates in out }}</span>
-        {{/if}}
-      </li>
-    {{/each}}
-  </ul>
+    <section>
+      <header>
+        <h1>Yesterday</h1>
+      </header>
 
-  Time worked: {{formatDurationMs duration}}<br>
-  Earnings: {{formatCurrency earnings}}<br><br>
+      {{#with summaries.yesterday}}
+        <div class="subsection">
+          {{> dashboard/section-summary . }}
+        </div>
 
-  {{> dashboard/statsByProject . }}
+        <div class="subsection">
+          <header>
+            <span>By Project</span>
+          </header>
 
-{{/with}}
+          {{> dashboard/projects-summary . }}
+        </div>
 
-<h2>This Week</h2>
+        <div class="subsection">
+          <header>
+            <span>Punches</span>
+          </header>
 
-<!--
-  This section:
+          {{> punch-list punches=punches }}
+        </div>
+      {{/with}}
+    </section>
+  </div>
 
-  - Hours worked this week (by project and total)
-  - Money earned this week (by project and total)
-  - Average hours per day this week
-  - Comparison against average hours worked / money earned since last week
--->
+  <div class="section-row collapse-dir-reverse">
+    <section>
+      <header>
+        <h1>This Week</h1>
+      </header>
 
-{{#with summaries.thisWeek}}
-  Time worked: {{formatDurationMs duration resolution="hours" short=true}}<br>
-  Earnings: {{formatCurrency earnings}}<br>
-  Daily average: {{formatDurationMs avgDuration resolution="hours" short=true}} / {{formatCurrency avgEarnings}}<br><br>
+      {{#with summaries.thisWeek}}
+        <div class="subsection">
+          {{> dashboard/section-summary . }}
+        </div>
 
-  {{> dashboard/statsByProject . }}
-{{/with}}
+        <div class="subsection">
+          <header>
+            <span>Daily Average</span>
+          </header>
 
-<h2>Last Week</h2>
+          {{> dashboard/section-summary dailyAverage small=true }}
+        </div>
 
-{{#with summaries.lastWeek}}
-  Time worked: {{formatDurationMs duration resolution="hours" short=true}}<br>
-  Earnings: {{formatCurrency earnings}}<br>
-  Daily average: {{formatDurationMs avgDuration resolution="hours" short=true}} / {{formatCurrency avgEarnings}}<br><br>
+        <div class="subsection">
+          <header>
+            <span>By Project</span>
+          </header>
 
-  {{> dashboard/statsByProject . }}
-{{/with}}
+          {{> dashboard/projects-summary . }}
+        </div>
+      {{/with}}
+    </section>
 
-<h2>This Month</h2>
+    <section>
+      <header>
+        <h1>Last Week</h1>
+      </header>
 
-<!--
-  This section:
+      {{#with summaries.lastWeek}}
+        <div class="subsection">
+          {{> dashboard/section-summary . }}
+        </div>
 
-  - Hours worked this month (by project and total)
-  - Money earned this month (by project and total)
-  - Average hours per week this month
-  - Comparison against average hours worked / money earned since last month
--->
+        <div class="subsection">
+          <header>
+            <span>Daily Average</span>
+          </header>
 
-{{#with summaries.thisMonth}}
-  Time worked: {{formatDurationMs duration resolution="hours" short=true}}<br>
-  Earnings: {{formatCurrency earnings}}<br>
-  Weekly average: {{formatDurationMs avgWeekDuration resolution="hours" short=true}} / {{formatCurrency avgWeekEarnings}}<br><br>
+          {{> dashboard/section-summary dailyAverage small=true }}
+        </div>
 
-  {{> dashboard/statsByProject . }}
-{{/with}}
+        <div class="subsection">
+          <header>
+            <span>By Project</span>
+          </header>
 
-<h2>Last Month</h2>
+          {{> dashboard/projects-summary . }}
+        </div>
+      {{/with}}
+    </section>
+  </div>
 
-{{#with summaries.lastMonth}}
-  Time worked: {{formatDurationMs duration resolution="hours" short=true}} / {{formatDurationMs avgWeekDuration resolution="hours" short=true}}/wk<br>
-  Earnings: {{formatCurrency earnings}}<br>
-  Weekly average: {{formatDurationMs avgWeekDuration resolution="hours" short=true}} / {{formatCurrency avgWeekEarnings}}<br><br>
+  <div class="section-row">
+    <section>
+      <header>
+        <h1>This Month</h1>
+      </header>
 
-  {{> dashboard/statsByProject . }}
-{{/with}}
+      {{#with summaries.thisMonth}}
+        <div class="subsection">
+          {{> dashboard/section-summary . }}
+        </div>
 
-<h2>Notes</h2>
+        <div class="subsection">
+          <header>
+            <span>Weekly Average</span>
+          </header>
 
-<h3>Coming here I want to know</h3>
-<ul>
-  <li>What I'm currently working on (with a way to add a comment or punch out)</li>
-  <li>How much money I've made today</li>
-  <li>How much money I've made this month</li>
-  <li>How many hours I've worked this week</li>
-  <li>Which projects I've worked most on this month</li>
-  <li>Which clients I've worked most for this month</li>
-</ul>
+          {{> dashboard/section-summary weeklyAverage small=true }}
+        </div>
 
+        <div class="subsection">
+          <header>
+            <span>By Project</span>
+          </header>
+
+          {{> dashboard/projects-summary . }}
+        </div>
+      {{/with}}
+    </section>
+  </div>
+  
+</div>

@@ -1,0 +1,9 @@
+{{#with project}}
+<a
+  href="/projects/{{alias}}"
+  class="project-card">
+  <span class="project-card__title color-{{ifNotDefined color "gray"}}">
+    {{name}}
+  </span>
+</a>
+{{/with}}

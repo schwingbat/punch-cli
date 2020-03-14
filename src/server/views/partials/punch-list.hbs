@@ -1,0 +1,49 @@
+<ul class="punch-list unstyled">
+  {{#each punches}}
+    <li>
+      <a href="/punch/{{id}}">
+        {{#if (ifNotDefined ../showColorBar true)}}
+        <div class="punch-list__color-bar fill-{{ifNotDefined (projectDetails project "color") "gray"}}"></div>
+        {{/if}}
+        <div class="punch-list__details">
+          {{#if (ifNotDefined ../showProject true)}}
+          <div class="punch-list__title color-{{ifNotDefined (projectDetails project "color") "gray"}}">
+            {{projectDetails project "name"}}
+          </div>
+          {{/if}}
+          {{#if ../showDate}}
+          <div class="punch-list__date color-{{ifNotDefined (projectDetails project "color") "gray"}}">
+            {{formatDate in}}
+          </div>
+          {{/if}}
+          <div class="punch-list__summary">
+            <div class="punch-list__summary__times">
+              {{formatTime in}} - {{#if out}}{{formatTime out}}{{else}}NOW{{/if}}
+            </div>
+            <div class="punch-list__summary__stats">
+              {{formatDurationDates in out}}
+
+            </div>
+          </div>
+          {{#if comments}}
+          <ul class="punch-list__comments unstyled">
+            {{#each comments}}
+              <li>
+                <div class="punch-list__comment-timestamp">
+                  <div class="punch-list__timestamp-group">
+                    <div class="punch-list__comment-dot fill-{{ifNotDefined (projectDetails ../project "color") "gray"}}"></div>
+                    <span class="color-gray">{{dateDiffOffset ../in timestamp}}</span>
+                  </div>
+                </div>
+                <div class="punch-list__comment">
+                  {{comment}}
+                </div>
+              </li>
+            {{/each}}
+          </ul>
+          {{/if}}
+        </div>
+      </a>
+    </li>
+  {{/each}}
+</ul>

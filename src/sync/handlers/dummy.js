@@ -1,27 +1,19 @@
 module.exports = function(config, Punch) {
   return {
-    getManifest() {
-      return new Promise(resolve => {
-        setTimeout(() => {
-          resolve({});
-        }, Math.random() * 300 + 200);
-      });
+    async getManifest() {
+      return {};
     },
 
-    upload(uploads) {
-      return new Promise(resolve => {
-        setTimeout(() => {
-          resolve(uploads.map(p => p));
-        }, Math.random() * 300 + 200);
-      });
+    async upload(uploads) {
+      return uploads.map(p => p);
     },
 
-    download(downloads) {
-      return new Promise(resolve => {
-        setTimeout(() => {
-          resolve([{}, {}, {}]);
-        }, Math.random() * 300 + 200);
-      });
+    async download(downloads) {
+      return [];
+    },
+
+    async delete(ids) {
+      return ids;
     }
   };
 };

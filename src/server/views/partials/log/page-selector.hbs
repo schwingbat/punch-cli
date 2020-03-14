@@ -1,0 +1,31 @@
+<div class="page-selector">
+  <a
+    class="page-selector__button"
+    href="{{backUrl}}"
+    {{#if backUrl}}{{else}}disabled{{/if}}>
+    <svg>
+      <title>Previous Page</title>
+      <use xlink:href="/icons/ikonate.svg#chevron-left"></use>
+    </svg>
+  </a>
+
+  <div class="page-selector__info">
+    <span class="page-selector__label">Page {{currentPage}} of {{totalPages}}</span>
+    <div class="page-selector__progress-bar">
+      <div
+        class="page-selector__progress-bar__inner"
+        style="flex: 0 0 {{getPercent currentPage totalPages}}%">
+      </div>
+    </div>
+  </div>
+
+  <a
+    class="page-selector__button"
+    href="{{nextUrl}}"
+    {{#if nextUrl}}{{else}}disabled{{/if}}>
+    <svg>
+      <title>Next Page</title>
+      <use xlink:href="/icons/ikonate.svg#chevron-right"></use>
+    </svg>
+  </a>
+</div>

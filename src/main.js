@@ -16,15 +16,17 @@ const { command, invoke } = require("@ratwizard/cli")({
   author: "Tony McCoy <tony@ratwizard.io>"
 });
 
+const EventEmitter = require("events");
 const bench = require("./utils/bench")({ disabled: !BENCHMARK });
 const config = require("./config").load();
 
 bench.mark("config loaded");
 
+const events = new EventEmitter();
 const Punch = require("./punch/punch")(config);
-const Storage = require("./storage")(config)(Punch);
 
-Punch.setStorage(Storage);
+const storage = require("./storage")(config)(Punch, events);
+Punch.setStorage(storage);
 
 bench.mark("punch loaded");
 
@@ -33,9 +35,9 @@ bench.mark("punch loaded");
 \* ========================= */
 
 const props = {
+  events,
   config,
-  Punch,
-  Storage
+  Punch
 };
 
 // ----- Managing Punches ----- //
@@ -159,17 +161,30 @@ command("server:hash")
   .fromPath(__dirname, "commands/server-hash")
   .withProps(props);
 
-invoke();
+// ----- Lifecycle ----- //
+
+let isServing = false;
+
+events.on("server:started", () => {
+  isServing = true;
+});
+
+invoke().then(() => {
+  if (!isServing) {
+    exitHandler({ exit: true });
+  }
+});
 
 // Exit cleanup
 
 async function exitHandler(options) {
-  await Storage.cleanUp();
-
   bench.mark("parsed and run");
   bench.printAll();
 
-  if (options.exit) process.exit();
+  if (options.exit) {
+    events.emit("willexit");
+    process.exit();
+  }
 }
 
 process.on("exit", exitHandler.bind(null, { cleanup: true }));

@@ -18,4 +18,5 @@ module.exports = command =>
       const { port, noOpen } = flags;
 
       server.start({ port, props, autoOpen: !noOpen });
+      props.events.emit("server:started");
     });

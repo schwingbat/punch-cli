@@ -1,16 +1,21 @@
-module.exports = function(config, Punch) {
+module.exports = function(config, Punch, events) {
   const path = require("path");
   const fs = require("fs");
+  const chokidar = require("chokidar");
   const { descendingBy } = require("../../utils/sort-factories");
 
   const ledgerPath = path.join(config.punchPath, "punches.ledger");
 
+  let lastWritten = null;
   let hasChanges = false;
   let punches = [];
 
   function encodePunch(punch) {
     if (punch.deleted) {
-      return JSON.stringify({ id: punch.id, deleted: true });
+      return JSON.stringify({
+        id: punch.id,
+        deleted: true
+      });
     } else {
       return JSON.stringify(punch.toJSON());
     }
@@ -29,12 +34,35 @@ module.exports = function(config, Punch) {
     }
   }
 
-  if (fs.existsSync(ledgerPath)) {
-    const file = fs.readFileSync(ledgerPath, "utf8");
-    punches = file.split("\n").map(decodePunch);
-  }
+  const load = () => {
+    if (fs.existsSync(ledgerPath)) {
+      const file = fs.readFileSync(ledgerPath, "utf8");
+      punches = file.split("\n").map(decodePunch);
+    }
+  };
 
-  return {
+  // Load once on init.
+  load();
+
+  // Watch for and reload on file changes when the server is running.
+  events.on("server:started", () => {
+    const watcher = chokidar.watch(ledgerPath);
+
+    watcher.on("change", path => {
+      const writtenAt = fs.lstatSync(path).mtimeMs;
+
+      if (writtenAt !== lastWritten) {
+        // Reload from disk. The time is different than our last write, so it wasn't us.
+        load();
+      }
+    });
+
+    events.once("willexit", () => {
+      watcher.close();
+    });
+  });
+
+  const public = {
     name: "ledger",
 
     // Saves a single punch object
@@ -115,13 +143,27 @@ module.exports = function(config, Punch) {
           .join("\n");
 
         fs.writeFileSync(ledgerPath, str);
+
+        lastWritten = fs.lstatSync(ledgerPath).mtimeMs;
       }
     },
 
     // Called before the program exits.
     // Close connections and do any necessary cleanup.
     async cleanUp() {
-      this.commit();
+      // this.commit();
     }
   };
+
+  // Commit any pending changes before the program exits.
+  events.on("willexit", () => {
+    public.commit();
+  });
+
+  // Commit any time a punch or batch of punches is updated.
+  events.on("server:punchupdated", () => {
+    public.commit();
+  });
+
+  return public;
 };

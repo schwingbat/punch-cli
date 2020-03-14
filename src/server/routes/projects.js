@@ -1,5 +1,6 @@
 const route = require("express").Router();
 const { descendingBy } = require("../../utils/sort-factories");
+const formatDistanceToNow = require("date-fns/formatDistanceToNow");
 
 route.get("/", async function(req, res) {
   const { props } = req;
@@ -23,11 +24,23 @@ route.get("/:alias", async function(req, res) {
       .sort(descendingBy("in"))
       .slice(0, 5);
 
+    let lastActiveLabel = "Never";
+
+    if (currentPunch) {
+      lastActiveLabel = "Now";
+    } else if (recentPunches.length > 0) {
+      const mostRecent = recentPunches[0];
+
+      lastActiveLabel = formatDistanceToNow(mostRecent.out, {
+        addSuffix: true
+      });
+    }
+
     res.render("sections/projects/show", {
       project,
       currentPunch,
       recentPunches,
-      props
+      lastActiveLabel
     });
   } else {
     // TODO: Show 404

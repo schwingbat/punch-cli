@@ -84,30 +84,6 @@ describe("Syncer", () => {
     });
   });
 
-  describe("loadService", () => {
-    let syncer;
-
-    beforeEach(() => {
-      syncer = Syncer(config, MockPunch);
-    });
-
-    // it("loads a service module by name", () => {
-    //   expect(syncer.loadService("dummy") instanceof SyncService).toBe(true);
-    // });
-
-    it("throws an error if service is not configured in config file", () => {
-      expect(() => syncer.loadService("asdf_1234")).toThrow();
-    });
-
-    it("throws an error if service is configured but has no module", () => {
-      expect(() => syncer.loadService("definitely_nonexistant")).toThrow();
-    });
-
-    it("throws an error if service name is not a string", () => {
-      expect(() => syncer.loadService(5)).toThrow();
-    });
-  });
-
   describe("diff", () => {
     let syncer;
 

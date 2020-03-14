@@ -11,18 +11,9 @@ function Syncer(config, Punch) {
     );
   }
 
-  function loadService(name) {
-    let conf;
-
-    name = name.toLowerCase();
-    conf = config.sync.services.find(s => s.name.toLowerCase() === name);
+  function loadService(conf) {
+    const name = conf.type.toLowerCase();
     conf.credentials = loadCredentials(conf, config.configPath);
-
-    if (!conf) {
-      throw new Error(
-        `Service ${serviceName} is not configured in config.sync.services`
-      );
-    }
 
     // Try loading from user's config path where custom sync handlers can be defined.
     // If nothing is found there try loading a built in handler.
@@ -44,7 +35,7 @@ function Syncer(config, Punch) {
     }
 
     throw new Error(
-      `Sync handler ${serviceName} is not supported yet, but you can add support yourself: https://punch.sh/docs/sync#handlers`
+      `Sync service ${serviceName} is not supported yet, but you can add support yourself: https://punch.sh/docs/sync#handlers`
     );
   }
 
@@ -120,10 +111,14 @@ function Syncer(config, Punch) {
 
     const { grey, magenta, cyan, green } = require("chalk");
 
-    for (const name of services) {
-      const service = loadService(name);
+    for (const conf of services) {
+      if (!conf.enabled) {
+        continue;
+      }
 
-      loader.start("Syncing with " + service.config.label + "...");
+      const service = loadService(conf);
+
+      loader.start("Syncing with " + conf.name + "...");
 
       // const uploader = loader();
       // const downloader = loader();
@@ -164,7 +159,7 @@ function Syncer(config, Punch) {
       loader.stop(
         `${green(symbols.syncSuccess)} ${up(uploaded.length)}${down(
           downloaded.length
-        )} Synced with ${service.config.label}`
+        )} Synced with ${conf.name}`
       );
     }
   }
@@ -172,8 +167,7 @@ function Syncer(config, Punch) {
   return {
     sync,
     syncAll,
-    diff,
-    loadService
+    diff
   };
 }
 

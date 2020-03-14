@@ -1,0 +1,30 @@
+<a class="active-punch" href="/punch/{{id}}">
+  <div class="active-punch__details">
+    <span class="active-punch__title color-{{ifNotDefined project.color "gray"}}">
+      {{project.name}}
+    </span>
+    <div class="active-punch__details">
+      {{formatTime in}} to {{#if out}}{{formatTime out}}{{else}}now{{/if}}
+      {{#if rate}}
+        <br>
+      {{else}}
+        &middot;
+      {{/if}}
+      <span
+        data-ticker="duration"
+        data-ticker-value="{{ dateDiffInMs in out }}">
+        {{ formatDurationDates in out }}
+      </span>
+      {{#if rate}}
+        &middot;
+        <span data-ticker="currency" data-ticker-value="{{earningsTickerValue .}}">{{ formatDurationDates in out }}</span>
+      {{/if}}
+    </div>
+  </div>
+  <div class="active-punch__disclosure">
+    <svg>
+      <title>More</title>
+      <use xlink:href="/icons/ikonate.svg#chevron-right"></use>
+    </svg>
+  </div>
+</a>

@@ -1,38 +1,74 @@
-<h1>{{project.name}} <small>({{project.alias}})</small></h1>
+{{> ui/nav-header title=project.name href="/projects" }}
 
-{{#if project.client}}
-  {{#with project.client}}
-    <div>Client: <a href="/clients/{{name}}">{{name}}</a></div>
-  {{/with}}
-{{/if}}
+<div class="project-show page">
+  <div class="nav-breadcrumbs">
+    <a href="/menu">Menu</a>
+    <div class="divider"></div>
+    <a href="/projects">Projects</a>
+    <div class="divider"></div>
+    <span>{{project.name}}</span>
+  </div>
 
-{{#if currentPunch}}
-  {{#with currentPunch}}
-    <div>Active Now - working since {{formatDateTime in}} <a href="/punch/out/{{id}}">Punch Out</a></div>
-  {{/with}}
-{{/if}}
+  <div class="container">
+    {{#with project}}
+    <section>
+      {{#if client}}
+      <div class="subsection">
+        <header>
+          <span>Client</span>
+        </header>
+        {{> client-card client=client }}
+      </div>
+      {{/if}}
+      <div class="subsection">
+        <header>
+          <span>Last Active</span>
+        </header>
+        {{@root.lastActiveLabel}}
+      </div>
+      {{#if hourlyRate}}
+      <div class="subsection">
+        <header>
+          <span>Hourly Rate</span>
+        </header>
+        {{formatCurrency hourlyRate}}
+      </div>
+      {{/if}}
+    </section>
+    {{/with}}
+    
 
-<h2>Recent Punches</h2>
+    {{#if currentPunch}}
+      {{#with currentPunch}}
+        <div>Active Now - working since {{formatDateTime in}} <a href="/punch/out/{{id}}">Punch Out</a></div>
+      {{/with}}
+    {{/if}}
 
-<ul>
-  {{#each recentPunches}}
-    <li>
-      <div>{{project}} - started {{formatDateTime in}} - {{formatDurationDates in out}} <a href="/punch/{{id}}">Details</a></div>
+    <section>
+      <header>
+        <h2>Recent Work</h2>
+      </header>
+
+      {{> punch-list punches=recentPunches
+                     showDate=true
+                     showProject=false
+                     showColorBar=false }}
+    </section>
+
+    <section>
+      <header>
+        <h2>Notes</h2>
+      </header>
+
+      <h3>Stuff That Goes On This Page</h3>
       <ul>
-        {{#each comments}}
-          <li>{{renderComment .}}</li>
-        {{/each}}
+        <li>Currently active session for this project, if punched in</li>
+        <li>Three most recent punches</li>
+        <li>Work summary (today, this week, this month)</li>
+        <li>Place to generate an invoice</li>
+        <li>Client info with link to client page</li>
+        <li>Project edit button</li>
       </ul>
-      </li>
-  {{/each}}
-</ul>
-
-<h3>Stuff That Goes On This Page</h3>
-<ul>
-  <li>Currently active session for this project, if punched in</li>
-  <li>Three most recent punches</li>
-  <li>Work summary (today, this week, this month)</li>
-  <li>Place to generate an invoice</li>
-  <li>Client info with link to client page</li>
-  <li>Project edit button</li>
-</ul>
+    </section>
+  </div>
+</div>

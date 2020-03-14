@@ -1,15 +1,61 @@
-const { join } = require("path");
-const express = require("express");
 const fs = require("fs");
 const path = require("path");
+const express = require("express");
+const session = require("express-session");
+const passport = require("passport");
+const LocalStrategy = require("passport-local").Strategy;
 const bodyParser = require("body-parser");
 const exphbs = require("express-handlebars");
 const open = require("open");
+const bcrypt = require("bcrypt");
+const flash = require("connect-flash");
+const { ensureLoggedIn } = require("connect-ensure-login");
+const withToken = require("./middleware/with-token");
+
+const { join } = path;
+
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser((id, done) => {
+  done(null, { id: "local" });
+});
 
 exports.start = function start({ port, props, autoOpen = true }) {
   const server = express();
+  const loggedIn = ensureLoggedIn("/login");
+
+  passport.use(
+    new LocalStrategy((username, password, done) => {
+      const configHash = props.config.server.auth.passwordHash;
+
+      bcrypt.compare(password, configHash, (err, result) => {
+        if (err) {
+          return done(err);
+        }
+
+        if (result == true) {
+          return done(null, {
+            id: "local"
+          });
+        }
+
+        return done(null, false, { message: "Incorrect password" });
+      });
+    })
+  );
 
   server.use(bodyParser.urlencoded({ extended: true }));
+  server.use(bodyParser.json());
+  server.use(
+    session({
+      secret: "topsecret",
+      resave: false,
+      saveUninitialized: false
+    })
+  );
+  server.use(flash());
 
   // Serve static files from './static' directory
   server.use(express.static(path.join(__dirname, "static")));
@@ -24,7 +70,7 @@ exports.start = function start({ port, props, autoOpen = true }) {
   server.set("view engine", "hbs");
   server.set("views", join(__dirname, "views"));
 
-  server.enable("view cache");
+  // server.enable("view cache");
 
   // Make command props available on the request object.
   server.use((req, res, next) => {
@@ -32,14 +78,31 @@ exports.start = function start({ port, props, autoOpen = true }) {
     next();
   });
 
+  server.use(passport.initialize());
+  server.use(passport.session());
+
+  server.get("/", (req, res) => {
+    res.redirect("/dashboard");
+  });
+
   // Configure routes
-  server.use("/", require("./routes/dashboard"));
-  server.use("/projects", require("./routes/projects"));
-  server.use("/clients", require("./routes/clients"));
-  server.use("/punch", require("./routes/punch"));
-  server.use("/log", require("./routes/log"));
-  server.use("/config", require("./routes/config"));
-  server.use("/invoices", require("./routes/invoices"));
+  server.use("/menu", loggedIn, require("./routes/menu"));
+  server.use("/dashboard", loggedIn, require("./routes/dashboard"));
+  server.use("/projects", loggedIn, require("./routes/projects"));
+  server.use("/clients", loggedIn, require("./routes/clients"));
+  server.use("/punch", loggedIn, require("./routes/punch"));
+  server.use("/log", loggedIn, require("./routes/log"));
+  server.use("/config", loggedIn, require("./routes/config"));
+  server.use("/invoices", loggedIn, require("./routes/invoices"));
+  server.use("/login", require("./routes/login"));
+
+  server.use(
+    "/api",
+    withToken({
+      tokens: props.config.server.auth.authTokens
+    }),
+    require("./routes/api")
+  );
 
   server.listen(port, async () => {
     console.log(startMessage.replace(/%PORT%/g, port));

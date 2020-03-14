@@ -1,15 +1,24 @@
-<h1>Projects</h1>
+{{> ui/nav-header title="Projects" }}
 
-<ul>
-  {{#each projects}}
-    <li><a href="/projects/{{alias}}">{{name}}</a></li>
-  {{/each}}
-</ul>
+<div class="projects-index page">
+  <div class="nav-breadcrumbs">
+    <a href="/menu">Menu</a>
+    <div class="divider"></div>
+    <span>Projects</span>
+  </div>
 
-<h2>Notes</h2>
+  <ul class="projects-index__list unstyled">
+    {{#each projects}}
+      <li>{{> project-card project=. }}</li>
+    {{/each}}
+  </ul>
 
-<h3>What goes on this page</h3>
-<ul>
-  <li>List of all projects (active projects marked or at top)</li>
-  <li>A way to add a new project</li>
-</ul>
+  <h2>Notes</h2>
+
+  <h3>What goes on this page</h3>
+  <ul>
+    <li>List of all projects (active projects marked or at top)</li>
+    <li>A way to add a new project</li>
+  </ul>
+</div>
+

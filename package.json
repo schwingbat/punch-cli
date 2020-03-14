@@ -30,6 +30,7 @@
   "license": "MIT",
   "dependencies": {
     "@fardog/wordwrap": "^1.1.0",
+    "@hapi/joi": "^17.1.1",
     "@ratwizard/cli": "^0.5.1",
     "@schwingbat/is": "^2.0.0",
     "@schwingbat/mon": "^1.0.0",
@@ -38,6 +39,7 @@
     "bcrypt": "^4.0.1",
     "body-parser": "^1.19.0",
     "chalk": "^3.0.0",
+    "chokidar": "^3.3.1",
     "connect-ensure-login": "^0.1.1",
     "connect-flash": "^0.1.1",
     "date-fns": "^2.10.0",
@@ -45,6 +47,7 @@
     "express": "^4.17.1",
     "express-handlebars": "^3.1.0",
     "express-session": "^1.17.0",
+    "fetch-defaults": "^1.0.0",
     "handlebars": "^4.7.3",
     "js-yaml": "^3.13.1",
     "log-update": "^4.0.0",

@@ -1,15 +1,24 @@
-<h1>Clients</h1>
+{{> ui/nav-header title="Clients" }}
 
-<ul>
-  {{#each clients}}
-    <li><a href="/clients/{{name}}">{{name}}</a></li>
-  {{/each}}
-</ul>
+<div class="clients-index page">
+  <div class="nav-breadcrumbs">
+    <a href="/menu">Menu</a>
+    <div class="divider"></div>
+    <span>Clients</span>
+  </div>
 
-<h2>Notes</h2>
+  <ul class="clients-index__list unstyled">
+    {{#each clients}}
+      <li>{{> client-card client=. }}</li>
+    {{/each}}
+  </ul>
 
-<h3>What goes on this page</h3>
-<ul>
-  <li>List of all clients (clients with active projects marked or at top)</li>
-  <li>A way to add a new client</li>
-</ul>
+  <h2>Notes</h2>
+
+  <h3>What goes on this page</h3>
+  <ul>
+    <li>List of all clients (clients with active projects marked or at top)</li>
+    <li>A way to add a new client</li>
+  </ul>
+</div>
+

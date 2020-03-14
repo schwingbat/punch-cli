@@ -8,12 +8,15 @@ const parseDateTime = require("../../utils/parse-datetime");
 route.get("/in", async function(req, res) {
   const { projects } = req.props.config;
 
-  res.render("sections/punch/track/in", { projects });
+  res.render("sections/punch/track/in", {
+    projects,
+    returnUrl: req.query.r
+  });
 });
 
 // Create the punch
 route.post("/in", async function(req, res) {
-  const { Punch, Storage } = req.props;
+  const { Punch, events } = req.props;
   const { project } = req.body;
 
   const punch = new Punch({
@@ -22,7 +25,7 @@ route.post("/in", async function(req, res) {
   });
 
   await punch.save();
-  await Storage.commit();
+  events.emit("server:punchupdated");
 
   return res.redirect("/");
 });
@@ -32,7 +35,8 @@ route.get("/out/:id", async function(req, res) {
   const { config } = req.props;
 
   return res.render("sections/punch/track/out", {
-    outTime: format(new Date(), `yyyy-MM-dd '@' ${config.display.timeFormat}`)
+    outTime: format(new Date(), `yyyy-MM-dd '@' ${config.display.timeFormat}`),
+    returnUrl: req.query.r
   });
 });
 
@@ -40,7 +44,7 @@ route.get("/out/:id", async function(req, res) {
 route.post("/out/:id", async function(req, res) {
   // TODO: End punch and redirect to punch details
   const { body } = req;
-  const { Punch, Storage } = req.props;
+  const { Punch, events } = req.props;
   const { id } = req.params;
 
   const comment = body.comment.trim() != "" ? body.comment : null;
@@ -56,7 +60,7 @@ route.post("/out/:id", async function(req, res) {
       time: timestamp,
       autosave: true
     });
-    await Storage.commit();
+    events.emit("server:punchupdated");
 
     return res.redirect("/");
   }
@@ -77,12 +81,15 @@ route.get("/:id", async function(req, res) {
   const isPaid = punch.rate > 0;
   const earnings = punch.pay();
 
+  console.log({ punch, project, isActive, isPaid, earnings });
+
   res.render("sections/punch/show", {
     punch,
     project,
     isActive,
     isPaid,
-    earnings
+    earnings,
+    returnUrl: req.query.r
   });
 });
 
@@ -97,7 +104,11 @@ route.get("/:id/delete", async function(req, res) {
   if (punch) {
     const project = config.projects[punch.project];
 
-    return res.render("sections/punch/delete", { punch, project });
+    return res.render("sections/punch/delete", {
+      punch,
+      project,
+      returnUrl: req.query.r
+    });
   }
 
   // TODO: Render 404
@@ -105,13 +116,13 @@ route.get("/:id/delete", async function(req, res) {
 
 route.post("/:id/delete", async function(req, res) {
   const { id } = req.params;
-  const { Storage, Punch } = req.props;
+  const { Punch, events } = req.props;
 
   const punch = await Punch.find(p => p.id === id);
 
   if (punch) {
     await punch.delete();
-    await Storage.commit();
+    events.emit("server:punchupdated");
 
     return res.redirect("/");
   }
@@ -123,7 +134,9 @@ route.post("/:id/delete", async function(req, res) {
 
 // Show text editor to enter comment
 route.get("/:punchId/comment/new", async function(req, res) {
-  res.render("sections/punch/comment/new", {});
+  res.render("sections/punch/comment/new", {
+    returnUrl: req.query.r
+  });
 });
 
 // Add the comment
@@ -131,7 +144,7 @@ route.post("/:punchId/comment/new", async function(req, res) {
   const { body, params, props } = req;
   const { punchId } = params;
   const { comment } = body;
-  const { Storage, Punch } = props;
+  const { Punch, events } = props;
 
   const punch = await Punch.find(p => p.id === punchId);
 
@@ -141,7 +154,7 @@ route.post("/:punchId/comment/new", async function(req, res) {
     punch.addComment(comment);
 
     await punch.save();
-    await Storage.commit();
+    events.emit("server:punchupdated");
 
     return res.redirect(`/punch/${punchId}`);
   }
@@ -163,7 +176,8 @@ route.get("/:punchId/comment/:commentId/edit", async function(req, res) {
       return res.render("sections/punch/comment/edit", {
         punchId,
         commentId,
-        comment: comment.comment
+        comment: comment.comment,
+        returnUrl: req.query.r
       });
     }
   }
@@ -174,7 +188,7 @@ route.get("/:punchId/comment/:commentId/edit", async function(req, res) {
 // Update the comment
 route.post("/:punchId/comment/:commentId/edit", async function(req, res) {
   const { punchId, commentId } = req.params;
-  const { Punch, Storage } = req.props;
+  const { Punch, events } = req.props;
   const { body } = req;
 
   const punch = await Punch.find(p => p.id === punchId);
@@ -191,7 +205,7 @@ route.post("/:punchId/comment/:commentId/edit", async function(req, res) {
     }
 
     await punch.save();
-    await Storage.commit();
+    events.emit("server:punchupdated");
   }
 
   return res.redirect(`/punch/${punchId}`);
@@ -199,13 +213,15 @@ route.post("/:punchId/comment/:commentId/edit", async function(req, res) {
 
 // Show delete confirmation page
 route.get("/:punchId/comment/:commentId/delete", async function(req, res) {
-  res.render("sections/punch/comment/delete", {});
+  res.render("sections/punch/comment/delete", {
+    returnUrl: req.query.r
+  });
 });
 
 // Actually delete the comment
 route.post("/:punchId/comment/:commentId/delete", async function(req, res) {
   const { punchId, commentId } = req.params;
-  const { Storage, Punch } = req.props;
+  const { Punch, events } = req.props;
 
   const punch = await Punch.find(p => p.id === punchId);
 
@@ -213,7 +229,7 @@ route.post("/:punchId/comment/:commentId/delete", async function(req, res) {
     punch.deleteComment(commentId);
 
     await punch.save();
-    await Storage.commit();
+    events.emit("server:punchupdated");
 
     return res.redirect(`/punch/${punchId}`);
   }

@@ -1,74 +1,82 @@
-<h1>Config</h1>
+{{> ui/nav-header title="Config" }}
 
-<section>
-  {{#with config.user}}
-    <header>
-      <h2>User</h2>
+<div class="config page">
+  <section>
+    {{#with config.user}}
+      <header class="section-header">
+        <h2>User</h2>
+      </header>
+
       <a href="#">Edit</a>
-    </header>
 
-    <table>
-      <tr>
-        <td>Name</td>
-        <td>{{name}}</td>
-      </tr>
-      <tr>
-        <td>Company</td>
-        <td>{{company}}</td>
-      </tr>
-      <tr>
-        <td>Address</td>
-        <td>{{newlineToBreak address}}</td>
-      </tr>
-    </table>
-  {{/with}}
-</section>
+      <table>
+        <tr>
+          <td>Name</td>
+          <td>{{name}}</td>
+        </tr>
+        <tr>
+          <td>Company</td>
+          <td>{{company}}</td>
+        </tr>
+        <tr>
+          <td>Address</td>
+          <td>{{newlineToBreak address}}</td>
+        </tr>
+      </table>
+    {{/with}}
+  </section>
 
-<section>
-  {{#with config.sync}}
-    <header>
-      <h2>Sync</h2>
+  <section>
+    {{#with config.sync}}
+      <header class="section-header">
+        <h2>Sync</h2>
+      </header>
+
       <a href="#">Edit</a>
+
+      <table>
+        <tr>
+          <td>Autosync</td>
+          <td>{{autoSync}}</td>
+        </tr>
+        <tr>
+          <td>Services</td>
+          <td>
+            <ul>
+              {{#each services}}
+                <li>{{name}} - {{label}}</li>
+              {{/each}}
+            </ul>
+          </td>
+        </tr>
+      </table>
+    {{/with}}
+  </section>
+
+  <section>
+    {{#with display}}
+      <header class="section-header">
+        <h2>Display</h2>
+      </header>
+
+      <table>
+        <tr>
+          <td></td>
+        </tr>
+      </table>
+    {{/with}}
+  </section>
+
+  <section>
+    <header class="section-header">
+      <h2>Notes</h2>
     </header>
 
-    <table>
-      <tr>
-        <td>Autosync</td>
-        <td>{{autoSync}}</td>
-      </tr>
-      <tr>
-        <td>Services</td>
-        <td>
-          <ul>
-            {{#each services}}
-              <li>{{name}} - {{label}}</li>
-            {{/each}}
-          </ul>
-        </td>
-      </tr>
-    </table>
-  {{/with}}
-</section>
-
-<section>
-  {{#with display}}
-    <header>
-      <h2>Display</h2>
-    </header>
-
-    <table>
-      <tr>
-        <td></td>
-      </tr>
-    </table>
-  {{/with}}
-</section>
-
-<h2>Notes</h2>
-
-<h3>What goes on this page</h3>
-<ul>
-  <li>User settings with section edit button</li>
-  <li>Sync settings with section edit button</li>
-  <li>Server user password set &amp; reset</li>
-</ul>
+    <h3>What goes on this page</h3>
+    <ul>
+      <li>User settings with section edit button</li>
+      <li>Sync settings with section edit button</li>
+      <li>Server user password set &amp; reset</li>
+    </ul>
+  </section>
+</div>

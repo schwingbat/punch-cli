@@ -1,4 +1,6 @@
 const route = require("express").Router();
+const { ascendingBy, descendingBy } = require("../../utils/sort-factories");
+const format = require("date-fns/format");
 
 route.get("/", async function(req, res) {
   const page = Number(req.query.page || 1);
@@ -6,7 +8,8 @@ route.get("/", async function(req, res) {
 
   const { Punch } = req.props;
 
-  const punches = (await Punch.all()).filter(p => !p.deleted).sort(byStartDesc);
+  const punches = (await Punch.all()).sort(descendingBy("in"));
+
   const slice = punches.slice((page - 1) * count, page * count);
   const groups = groupByDate(slice);
 
@@ -19,35 +22,17 @@ route.get("/", async function(req, res) {
 
   res.render("sections/log/index", {
     groups,
-    page,
-    count,
-    totalPages,
-    backUrl,
-    nextUrl
+    pagination: {
+      currentPage: page,
+      totalPages,
+      count,
+      backUrl,
+      nextUrl
+    }
   });
 });
 
 module.exports = route;
-
-function byStartDesc(a, b) {
-  if (a.in > b.in) {
-    return -1;
-  } else if (a.in < b.in) {
-    return +1;
-  } else {
-    return 0;
-  }
-}
-
-function byStartAsc(a, b) {
-  if (a.in < b.in) {
-    return -1;
-  } else if (a.in > b.in) {
-    return +1;
-  } else {
-    return 0;
-  }
-}
 
 function groupByDate(punches) {
   const groups = {};
@@ -72,8 +57,8 @@ function groupByDate(punches) {
     const date = groups[key][0].in;
 
     groupsArray.push({
-      date: date,
-      punches: groups[key].sort(byStartAsc)
+      title: format(date, "eee, MMM d, yyyy"),
+      punches: groups[key].sort(ascendingBy("in"))
     });
   }
 

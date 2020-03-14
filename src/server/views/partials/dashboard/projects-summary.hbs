@@ -1,0 +1,23 @@
+<div class="projects-summary">
+  <div class="projects-summary__distribution">
+    {{#each projects}}
+      <div class="fill-{{color}}" style="flex-basis: {{percentage}}%"></div>
+    {{/each}}
+  </div>
+  <ul class="projects-summary__projects unstyled">
+    {{#each projects}}
+      <li>
+        <span class="projects-summary__project-name color-{{color}}">
+          {{name}}
+        </span>
+        <span class="projects-summary__project-stats">
+          {{formatDurationMs duration}}
+
+          {{#if earnings}}
+            &middot; {{formatCurrency earnings}}
+          {{/if}}
+        </span>
+      </li>
+    {{/each}}
+  </ul>
+</div>

@@ -1,57 +1,143 @@
-<h1>Punch Details</h1>
+{{> ui/nav-header title="Punch Details" href=returnUrl }}
 
-{{#with project}}
-Project: <a href="/projects/{{alias}}">{{name}}</a><br>
-{{/with}}
+<div class="punch-show page">
+  <div class="container">
+    <section>
+      <div class="subsection">
+        <header>
+          <span>Project</span>
+        </header>
+        <a
+          href="/projects/{{project.alias}}"
+          class="color-{{ifNotDefined project.color "gray"}}">
+          {{project.name}}
+        </a>
+      </div>
 
-{{#with punch}}
+      <div class="subsection">
+        <span>{{formatDate punch.in}}</span>
+      </div>
 
-  {{#if @root.isActive}}
+      <div class="subsection">
+        <div class="punch-show__summary">
+          <span class="font-bold">
+            {{formatTime punch.in}} &mdash;
 
-    started {{formatTime in}} - 
+            {{#if isActive}}
+              NOW
+            {{else}}
+              {{formatTime punch.out}}
+            {{/if}}
+          </span>
+          <span>
+            {{#if isActive}}
+              <span
+                data-ticker="duration"
+                data-ticker-value="{{dateDiffInMs punch.in punch.out}}">
+                {{formatDurationDates punch.in punch.out}}
+              </span>
 
-    <span data-ticker="duration" data-ticker-value="{{ dateDiffInMs in out }}">{{ formatDurationDates in out }}</span>
+              {{#if isPaid}}
+                &middot;
+                <span
+                  data-ticker="currency"
+                  data-ticker-value="{{earnings}}"
+                  data-ticker-hourly-rate="{{punch.rate}}">
 
-    {{#if @root.isPaid}}
-      <span
-        data-ticker="currency"
-        data-ticker-value="{{ earnings }}"
-        data-ticker-hourly-rate="{{ hourlyRate }}">
+                  {{formatCurrency earnings}}
+                </span>
+              {{/if}}
+            {{else}}
+              {{formatDurationDates punch.in punch.out resolution="minutes"}}
 
-        {{ formatCurrency earnings }}
-      </span>
-    {{/if}}
-
-    <br>
-
-    <a href="/punch/out/{{id}}">Punch Out</a>
-
-  {{else}}
-
-    from {{formatTime in}} to {{formatTime out}}
-
-    {{#if @root.isPaid}}
-      - 
-      {{ formatCurrency ../earnings }}
-    {{/if}}
-
-  {{/if}}
-
-
-  <h2>Comments</h2>
-  <ul>
-    {{#each comments}}
-      <li>
-        <div>
-          {{comment}}
+              {{#if isPaid}}
+                &middot;
+                {{formatCurrency earnings}}
+              {{/if}}
+            {{/if}}
+          </span>
         </div>
-        <div>
-          <a href="/punch/{{@root.punch.id}}/comment/{{id}}/edit">Edit</a>
-          <a href="/punch/{{@root.punch.id}}/comment/{{id}}/delete">Delete</a>
-        </div>
-      </li>
-    {{/each}}
+      </div>
 
-    <li><a href="/punch/{{@root.punch.id}}/comment/new">Add Comment</a></li>
-  </ul>
-{{/with}}
+      {{#if isActive}}
+        <a
+          class="button button--pill"
+          href="/punch/out/{{punch.id}}?r=/punch/{{punch.id}}">
+          <svg class="button__icon">
+            <title>Punch out</title>
+            <use xlink:href="/icons/ikonate.svg#stopwatch">
+          </svg>
+          <span>
+            Punch Out
+          </span>
+        </a>
+      {{/if}}
+    </section>
+
+    <section>
+      <header class="section-header">
+        <h2>Comments</h2>
+      </header>
+
+      {{#with punch}}
+      <ul class="punch-show__comments unstyled">
+        {{#if comments}}
+          {{#each comments}}
+          <li>
+            <div class="punch-show__comment">
+              <div class="punch-show__comment-timestamp">
+                <div class="punch-show__timestamp-group">
+                  <div class="punch-show__comment-dot fill-{{ifNotDefined (projectDetails ../project "color") "gray"}}"></div>
+                  <span class="color-gray">{{dateDiffOffset ../in timestamp}}</span>
+                </div>
+              </div>
+              <div class="punch-show__comment-text">
+                {{comment}}
+              </div>
+            </div>
+            <div class="punch-show__comment-actions">
+              <a
+                class="button button--pill"
+                href="/punch/{{@root.punch.id}}/comment/{{id}}/edit">
+                <svg class="button__icon">
+                  <title>Edit icon</title>
+                  <use xlink:href="/icons/ikonate.svg#edit"></use>
+                </svg>
+                <span>
+                  Edit
+                </span>
+              </a>
+              <a
+                class="button button--pill"
+                href="/punch/{{@root.punch.id}}/comment/{{id}}/delete">
+                <svg class="button__icon">
+                  <title>Delete icon</title>
+                  <use xlink:href="/icons/ikonate.svg#bin"></use>
+                </svg>
+                <span>
+                  Delete
+                </span>
+              </a>
+            </div>
+          </li>
+          {{/each}}
+        {{else}}
+          <li>No comments</li>
+        {{/if}}
+      </ul>
+
+      <a
+        class="button button--pill"
+        href="/punch/{{@root.punch.id}}/comment/new?r=/punch/{{@root.punch.id}}">
+        <svg class="button__icon">
+          <title>Add comment</title>
+          <use xlink:href="/icons/ikonate.svg#chat">
+        </svg>
+        <span>
+          Add Comment
+        </span>
+      </a>
+      {{/with}}
+    </section>
+  </div>
+</div>

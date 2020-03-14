@@ -1,7 +1,9 @@
-<h1>Delete Comment</h1>
+{{> ui/nav-header title="Delete Comment" }}
 
-<p>Really delete comment?</p>
+<div class="comment-delete page">
+  <p>Really delete comment?</p>
 
-<form method="post">
-  <input type="submit" value="Yes, Delete">
-</form>
+  <form method="post">
+    {{> ui/button title="Yes, Delete" style="pill" }}
+  </form>
+</div>

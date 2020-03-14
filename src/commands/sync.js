@@ -3,21 +3,14 @@ const Syncer = require("../sync/syncer");
 
 module.exports = command =>
   command
-    .description("synchronize with any services in your config file")
-    .arg("services", {
-      description:
-        "list of services to sync with (matches label or service name)",
-      optional: true,
-      splat: true
-    })
-    .run(async ({ args, props }) => {
+    .description("synchronize with configured backends")
+    .run(async ({ props }) => {
       const { config, Punch } = props;
 
       const syncer = new Syncer(config, Punch);
+      const services = config.sync.services.filter(s => s.enabled);
 
-      await syncer.syncAll(
-        args.services || config.sync.services.map(s => s.name)
-      );
+      await syncer.syncAll(services);
 
       updateCurrentMarker(config, await Punch.current());
     });

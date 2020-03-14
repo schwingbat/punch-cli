@@ -1,42 +1,26 @@
-<h1>Punches</h1>
+{{> ui/nav-header title="Log" }}
 
-{{#if backUrl}}
-  <a href="{{backUrl}}">Back</a>
-{{else}}
-  <a href="{{backUrl}}" disabled>Back</a>
-{{/if}}
+<div class="log page">
+  <div class="container">
+    <div class="log__page-selector">
+      {{> log/page-selector pagination }}
+    </div>
 
-Page {{page}} of {{totalPages}}
+    {{#each groups}}
+    <section>
+      <header class="section-header">
+        <h2>{{title}}</h2>
+      </header>
 
-{{#if nextUrl}}
-  <a href="{{nextUrl}}">Next</a>
-{{else}}
-  <a href="{{nextUrl}}" disabled>Next</a>
-{{/if}}
+      {{> punch-list punches=punches }}
+    </section>
+    {{/each}}
 
-{{#each groups}}
-  <h2>{{formatDate date}}</h2>
-  <ul>
-  {{#each punches}}
-    <li>
-      {{project}} // {{formatTime in}} - {{#if out}}{{formatTime out}}{{else}}NOW{{/if}} // {{formatDurationDates in out}}
-      
-      <a href="/punch/{{id}}">View Punch</a>
-    </li>
-  {{/each}}
-  </ul>
-{{/each}}
+    <div class="log__page-selector">
+      {{> log/page-selector pagination }}
+    </div>
+  </div>
+</div>
 
-{{#if backUrl}}
-  <a href="{{backUrl}}">Back</a>
-{{else}}
-  <a href="{{backUrl}}" disabled>Back</a>
-{{/if}}
 
-Page {{page}} of {{totalPages}}
 
-{{#if nextUrl}}
-  <a href="{{nextUrl}}">Next</a>
-{{else}}
-  <a href="{{nextUrl}}" disabled>Next</a>
-{{/if}}

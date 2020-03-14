@@ -1,10 +1,12 @@
-<h1>Invoices</h1>
+{{> ui/nav-header title="Invoices" }}
 
-<h2>Notes</h2>
-<h3>About Invoices</h3>
-<ul>
-  <li>Define invoices in a separate invoices.json file in the punch directory</li>
-  <li>Invoices are a project alias, a date range and a payments array. An invoice is essentially an alternate log view with live data.</li>
-  <li>Invoices can be printed to PDF to send</li>
-  <li>The payments array holds records to track when payments were made toward the invoice (date, amount and comment)</li>
-</ul>
+<div class="invoices page">
+  <h2>Notes</h2>
+  <h3>About Invoices</h3>
+  <ul>
+    <li>Define invoices in a separate invoices.json file in the punch directory</li>
+    <li>Invoices are a project alias, a date range and a payments array. An invoice is essentially an alternate log view with live data.</li>
+    <li>Invoices can be printed to PDF to send</li>
+    <li>The payments array holds records to track when payments were made toward the invoice (date, amount and comment)</li>
+  </ul>
+</div>

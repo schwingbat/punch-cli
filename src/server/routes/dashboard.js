@@ -10,7 +10,7 @@ const addWeeks = require("date-fns/addWeeks");
 const addDays = require("date-fns/addDays");
 const differenceInDays = require("date-fns/differenceInDays");
 const differenceInWeeks = require("date-fns/differenceInWeeks");
-const { ascendingBy } = require("../../utils/sort-factories");
+const { ascendingBy, descendingBy } = require("../../utils/sort-factories");
 
 route.get("/", async function(req, res) {
   const { props } = req;
@@ -58,18 +58,12 @@ route.get("/", async function(req, res) {
     end: thisMonthIntervalEnd
   };
 
-  const lastMonthInterval = {
-    start: startOfMonth(lastMonth),
-    end: endOfMonth(lastMonth)
-  };
-
   const summaries = {
     today: await getDaySummary(today, props),
     yesterday: await getDaySummary(yesterday, props),
     thisWeek: await getWeekSummary(thisWeekInterval, props),
     lastWeek: await getWeekSummary(lastWeekInterval, props),
-    thisMonth: await getMonthSummary(thisMonthInterval, props),
-    lastMonth: await getMonthSummary(lastMonthInterval, props)
+    thisMonth: await getMonthSummary(thisMonthInterval, props)
   };
 
   res.render("sections/dashboard/index", {
@@ -102,9 +96,7 @@ async function getDaySummary(date, { config, Punch }) {
     punches: punches.sort(ascendingBy("in")),
     duration,
     earnings,
-    statsByProject: getStatsByProject(punches, interval, { config }),
-    avgHoursOnDay: 0,
-    avgEarningsOnDay: 0
+    projects: getProjectsSummary(punches, interval, { config })
   };
 }
 
@@ -126,9 +118,11 @@ async function getWeekSummary(interval, { config, Punch }) {
   return {
     duration,
     earnings,
-    statsByProject: getStatsByProject(punches, interval, { config }),
-    avgDuration: duration / totalDays,
-    avgEarnings: earnings / totalDays
+    projects: getProjectsSummary(punches, interval, { config }),
+    dailyAverage: {
+      duration: duration / totalDays,
+      earnings: earnings / totalDays
+    }
   };
 }
 
@@ -150,15 +144,21 @@ async function getMonthSummary(interval, { config, Punch }) {
   return {
     duration,
     earnings,
-    statsByProject: getStatsByProject(punches, interval, { config }),
-    avgWeekDuration: duration / weeks,
-    avgWeekEarnings: earnings / weeks
+    projects: getProjectsSummary(punches, interval, { config }),
+    weeklyAverage: {
+      duration: duration / weeks,
+      earnings: earnings / weeks
+    }
   };
 }
 
-function getStatsByProject(punches, interval, { config }) {
+function getProjectsSummary(punches, interval, { config }) {
   const { projects } = config;
 
+  const totals = {
+    duration: 0,
+    earnings: 0
+  };
   const byProject = {};
 
   for (const punch of punches) {
@@ -169,21 +169,41 @@ function getStatsByProject(punches, interval, { config }) {
       };
     }
 
-    byProject[punch.project].duration += punch.durationWithinInterval(interval);
-    byProject[punch.project].earnings += punch.payWithinInterval(interval);
+    const duration = punch.durationWithinInterval(interval);
+    const earnings = punch.payWithinInterval(interval);
+
+    byProject[punch.project].duration += duration;
+    byProject[punch.project].earnings += earnings;
+
+    totals.duration += duration;
+    totals.earnings += earnings;
   }
 
   const projectArray = [];
 
   for (const alias in byProject) {
     const { duration, earnings } = byProject[alias];
+    const { name, color } = projects[alias];
+
+    const percentage = (duration / totals.duration) * 100;
 
     projectArray.push({
-      project: projects[alias],
+      name,
+      color: getFallbackColor(color, projects[alias]),
       duration,
-      earnings
+      earnings,
+      percentage
     });
   }
 
-  return projectArray;
+  return projectArray.sort(descendingBy("percentage"));
+}
+
+function getFallbackColor(color, project) {
+  if (color) {
+    return color;
+  } else {
+    // TODO: Generate consistent color based on project info.
+    return "blue";
+  }
 }
