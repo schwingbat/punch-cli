@@ -1,82 +1,92 @@
-{{> ui/nav-header title="Config" }}
-
 <div class="config page">
-  <section>
-    {{#with config.user}}
+  <div class="page__nav-breadcrumbs">
+    <div class="nav-breadcrumbs">
+      <a href="/menu">Menu</a>
+      <div class="divider"></div>
+      <span>Config</span>
+    </div>
+  </div>
+  
+  <div class="container">
+    <section>
+      {{#with config.user}}
+        <header class="section-header">
+          <h2>User</h2>
+        </header>
+
+        <a href="#">Edit</a>
+
+        <table>
+          <tr>
+            <td>Name</td>
+            <td>{{name}}</td>
+          </tr>
+          <tr>
+            <td>Company</td>
+            <td>{{company}}</td>
+          </tr>
+          <tr>
+            <td>Address</td>
+            <td>{{newlineToBreak address}}</td>
+          </tr>
+        </table>
+      {{/with}}
+    </section>
+
+    <section>
+      {{#with config.sync}}
+        <header class="section-header">
+          <h2>Sync</h2>
+        </header>
+
+        <a href="#">Edit</a>
+
+        <table>
+          <tr>
+            <td>Autosync</td>
+            <td>{{autoSync}}</td>
+          </tr>
+          <tr>
+            <td>Services</td>
+            <td>
+              <ul>
+                {{#each services}}
+                  <li>{{name}} - {{label}}</li>
+                {{/each}}
+              </ul>
+            </td>
+          </tr>
+        </table>
+      {{/with}}
+    </section>
+
+    <section>
+      {{#with display}}
+        <header class="section-header">
+          <h2>Display</h2>
+        </header>
+
+        <table>
+          <tr>
+            <td></td>
+          </tr>
+        </table>
+      {{/with}}
+    </section>
+
+    <section>
       <header class="section-header">
-        <h2>User</h2>
+        <h2>Notes</h2>
       </header>
 
-      <a href="#">Edit</a>
+      <h3>What goes on this page</h3>
+      <ul>
+        <li>User settings with section edit button</li>
+        <li>Sync settings with section edit button</li>
+        <li>Server user password set &amp; reset</li>
+      </ul>
+    </section>
+  </div>
 
-      <table>
-        <tr>
-          <td>Name</td>
-          <td>{{name}}</td>
-        </tr>
-        <tr>
-          <td>Company</td>
-          <td>{{company}}</td>
-        </tr>
-        <tr>
-          <td>Address</td>
-          <td>{{newlineToBreak address}}</td>
-        </tr>
-      </table>
-    {{/with}}
-  </section>
-
-  <section>
-    {{#with config.sync}}
-      <header class="section-header">
-        <h2>Sync</h2>
-      </header>
-
-      <a href="#">Edit</a>
-
-      <table>
-        <tr>
-          <td>Autosync</td>
-          <td>{{autoSync}}</td>
-        </tr>
-        <tr>
-          <td>Services</td>
-          <td>
-            <ul>
-              {{#each services}}
-                <li>{{name}} - {{label}}</li>
-              {{/each}}
-            </ul>
-          </td>
-        </tr>
-      </table>
-    {{/with}}
-  </section>
-
-  <section>
-    {{#with display}}
-      <header class="section-header">
-        <h2>Display</h2>
-      </header>
-
-      <table>
-        <tr>
-          <td></td>
-        </tr>
-      </table>
-    {{/with}}
-  </section>
-
-  <section>
-    <header class="section-header">
-      <h2>Notes</h2>
-    </header>
-
-    <h3>What goes on this page</h3>
-    <ul>
-      <li>User settings with section edit button</li>
-      <li>Sync settings with section edit button</li>
-      <li>Server user password set &amp; reset</li>
-    </ul>
-  </section>
+  
 </div>

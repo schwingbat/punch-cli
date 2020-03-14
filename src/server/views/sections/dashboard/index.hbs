@@ -1,16 +1,13 @@
-{{> ui/nav-header title="Dashboard" href="/menu" icon="menu" }}
-
 <div class="dashboard page">
-  <div class="section-row">
-    <div class="clock-header">
-      <span class="clock-header__date">
-        Mon, Feb 3
-      </span>
-      <span class="clock-header__time">
-        10:11 PM
-      </span>
+  <div class="page__nav-breadcrumbs">
+    <div class="nav-breadcrumbs">
+      <a href="/menu">Menu</a>
+      <div class="divider"></div>
+      <span>Dashboard</span>
     </div>
+  </div>
 
+  <div class="section-row">
     <section>
       <header>
         <h1>Now</h1>
@@ -36,6 +33,15 @@
         <span>Punch In</span>
       </a>
     </section>
+
+    <div class="clock-header">
+      <span class="clock-header__date">
+        Mon, Feb 3
+      </span>
+      <span class="clock-header__time">
+        10:11 PM
+      </span>
+    </div>
   </div>
 
   <div class="section-row collapse-dir-reverse">
@@ -154,7 +160,7 @@
     </section>
   </div>
 
-  <div class="section-row">
+  <div class="section-row collapse-dir-reverse">
     <section>
       <header>
         <h1>This Month</h1>

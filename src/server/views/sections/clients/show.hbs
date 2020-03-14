@@ -1,50 +1,52 @@
-{{> ui/nav-header title=client.name href="/clients" }}
-
 <div class="clients-show page">
-  <div class="nav-breadcrumbs">
-    <a href="/menu">Menu</a>
-    <div class="divider"></div>
-    <a href="/clients">Clients</a>
-    <div class="divider"></div>
-    <span>{{client.name}}</span>
+  <div class="page__nav-breadcrumbs">
+    <div class="nav-breadcrumbs">
+      <a href="/menu">Menu</a>
+      <div class="divider"></div>
+      <a href="/clients">Clients</a>
+      <div class="divider"></div>
+      <span>{{client.name}}</span>
+    </div>
   </div>
 
-  {{#with current}}
-    {{#if any}}
-      <section>
-        <header>
-          <h2>Active Punches</h2>
-        </header>
-        {{#each punches}}
-          <li>{{> activePunch . }}</li>
+  <div class="container">
+    {{#with current}}
+      {{#if any}}
+        <section>
+          <header>
+            <h2>Active Punches</h2>
+          </header>
+          {{#each punches}}
+            <li>{{> activePunch . }}</li>
+          {{/each}}
+        </section>
+      {{/if}}
+    {{/with}}
+
+    <section>
+      <header>
+        <h2>Projects</h2>
+      </header>
+      <ul class="clients-show__projects unstyled">
+        {{#each projects}}
+          <li>{{> project-card project=. }}</li>
         {{/each}}
-      </section>
-    {{/if}}
-  {{/with}}
+      </ul>
+    </section>
 
-  <section>
-    <header>
-      <h2>Projects</h2>
-    </header>
-    <ul class="clients-show__projects unstyled">
-      {{#each projects}}
-        <li>{{> project-card project=. }}</li>
-      {{/each}}
-    </ul>
-  </section>
-
-  <section>
-    <header>
-      <h2>Notes</h2>
-    </header>
-    <h3>Stuff That Goes On This Page</h3>
-    <ul>
-      <li>Currently active sessions on projects for this client</li>
-      <li>List of projects for this client (with links to project pages)</li>
-      <li>Work summary for combined projects for the client</li>
-      <li>Client edit button</li>
-    </ul>
-  </section>
+    <section>
+      <header>
+        <h2>Notes</h2>
+      </header>
+      <h3>Stuff That Goes On This Page</h3>
+      <ul>
+        <li>Currently active sessions on projects for this client</li>
+        <li>List of projects for this client (with links to project pages)</li>
+        <li>Work summary for combined projects for the client</li>
+        <li>Client edit button</li>
+      </ul>
+    </section>
+  </div>
 </div>
 
 

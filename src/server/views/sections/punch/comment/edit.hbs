@@ -1,14 +1,24 @@
-{{> ui/nav-header title="Edit Comment" }}
-
 <div class="comment-edit page">
-  <form method="post" action="/punch/{{punchId}}/comment/{{commentId}}/edit">
-    <textarea class="text-area" name="comment">{{{comment}}}</textarea>
-    <div>
-      <input type="checkbox" name="keepTimestamp" checked>
-      <label for="keepTimestamp">Keep original timestamp</label>
+  <div class="page__nav-breadcrumbs">
+    <div class="nav-breadcrumbs">
+      <a href="/menu">Menu</a>
+      <div class="divider"></div>
+      <a href="/punch/{{punchId}}">Punch</a>
+      <div class="divider"></div>
+      <span>Edit Comment</span>
     </div>
-    
-    {{> ui/button title="Save Comment"
-                  style="pill" }}
-  </form>
+  </div>
+
+  <div class="container">
+    <form method="post" action="/punch/{{punchId}}/comment/{{commentId}}/edit">
+      <textarea class="text-area" name="comment">{{{comment}}}</textarea>
+      <div>
+        <input type="checkbox" name="keepTimestamp" checked>
+        <label for="keepTimestamp">Keep original timestamp</label>
+      </div>
+      
+      {{> ui/button title="Save Comment"
+                    style="pill" }}
+    </form>
+  </div>
 </div>

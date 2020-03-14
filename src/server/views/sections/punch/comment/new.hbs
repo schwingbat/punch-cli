@@ -1,17 +1,27 @@
-{{> ui/nav-header title="Add Comment" href=returnUrl }}
-
 <div class="punch-new-comment page">
-  <form method="post">
-    <div class="subsection">
-      <textarea class="text-area" name="comment"></textarea>
+  <div class="page__nav-breadcrumbs">
+    <div class="nav-breadcrumbs">
+      <a href="/menu">Menu</a>
+      <div class="divider"></div>
+      <a href="/punch/{{punchId}}">Punch</a>
+      <div class="divider"></div>
+      <span>Add Comment</span>
     </div>
+  </div>
 
-    <button class="button button--pill">
-      <!-- <svg class="button__icon">
-        <title>Save Comment</title>
-        <use xlink:href="/icons/ikonate.svg#chat"></use>
-      </svg> -->
-      <span>Save Comment</span>
-    </button>
-  </form>
+  <div class="container">
+    <form method="post">
+      <div class="subsection">
+        <textarea class="text-area" name="comment"></textarea>
+      </div>
+
+      <button class="button button--pill">
+        <!-- <svg class="button__icon">
+          <title>Save Comment</title>
+          <use xlink:href="/icons/ikonate.svg#chat"></use>
+        </svg> -->
+        <span>Save Comment</span>
+      </button>
+    </form>
+  </div>
 </div>

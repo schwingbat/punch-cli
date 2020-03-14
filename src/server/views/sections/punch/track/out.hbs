@@ -1,30 +1,40 @@
-{{> ui/nav-header title="Punch Out" href=returnUrl }}
-
 <div class="punch-out page">
-  <form method="post">
-    <div class="subsection">
-      <header>
-        <label for="timestamp">Timestamp</label>
-      </header>
-      <input type="checkbox" name="useCustomTimestamp">
-      <label for="useCustomTimestamp">Use custom timestamp</label><br>
-
-      <input class="text-input" type="text" name="timestamp" value="{{outTime}}">
+  <div class="page__nav-breadcrumbs">
+    <div class="nav-breadcrumbs">
+      <a href="/menu">Menu</a>
+      <div class="divider"></div>
+      <a href="/punch/{{id}}">Punch</a>
+      <div class="divider"></div>
+      <span>Out</span>
     </div>
+  </div>
 
-    <div class="subsection">
-      <header>
-        <label for="comment">Comment (optional)</label>
-      </header>
-      <textarea class="text-area punch-out__comment" name="comment"></textarea>
-    </div>
+  <div class="container">
+    <form method="post">
+      <div class="subsection">
+        <header>
+          <label for="timestamp">Timestamp</label>
+        </header>
+        <input type="checkbox" name="useCustomTimestamp">
+        <label for="useCustomTimestamp">Use custom timestamp</label><br>
 
-    <button class="button button--pill">
-      <svg class="button__icon">
-        <title>Punch out</title>
-        <use xlink:href="/icons/ikonate.svg#stopwatch"></use>
-      </svg>
-      <span>Punch Out</span>
-    </button>
-  </form>
+        <input class="text-input" type="text" name="timestamp" value="{{outTime}}">
+      </div>
+
+      <div class="subsection">
+        <header>
+          <label for="comment">Comment (optional)</label>
+        </header>
+        <textarea class="text-area punch-out__comment" name="comment"></textarea>
+      </div>
+
+      <button class="button button--pill">
+        <svg class="button__icon">
+          <title>Punch out</title>
+          <use xlink:href="/icons/ikonate.svg#stopwatch"></use>
+        </svg>
+        <span>Punch Out</span>
+      </button>
+    </form>
+  </div>
 </div>

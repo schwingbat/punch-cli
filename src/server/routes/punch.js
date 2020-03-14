@@ -35,6 +35,7 @@ route.get("/out/:id", async function(req, res) {
   const { config } = req.props;
 
   return res.render("sections/punch/track/out", {
+    id: req.params.id,
     outTime: format(new Date(), `yyyy-MM-dd '@' ${config.display.timeFormat}`),
     returnUrl: req.query.r
   });
@@ -105,6 +106,7 @@ route.get("/:id/delete", async function(req, res) {
     const project = config.projects[punch.project];
 
     return res.render("sections/punch/delete", {
+      id,
       punch,
       project,
       returnUrl: req.query.r
@@ -135,6 +137,7 @@ route.post("/:id/delete", async function(req, res) {
 // Show text editor to enter comment
 route.get("/:punchId/comment/new", async function(req, res) {
   res.render("sections/punch/comment/new", {
+    punchId: req.params.punchId,
     returnUrl: req.query.r
   });
 });

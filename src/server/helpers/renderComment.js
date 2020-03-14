@@ -20,8 +20,6 @@ module.exports = props =>
       }
     }
 
-    console.log(text);
-
     return new Handlebars.SafeString(`<span>${text}</span>`);
   };
 

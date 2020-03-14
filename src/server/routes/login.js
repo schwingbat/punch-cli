@@ -9,7 +9,6 @@ route.get("/", function(req, res) {
 route.post(
   "/",
   (req, res, next) => {
-    console.log(req.body);
     next();
   },
   passport.authenticate("local", {
