@@ -16,7 +16,7 @@ module.exports = command =>
       splat: true,
       parse: words => words.join(" ")
     })
-    .action(async (args, props) => {
+    .run(async ({ args, props }) => {
       const { config, Punch } = props;
 
       const punch = await Punch.find(p => p.id === args.punchId);

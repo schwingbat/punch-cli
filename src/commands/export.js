@@ -28,10 +28,9 @@ module.exports = command =>
     .flag("output", "o", {
       description: "file path to save to (prints to console by default)"
     })
-    .action(async (args, props) => {
+    .run(async ({ flags, props }) => {
       const { config, Punch } = props;
-
-      const { start, end, project, tag, format, output } = args.flags;
+      const { start, end, project, tag, format, output } = flags;
 
       let formatter;
       let formatterPath = path.join(

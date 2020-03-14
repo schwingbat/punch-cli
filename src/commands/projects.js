@@ -12,7 +12,7 @@ module.exports = command =>
       optional: true,
       splat: true
     })
-    .action(async (args, props) => {
+    .run(async ({ args, props }) => {
       const { config, Punch } = props;
 
       const names = args.names || Object.keys(config.projects);

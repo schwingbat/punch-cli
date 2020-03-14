@@ -25,11 +25,11 @@ module.exports = command =>
       description: "ending date and time",
       parse: parseDateTime
     })
-    .action(async (args, props) => {
+    .run(async ({ args, flags, props }) => {
       const { Punch } = props;
 
       const { project, newRate } = args;
-      const { start, end } = args.flags;
+      const { start, end } = flags;
 
       const punches = await Punch.filter(
         p =>

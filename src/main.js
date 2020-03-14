@@ -155,6 +155,10 @@ command("serve")
   .fromPath(__dirname, "commands/serve")
   .withProps(props);
 
+command("server:hash")
+  .fromPath(__dirname, "commands/server-hash")
+  .withProps(props);
+
 invoke();
 
 // Exit cleanup

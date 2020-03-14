@@ -1,4 +1,4 @@
-const uuid = require("uuid/v1");
+const uuid = require("uuid");
 const is = require("@schwingbat/is");
 const extractObjects = require("./comment-objects/extract");
 const chalk = require("chalk");
@@ -10,7 +10,7 @@ module.exports = function(config) {
   \*=======================*/
 
   class Comment {
-    constructor(comment, timestamp = new Date(), id = uuid()) {
+    constructor(comment, timestamp = new Date(), id = uuid.v1()) {
       const extracted = extractObjects(comment);
       this.id = id;
       this.objects = extracted.objects;
@@ -155,7 +155,7 @@ module.exports = function(config) {
         );
       }
 
-      this.id = props.id || uuid();
+      this.id = props.id || uuid.v1();
       this.project = props.project;
       this.in = new Date(props.in || new Date());
       this.out = props.out ? new Date(props.out || new Date()) : null;
@@ -200,10 +200,10 @@ module.exports = function(config) {
 
     deleteComment(id) {
       this.comments = this.comments.filter(comment => comment.id !== id);
-      
+
       this.update();
     }
-    
+
     /**
      * Replaces an existing comment with a modified one.
      *
@@ -218,7 +218,7 @@ module.exports = function(config) {
         } else {
           return comment;
         }
-      })
+      });
     }
 
     async punchOut(comment, options = {}) {

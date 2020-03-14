@@ -30,33 +30,39 @@
   "license": "MIT",
   "dependencies": {
     "@fardog/wordwrap": "^1.1.0",
-    "@ratwizard/cli": "^0.3.1",
+    "@ratwizard/cli": "^0.5.1",
     "@schwingbat/is": "^2.0.0",
     "@schwingbat/mon": "^1.0.0",
     "ansi-regex": "^5.0.0",
-    "aws-sdk": "^2.610.0",
+    "aws-sdk": "^2.638.0",
+    "bcrypt": "^4.0.1",
     "body-parser": "^1.19.0",
     "chalk": "^3.0.0",
-    "date-fns": "^2.9.0",
+    "connect-ensure-login": "^0.1.1",
+    "connect-flash": "^0.1.1",
+    "date-fns": "^2.10.0",
     "deepmerge": "^4.2.2",
     "express": "^4.17.1",
     "express-handlebars": "^3.1.0",
-    "handlebars": "^4.7.2",
+    "express-session": "^1.17.0",
+    "handlebars": "^4.7.3",
     "js-yaml": "^3.13.1",
-    "log-update": "^3.3.0",
+    "log-update": "^4.0.0",
     "mkdirp": "^1.0.3",
     "node-fetch": "^2.6.0",
-    "open": "^7.0.1",
+    "open": "^7.0.3",
+    "passport": "^0.4.1",
+    "passport-local": "^1.0.0",
     "readline-sync": "^1.4.10",
     "time-require": "^0.1.2",
-    "uuid": "^3.4.0"
+    "uuid": "^7.0.2"
   },
   "devDependencies": {
     "eslint": "^6.8.0",
-    "eslint-plugin-jest": "^23.6.0",
+    "eslint-plugin-jest": "^23.8.2",
     "jest": "^25.1.0",
     "jszip": "^3.2.2",
-    "pkg": "^4.4.2"
+    "pkg": "^4.4.4"
   },
   "jest": {
     "testEnvironment": "node"

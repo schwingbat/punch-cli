@@ -46,7 +46,7 @@ module.exports = function formatDuration(milliseconds, opts = {}) {
   const parts = {};
 
   if (resolution <= resolutions.hours) {
-    if (resolution === resolutions.hours || hours > 0) {
+    if (resolution === resolutions.hours || hours > 0 || opts.showHours) {
       parts.hours = hours;
     }
   }

@@ -4,7 +4,7 @@ const formatDistance = require("date-fns/formatDistance");
 const Table = require("../format/table");
 
 module.exports = command =>
-  command.description("show tags you've used").action(async (argv, props) => {
+  command.description("show tags you've used").run(async ({ props }) => {
     const { config, Punch } = props;
 
     // Do something

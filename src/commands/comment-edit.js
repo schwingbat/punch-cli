@@ -25,7 +25,7 @@ module.exports = command =>
       description: "updates the comment's timestamp to the current time",
       boolean: true
     })
-    .action(async (args, props) => {
+    .run(async ({ args, flags, props }) => {
       const { config, Punch } = props;
 
       const punch = await Punch.find(p => p.id === args.punchId);
@@ -54,8 +54,8 @@ module.exports = command =>
 
           if (confirm(str)) {
             const id = punch.comments[args.commentIndex].id;
-            const timestamp = args.flags.updateTimestamp && new Date();
-            
+            const timestamp = flags.updateTimestamp && new Date();
+
             punch.editComment(id, args.newComment, timestamp);
             await punch.save();
 

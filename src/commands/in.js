@@ -26,11 +26,11 @@ module.exports = command =>
       description: "time to set as punch in time (same as --time / -t)",
       parse: parseDateTime
     })
-    .action(async function(args, props) {
+    .run(async ({ args, flags, props }) => {
       const { config, Punch } = props;
 
       const loader = Loader();
-      const time = args.flags.time || args.flags.start;
+      const time = flags.time || flags.start;
       const { project } = args;
 
       loader.start("Punching in...");

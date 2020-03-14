@@ -20,11 +20,11 @@ module.exports = command =>
       description: "set a custom timestamp for the comment (defaults to now)",
       parse: parseDateTime
     })
-    .action(async (args, props) => {
+    .run(async ({ args, flags, props }) => {
       const { config, Punch } = props;
 
       const punchedIn = await allPunchedIn({ config, Punch });
-      const { project, time } = args.flags;
+      const { project, time } = flags;
 
       if (punchedIn.length > 1 && !project) {
         console.log(

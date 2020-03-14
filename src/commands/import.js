@@ -16,7 +16,7 @@ module.exports = command =>
       description:
         "name of function to handle import (defined in ~/.punch/formatters/import)"
     })
-    .action(async (args, props) => {
+    .run(async ({ args, flags, props }) => {
       const { config, Punch } = props;
 
       let contents;
@@ -26,11 +26,11 @@ module.exports = command =>
         console.log("Error loading file: " + err.message);
       }
 
-      if (!args.flags.format) {
+      if (!flags.format) {
         return console.log("Must pass --format with value");
       }
 
-      const formatter = loadImporter(args.flags.format);
+      const formatter = loadImporter(flags.format);
       if (formatter) {
         const punches = formatter(contents, Punch);
 

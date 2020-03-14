@@ -34,7 +34,7 @@ module.exports = command =>
       description: "generate without confirming details",
       boolean: true
     })
-    .action(async (args, props) => {
+    .run(async ({ args, flags, props }) => {
       const { config, Punch } = props;
 
       const project = config.projects[args.project];
@@ -53,9 +53,9 @@ module.exports = command =>
         );
       }
 
-      const startDate = args.flags["start-date"];
-      const endDate = args.flags["end-date"];
-      const outputFile = args.flags["output-file"];
+      const startDate = flags["start-date"];
+      const endDate = flags["end-date"];
+      const outputFile = flags["output-file"];
 
       if (!project.hourlyRate) {
         console.log(`${getLabelFor(config, project)} has no hourly rate set}`);
@@ -67,8 +67,8 @@ module.exports = command =>
 
       let fileFormat;
 
-      if (args.flags.format) {
-        fileFormat = args.flags.format;
+      if (flags.format) {
+        fileFormat = flags.format;
       } else {
         let ext = path.extname(outputFile);
 
@@ -108,7 +108,7 @@ module.exports = command =>
           ])
       );
 
-      if (args.flags.yes || confirm("Create invoice?")) {
+      if (flags.yes || confirm("Create invoice?")) {
         const loader = Loader({ text: "Generating invoice..." });
         loader.start();
 
@@ -132,7 +132,7 @@ module.exports = command =>
               output: {
                 path: resolvePath(outputFile),
                 format: fileFormat,
-                customFormat: !!args.flags.format
+                customFormat: !!flags.format
               }
             },
             false

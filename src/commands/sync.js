@@ -10,7 +10,7 @@ module.exports = command =>
       optional: true,
       splat: true
     })
-    .action(async (args, props) => {
+    .run(async ({ args, props }) => {
       const { config, Punch } = props;
 
       const syncer = new Syncer(config, Punch);

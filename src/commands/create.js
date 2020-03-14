@@ -22,7 +22,7 @@ module.exports = command =>
     .flag("comment", "c", {
       description: "a description of what you worked on"
     })
-    .action(async (args, props) => {
+    .run(async ({ args, flags, props }) => {
       const { config, Punch } = props;
       const project = config.projects[args.project];
 
@@ -30,9 +30,9 @@ module.exports = command =>
         return console.log("Project does not exist in your config file");
       }
 
-      const timeIn = args.flags.start;
-      const timeOut = args.flags.end;
-      const comment = args.flags.comment;
+      const timeIn = flags.start;
+      const timeOut = flags.end;
+      const comment = flags.comment;
 
       const duration = timeOut.getTime() - (timeIn || new Date()).getTime();
       let pay;

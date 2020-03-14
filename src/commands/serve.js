@@ -14,8 +14,8 @@ module.exports = command =>
       description: "don't automatically open the page in a browser",
       boolean: true
     })
-    .action(async (args, props) => {
-      const { port, noOpen } = args.flags;
+    .run(async ({ flags, props }) => {
+      const { port, noOpen } = flags;
 
       server.start({ port, props, autoOpen: !noOpen });
     });

@@ -6,11 +6,11 @@ module.exports = command =>
     .flag("editor", "e", {
       description: "editor command (vim, code, etc.)"
     })
-    .action((args, props) => {
+    .run(({ flags, props }) => {
       const { config } = props;
 
       const editor =
-        args.flags.editor ||
+        flags.editor ||
         process.env.VISUAL ||
         process.env.EDITOR ||
         (/^win/.test(process.platform) ? "notepad" : "vim");

@@ -20,10 +20,10 @@ module.exports = command =>
         "enable animations for the clock (may cause flicker in some terminals)",
       boolean: true
     })
-    .action(async (args, props) => {
+    .run(async ({ flags, props }) => {
       const { config, Punch } = props;
 
-      const animate = args.flags.animate;
+      const animate = flags.animate;
       const active = await Punch.current();
 
       if (active) {

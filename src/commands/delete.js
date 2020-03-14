@@ -12,7 +12,7 @@ module.exports = command =>
       description: "delete without confirmation",
       boolean: true
     })
-    .action(async (args, props) => {
+    .run(async ({ args, flags, props }) => {
       const { config, Punch } = props;
 
       const punch = await Punch.find(p => p.id === args.id);
@@ -22,7 +22,7 @@ module.exports = command =>
           "\n  " + dayPunches([punch], punch.in, config).replace(/\n/g, "\n  ")
         );
 
-        if (args.flags.yes || confirm("Delete this punch?")) {
+        if (flags.yes || confirm("Delete this punch?")) {
           punch.delete();
           console.log("BOOM! It's gone.");
         }

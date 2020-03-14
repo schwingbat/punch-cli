@@ -33,11 +33,11 @@ module.exports = command =>
       description: "punch out without warning about a lack of comments",
       boolean: true
     })
-    .action(async (args, props) => {
+    .run(async ({ args, flags, props }) => {
       const { config, Punch } = props;
 
       const loader = Loader();
-      const dryRun = args.flags["dry-run"];
+      const dryRun = flags["dry-run"];
 
       loader.start("Punching out...");
 
@@ -65,24 +65,22 @@ module.exports = command =>
       }
 
       if (current) {
-        if (args.flags.time) {
-          if (args.flags.time < current.in) {
+        if (flags.time) {
+          if (flags.time < current.in) {
             loader.stop("You can't punch out before you punched in.");
             return;
           }
 
-          if (
-            !confirmAdjustedTime(config, args.flags.time, "Punch out at $?")
-          ) {
+          if (!confirmAdjustedTime(config, flags.time, "Punch out at $?")) {
             loader.stop();
             return;
           }
         }
 
-        if (current.comments.length === 0 && !args.flags.comment) {
+        if (current.comments.length === 0 && !flags.comment) {
           let noComment;
 
-          if (args.flags["no-comment"]) {
+          if (flags["no-comment"]) {
             noComment = true;
           } else {
             noComment = confirm(
@@ -99,19 +97,19 @@ module.exports = command =>
         }
 
         if (!dryRun) {
-          await current.punchOut(args.flags.comment, {
+          await current.punchOut(flags.comment, {
             autosave: true,
-            time: args.flags.time || new Date()
+            time: flags.time || new Date()
           });
         }
 
         const label = getLabelFor(config, current.project);
-        const duration = formatDuration(current.duration(args.flags.time));
+        const duration = formatDuration(current.duration(flags.time));
         const time = formatDate(
-          args.flags.time || new Date(),
+          flags.time || new Date(),
           config.display.timeFormat
         );
-        const pay = current.pay(args.flags.time);
+        const pay = current.pay(flags.time);
 
         let str = `Punched out on ${label} at ${time}. Worked for ${duration}`;
         if (pay > 0) {

@@ -41,13 +41,13 @@ module.exports = command =>
       description: "override app config and show hourly punch graphics",
       boolean: true
     })
-    .action(async function(args, props) {
+    .run(async function({ args, flags, props }) {
       const { config, Punch } = props;
 
       let interval;
 
-      let start = args.flags["start"];
-      let end = args.flags["end"];
+      let start = flags["start"];
+      let end = flags["end"];
 
       if ((start && !end) || (!start && end)) {
         console.log("--start and --end options must be used together");
@@ -65,16 +65,16 @@ module.exports = command =>
         interval = fuzzyParse(args.when);
       }
 
-      if (args.flags["with-ids"]) {
+      if (flags["with-ids"]) {
         config.display.showPunchIDs = true;
         config.display.showCommentIndices = true;
       }
 
-      if (args.flags["with-graphics"]) {
+      if (flags["with-graphics"]) {
         config.display.showDayGraphics = true;
       }
 
       if (interval) {
-        Log(config, Punch).forInterval(interval, args.flags);
+        Log(config, Punch).forInterval(interval, flags);
       }
     });

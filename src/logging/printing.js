@@ -381,12 +381,18 @@ function dayPunches(punches, date, config) {
 
           let timestamp =
             "+" +
-            formatDuration(diff, { resolution: "minutes", padded: true }) +
+            formatDuration(diff, {
+              resolution: "minutes",
+              padded: true,
+              showHours: true
+            }) +
             ":";
 
           // Align to the left accounting for the max width of the user's time format.
           const timeLength = maxTimeLength + 1;
-          if (timestamp.length < timeLength) timestamp = " " + timestamp;
+          // if (timestamp.length < timeLength) timestamp = " " + timestamp;
+
+          timestamp = timestamp.padStart(timeLength);
 
           line += timestamp;
           wrapPos += timestamp.length;

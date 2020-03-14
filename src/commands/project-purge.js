@@ -5,7 +5,10 @@ const getLabelFor = require("../utils/get-label-for");
 module.exports = command =>
   command
     .description("destroy all punches for a given project")
-    .action(async (args, props) => {
+    .arg("project", {
+      description: "project alias"
+    })
+    .run(async ({ props }) => {
       const { project } = args;
       const { config, Punch } = props;
 

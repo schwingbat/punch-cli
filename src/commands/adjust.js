@@ -18,13 +18,13 @@ module.exports = command =>
       description: "end date and time for punch",
       parse: parseDateTime
     })
-    .action(async (args, props) => {
+    .run(async ({ args, flags, props }) => {
       const { config, Punch } = props;
 
       const punch = await Punch.find(p => p.id === args.id);
 
       if (punch) {
-        if (!punch.out && args.flags.end) {
+        if (!punch.out && flags.end) {
           return console.log(
             "You can't set an end for a running punch. Use " +
               chalk.bold("punch out -t <value>") +
@@ -32,8 +32,8 @@ module.exports = command =>
           );
         }
 
-        let punchIn = args.flags.start || punch.in;
-        let punchOut = args.flags.end || punch.out;
+        let punchIn = flags.start || punch.in;
+        let punchOut = flags.end || punch.out;
 
         if (punchOut != null && punchOut < punchIn) {
           console.log("Punch can't end before it starts.");
@@ -61,7 +61,7 @@ module.exports = command =>
         str += "\n";
 
         str += "Punch In\n";
-        if (args.flags.start != null) {
+        if (flags.start != null) {
           // Show change before if it's earlier and after if it's later.
           if (punchIn < punch.in) {
             str += chalk.green(`+ ${inAfter}`) + "\n";
@@ -75,7 +75,7 @@ module.exports = command =>
         }
 
         str += "Punch Out\n";
-        if (args.flags.end != null) {
+        if (flags.end != null) {
           if (punchOut < punch.out) {
             str += chalk.green(`+ ${outAfter}`) + "\n";
             str += chalk.red(`- ${outBefore}`) + "\n";
@@ -92,11 +92,11 @@ module.exports = command =>
         console.log(str);
 
         if (confirm("Adjust times?")) {
-          if (args.flags.start) {
-            punch.in = args.flags.start;
+          if (flags.start) {
+            punch.in = flags.start;
           }
-          if (args.flags.end) {
-            punch.out = args.flags.end;
+          if (flags.end) {
+            punch.out = flags.end;
           }
 
           // Update 'updated' timestamp.
