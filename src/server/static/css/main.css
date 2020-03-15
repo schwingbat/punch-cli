@@ -233,9 +233,23 @@ ol.unstyled {
 ||               Layout               ||
 \*====================================*/
 
+/* ----- Layout ----- */
+
+.layout {
+  display: flex;
+  flex-flow: row nowrap;
+  max-width: 1150px;
+  margin: 0 auto;
+}
+
+.layout > main {
+  flex: 1 1 100%;
+}
+
+/* ----- Page ----- */
+
 .page {
   padding: 0 var(--page-padding) var(--page-padding);
-  max-width: 1000px;
   margin: 0 auto;
 }
 
@@ -738,6 +752,55 @@ ol.unstyled {
   font-size: 1.9em;
 }
 
+/* ----- Nav Sidebar ----- */
+
+.nav-sidebar {
+  display: none;
+}
+
+@media (min-width: 800px) {
+  .nav-sidebar {
+    display: block;
+    min-width: 200px;
+    padding: 0 0 0 1em;
+  }
+}
+
+/* ----- Menu ----- */
+
+.sidebar-menu {
+  padding-top: 4.1em;
+  position: sticky;
+  top: 0;
+  left: 0;
+}
+
+.sidebar-menu ul {
+}
+
+.sidebar-menu ul li {
+}
+
+.sidebar-menu ul li a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  height: 36px;
+  text-decoration: none;
+  font-size: 1em;
+  line-height: 1em;
+  /* font-weight: bold; */
+}
+
+.sidebar-menu .menu-item__disclosure {
+  stroke: var(--border-color);
+  fill: none;
+  width: 30px;
+  height: 30px;
+  justify-self: flex-end;
+}
+
 /* ----- Nav Breadcrumbs ----- */
 
 .nav-breadcrumbs {
@@ -755,6 +818,16 @@ ol.unstyled {
 .nav-breadcrumbs > .divider:after {
   content: "/";
   color: var(--color-border);
+}
+
+@media (min-width: 800px) {
+  .nav-breadcrumbs > a:first-child {
+    display: none;
+  }
+
+  .nav-breadcrumbs > .divider:first-of-type {
+    display: none;
+  }
 }
 
 /*====================================*\
@@ -843,7 +916,7 @@ ol.unstyled {
   font-weight: bold;
 }
 
-.main-menu__icon {
+.main-menu .menu-item__icon {
   stroke: var(--text-color);
   fill: none;
   width: 50px;
@@ -851,7 +924,7 @@ ol.unstyled {
   margin-right: 0.4em;
 }
 
-.main-menu__disclosure {
+.main-menu .menu-item__disclosure {
   stroke: var(--border-color);
   fill: none;
   width: 50px;
