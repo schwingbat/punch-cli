@@ -1,4 +1,4 @@
-const format = require("date-fns/format");
+const { format } = require("date-fns-tz");
 
 module.exports = props =>
   function(value) {
@@ -8,6 +8,7 @@ module.exports = props =>
 
     return format(
       date,
-      config.display.dateFormat + " " + config.display.timeFormat
+      config.display.dateFormat + " " + config.display.timeFormat,
+      { timeZone: config.display.timeZone }
     );
   };

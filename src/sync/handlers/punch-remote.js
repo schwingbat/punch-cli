@@ -1,6 +1,7 @@
 const EventEmitter = require("events");
 const nodeFetch = require("node-fetch");
 const fetchDefaults = require("fetch-defaults");
+const _ = require("lodash");
 
 module.exports = function(config, Punch) {
   const { credentials, url } = config;
@@ -33,29 +34,41 @@ module.exports = function(config, Punch) {
     },
 
     async upload(uploads) {
-      await fetch("/api/v1/sync/upload", {
-        method: "POST",
-        body: JSON.stringify({
-          punches: uploads.map(p => p.toJSON())
-        })
-      });
+      const chunks = _.chunk(uploads, 100);
+
+      for (const chunk of chunks) {
+        await fetch("/api/v1/sync/upload", {
+          method: "POST",
+          body: JSON.stringify({
+            punches: chunk.map(p => p.toJSON())
+          })
+        });
+      }
 
       return uploads;
     },
 
     async download(ids) {
-      const res = await fetch("/api/v1/sync/download", {
-        method: "POST",
-        body: JSON.stringify({ ids })
-      });
+      const chunks = _.chunk(ids, 100);
+      const punches = [];
 
-      const body = await res.json();
+      for (const chunk of chunks) {
+        const res = await fetch("/api/v1/sync/download", {
+          method: "POST",
+          body: JSON.stringify({ ids: chunk })
+        });
 
-      return body.data.punches.map(p => new Punch(p));
+        const body = await res.json();
+        const processed = body.data.punches.map(p => new Punch(p));
+
+        punches.push(...processed);
+      }
+
+      return punches;
     },
 
     async delete(ids) {
-      await fetch("/sync/delete", {
+      await fetch("/api/v1/sync/delete", {
         method: "POST",
         body: JSON.stringify({ ids })
       });
