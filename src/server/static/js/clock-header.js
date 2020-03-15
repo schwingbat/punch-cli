@@ -33,15 +33,20 @@
 
     const updateTime = () => {
       const now = new Date();
-      const h = now.getHours();
+      const hours = now.getHours();
       const m = now
         .getMinutes()
         .toString()
         .padStart(2, "0");
+      let h = hours % 12;
 
-      let meridiem = h > 11 ? "PM" : "AM";
+      if (h === 0) {
+        h = 12;
+      }
 
-      const value = `${h % 12}:${m} ${meridiem}`;
+      let meridiem = hours > 11 ? "PM" : "AM";
+
+      const value = `${h}:${m} ${meridiem}`;
 
       time.innerHTML = value;
     };

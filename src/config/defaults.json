@@ -12,12 +12,12 @@
   },
   "invoice": {
     "dateFormat": "MM/dd/yyyy",
-    "timeFormat": "p"
+    "timeFormat": "h:mm A"
   },
   "display": {
     "timeZone": "America/Los_Angeles",
-    "dateFormat": "PPPP",
-    "timeFormat": "p",
+    "dateFormat": "dddd, MMMM Do YYYY",
+    "timeFormat": "h:mm A",
     "textColors": true,
     "wordWrapWidth": 65,
     "showPunchIDs": false,

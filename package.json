@@ -53,6 +53,8 @@
     "js-yaml": "^3.13.1",
     "log-update": "^4.0.0",
     "mkdirp": "^1.0.3",
+    "moment": "^2.24.0",
+    "moment-timezone": "^0.5.28",
     "node-fetch": "^2.6.0",
     "open": "^7.0.3",
     "passport": "^0.4.1",

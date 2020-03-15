@@ -1,12 +1,10 @@
-const { format } = require("date-fns-tz");
+const moment = require("moment-timezone");
 
 module.exports = props =>
   function(value) {
     const { config } = props;
 
-    const date = new Date(value);
-
-    return format(date, config.display.dateFormat, {
-      timeZone: config.display.timeZone
-    });
+    return moment(value)
+      .tz(config.display.timeZone)
+      .format(config.display.dateFormat);
   };
