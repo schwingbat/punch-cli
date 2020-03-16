@@ -3,10 +3,10 @@
   different headers and entries for reports.
 */
 const chalk = require("chalk");
+const moment = require("moment-timezone");
 const Table = require("../format/table");
 const formatCurrency = require("../format/currency");
 const formatDuration = require("../format/duration");
-const formatDate = require("date-fns/format");
 const wordWrap = require("@fardog/wordwrap")(0, 80, {
   lengthFn: require("../utils/print-length.js")
 });
@@ -175,7 +175,9 @@ function summaryTable(projects, opts = {}) {
 
 function monthSummaryHeader({ date, stats, dateFormat }) {
   let header = "";
-  header += chalk.bold.underline(formatDate(date, dateFormat || "MMMM yyyy"));
+  header += chalk.bold.underline(
+    moment(date).format(dateFormat || "MMMM yyyy")
+  );
   if (stats) {
     header += " " + delimitedList(stats, " / ", ["(", ")"]);
   }
@@ -200,7 +202,8 @@ function projectDay({ date, stats, punches, config }) {
 
 function daySummaryHeader({ date, stats, dateFormat }) {
   let header = "";
-  header += chalk.bold.underline(formatDate(date, dateFormat || "ddd, MMM Do"));
+  header += chalk.bold.underline(moment(date).format(dateFormat));
+
   if (stats) {
     header += " " + delimitedList(stats, " / ", ["(", ")"]);
   }
@@ -217,8 +220,7 @@ function dayPunches(punches, date, config) {
   dateEnd.setHours(23, 59, 59, 999);
 
   // Calculate length of 12:00pm formatted, which should be as long as a time with a given format could be.
-  const maxTimeLength = formatDate(
-    new Date(2000, 11, 15, 12, 0, 0),
+  const maxTimeLength = moment(new Date(2000, 11, 15, 12, 0, 0)).format(
     config.display.timeFormat
   ).length;
 
@@ -244,8 +246,7 @@ function dayPunches(punches, date, config) {
       end = out;
     }
 
-    const midnightString = formatDate(
-      new Date(2020, 1, 1, 0, 0),
+    const midnightString = moment(new Date(2020, 1, 1, 0, 0)).format(
       config.display.timeFormat
     );
 
@@ -256,16 +257,17 @@ function dayPunches(punches, date, config) {
       timeSpan += carryOverValue.padStart(maxTimeLength) + " - ";
     } else {
       timeSpan +=
-        formatDate(start, config.display.timeFormat).padStart(maxTimeLength) +
-        " - ";
+        moment(start)
+          .format(config.display.timeFormat)
+          .padStart(maxTimeLength) + " - ";
     }
     if (punch.out) {
       if (carryForward) {
         timeSpan += carryOverValue.padStart(maxTimeLength);
       } else {
-        timeSpan += formatDate(end, config.display.timeFormat).padStart(
-          maxTimeLength
-        );
+        timeSpan += moment(end)
+          .format(config.display.timeFormat)
+          .padStart(maxTimeLength);
       }
     } else {
       timeSpan += "NOW".padStart(maxTimeLength);
@@ -296,9 +298,9 @@ function dayPunches(punches, date, config) {
         3600000;
 
       s +=
-        formatDate(punch.in, config.display.timeFormat).padStart(
-          maxTimeLength
-        ) + " - ";
+        moment(punch.in)
+          .format(config.display.timeFormat)
+          .padStart(maxTimeLength) + " - ";
       s += carryOverValue.padEnd(maxTimeLength);
       if (hrs < 1) {
         s += `${~~(hrs * 60)}m`.padStart(6);
@@ -324,7 +326,9 @@ function dayPunches(punches, date, config) {
         punch.durationWithinInterval({ start: dateEnd, end: out }) / 3600000;
 
       s += carryOverValue.padStart(maxTimeLength) + " - ";
-      s += formatDate(out, config.display.timeFormat).padStart(maxTimeLength);
+      s += moment(out)
+        .format(config.display.timeFormat)
+        .padStart(maxTimeLength);
       if (hrs < 1) {
         s += `${~~(hrs * 60)}m`.padStart(6);
       } else {
@@ -362,7 +366,7 @@ function dayPunches(punches, date, config) {
           !config.display.commentRelativeTimestamps.enabled
         ) {
           let timestamp =
-            formatDate(comment.timestamp, config.display.timeFormat) + ": ";
+            moment(comment.timestamp).format(config.display.timeFormat) + ": ";
           line += timestamp;
           wrapPos += timestamp.length;
         }
@@ -431,9 +435,13 @@ function simplePunches(punches, config) {
 
     let timeSpan = "";
     timeSpan +=
-      formatDate(punch.in, config.display.timeFormat).padStart(8) + " - ";
+      moment(punch.in)
+        .format(config.display.timeFormat)
+        .padStart(8) + " - ";
     if (punch.out) {
-      timeSpan += formatDate(out, config.display.timeFormat).padStart(8);
+      timeSpan += moment(out)
+        .format(config.display.timeFormat)
+        .padStart(8);
     } else {
       timeSpan += "NOW".padStart(8);
     }
@@ -474,7 +482,7 @@ function simplePunches(punches, config) {
         }
         if (config.display.showCommentTimestamps) {
           str +=
-            formatDate(comment.timestamp, config.display.timeFormat) + ": ";
+            moment(comment.timestamp).format(config.display.timeFormat) + ": ";
         }
         str += wordWrap(comment.toString()).replace("\n", "\n     ");
 

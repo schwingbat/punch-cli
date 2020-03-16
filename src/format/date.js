@@ -1,9 +1,17 @@
-const format = require("date-fns/format");
+const moment = require("moment-timezone");
 const config = require("../config").current();
 
-exports.formatDate = date => format(date, config.display.dateFormat || "PPPP");
+exports.formatDate = date => {
+  console.log(date);
+
+  const { dateFormat } = config.display;
+
+  const fmt = moment(date).format(dateFormat);
+  console.log(fmt);
+  return fmt;
+};
 
 exports.formatDateTime = date => {
   const { dateFormat, timeFormat } = config.display;
-  return format(date, dateFormat + " '@' " + timeFormat);
+  return moment(date).format(dateFormat + " '@' " + timeFormat);
 };
