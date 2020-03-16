@@ -1,5 +1,5 @@
 const route = require("express").Router();
-const format = require("date-fns/format");
+const moment = require("moment");
 const parseDateTime = require("../../utils/parse-datetime");
 
 // ----- Punching In & Out ----- //
@@ -36,7 +36,9 @@ route.get("/out/:id", async function(req, res) {
 
   return res.render("sections/punch/track/out", {
     id: req.params.id,
-    outTime: format(new Date(), `yyyy-MM-dd '@' ${config.display.timeFormat}`),
+    outTime: moment(new Date()).format(
+      `yyyy-MM-dd @ ${config.display.timeFormat}`
+    ),
     returnUrl: req.query.r
   });
 });
