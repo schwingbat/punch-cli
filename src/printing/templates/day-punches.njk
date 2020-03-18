@@ -1,0 +1,13 @@
+{# {{ date|date|white|underline }} #}
+{% for punch in punches %}
+   {{ punch.in|time|append(" - ")|cyan }}
+   {%- if punch.out != null -%}
+      {{ punch.out|time }}
+   {%- else -%}
+      test
+   {%- endif -%}
+
+   {%- for comment in punch.comments %}
+      {{ "⸭" }} {{ comment.timestamp|duration|prepend("+")|append(":")|padstart(20)|cyan }} {{comment.comment|wrap(80, wrapTo=30)}}
+   {%- endfor -%}
+{% endfor %}

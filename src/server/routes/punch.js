@@ -37,7 +37,7 @@ route.get("/out/:id", async function(req, res) {
   return res.render("sections/punch/track/out", {
     id: req.params.id,
     outTime: moment(new Date()).format(
-      `yyyy-MM-dd @ ${config.display.timeFormat}`
+      `YYYY-MM-DD @ ${config.display.timeFormat}`
     ),
     returnUrl: req.query.r
   });

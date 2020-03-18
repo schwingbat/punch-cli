@@ -34,16 +34,18 @@ const confirm = question => {
 };
 
 const confirmAdjustedTime = (config, date, template = "Set time to $?") => {
-  const format = require("date-fns/format");
-  const isSameDay = require("date-fns/isSameDay");
+  const moment = require("moment-timezone");
+  const { timeFormat, dateFormat } = config.display;
 
-  let stringFmt = config.display.timeFormat;
+  const time = moment(date);
 
-  if (!isSameDay(new Date(), date)) {
-    stringFmt += ` 'on' ${config.display.dateFormat}`;
+  let stringFmt = timeFormat;
+
+  if (!time.isSame(new Date(), "day")) {
+    stringFmt += ` on ${dateFormat}`;
   }
 
-  return confirm(template.replace("$", format(date, stringFmt)));
+  return confirm(template.replace("$", time.format(stringFmt)));
 };
 
 module.exports = {

@@ -5,8 +5,8 @@ const {
 } = require("../punch/utils");
 const parseDateTime = require("../utils/parse-datetime");
 const chalk = require("chalk");
+const moment = require("moment-timezone");
 const formatCurrency = require("../format/currency");
-const formatDate = require("date-fns/format");
 const formatDuration = require("../format/duration");
 const getLabelFor = require("../utils/get-label-for");
 const handleSync = require("../utils/handle-sync");
@@ -105,10 +105,7 @@ module.exports = command =>
 
         const label = getLabelFor(config, current.project);
         const duration = formatDuration(current.duration(flags.time));
-        const time = formatDate(
-          flags.time || new Date(),
-          config.display.timeFormat
-        );
+        const time = moment(flags.time).format(config.display.timeFormat);
         const pay = current.pay(flags.time);
 
         let str = `Punched out on ${label} at ${time}. Worked for ${duration}`;
