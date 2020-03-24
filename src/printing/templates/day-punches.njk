@@ -1,13 +1,26 @@
-{# {{ date|date|white|underline }} #}
+{% import "_macros.njk" as m %}
+
+{{ m.dayheader(date) }}
 {% for punch in punches %}
-   {{ punch.in|time|append(" - ")|cyan }}
-   {%- if punch.out != null -%}
-      {{ punch.out|time }}
-   {%- else -%}
-      test
-   {%- endif -%}
+   {% filter color("cyan" if punch.out else "green") -%}
+      {{ punch.in|time|padstart(8)|append(" - ") }}
+
+      {%- filter padstart(8) -%}
+         {%- if punch.out != null -%}
+            {{ punch.out|time }}
+         {%- else -%}
+            {{ "NOW" }}
+         {%- endif -%}
+      {%- endfilter %}
+   {%- endfilter %}
+   
+   {{- punch.duration()|duration(resolution="hours", fractional=true)|padstart(6)|blue }}
+
+   {{- (punch.project|projectconfig).name|prepend(" [")|append("] ")|yellow }}
 
    {%- for comment in punch.comments %}
-      {{ "⸭" }} {{ comment.timestamp|duration|prepend("+")|append(":")|padstart(20)|cyan }} {{comment.comment|wrap(80, wrapTo=30)}}
+      {{ "⸭"|dim }} {{ comment.timestamp|duration(resolution="minutes")|prepend("+")|append(":")|padstart(20)|cyan }} {{comment.comment|wrap(80, wrapTo=30)}}
    {%- endfor -%}
-{% endfor %}
+{%- endfor %}
+
+{{ m.totals(summary) }}

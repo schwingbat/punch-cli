@@ -230,6 +230,11 @@ module.exports = function(config) {
       if (options.autosave) await this.save();
     }
 
+    /**
+     * Returns the duration between start and end (or now) in milliseconds.
+     *
+     * @param {Date} out - (optional) override the end date for the calculation
+     */
     duration(out) {
       return (out || this.out || new Date()).getTime() - this.in;
     }

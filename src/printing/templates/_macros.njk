@@ -1,0 +1,17 @@
+{% macro dayheader(date) -%}
+  {{ date|date|bold|underlined }}
+{%- endmacro %}
+
+{% macro totals(projects) -%}
+  {%- set time = projects|map("time")|sum|duration -%}
+  {%- set pay = projects|map("pay")|sum|currency -%}
+  {%- set punches = projects|map("punches")|length -%}
+
+  {{- "TOTAL"|cyan }} {{ "("|dim -}}
+    {{ time }} {{ "/"|dim }} {{ pay }} {{ "/"|dim }} {{ punches|append(" punches") }}
+  {{- ")"|dim -}}
+{%- endmacro %}
+
+{% macro projectsummary(projects) %}
+
+{% endmacro %}

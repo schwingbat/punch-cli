@@ -75,6 +75,6 @@ module.exports = command =>
       }
 
       if (interval) {
-        Log(config, Punch).forInterval(interval, flags);
+        await Log(config, Punch).forInterval(interval, flags);
       }
     });

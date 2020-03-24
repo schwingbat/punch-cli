@@ -2,6 +2,13 @@ const { descendingBy } = require("../utils/sort-factories");
 const isSameDay = require("date-fns/isSameDay");
 const addDays = require("date-fns/addDays");
 
+/**
+ * Summarize punch stats per project.
+ *
+ * @param {*} config
+ * @param {*} punches
+ * @param {*} interval
+ */
 function summarize(config, punches, interval) {
   const projects = {};
 
@@ -38,7 +45,6 @@ function summarize(config, punches, interval) {
 }
 
 module.exports = function Logger(config, Punch) {
-  const padWithLines = require("../logging/pad-with-lines");
   const messageFor = require("../utils/message-for");
   const printDay = require("./log-day");
   const printYear = require("./log-year");
@@ -121,7 +127,7 @@ module.exports = function Logger(config, Punch) {
           console.log(hmap + "\n");
           break;
         case "day":
-          printDay(logData);
+          await printDay(logData);
           break;
         default:
           // Catchall for custom intervals
