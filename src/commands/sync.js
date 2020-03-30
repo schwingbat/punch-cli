@@ -1,16 +1,17 @@
 const updateCurrentMarker = require("../utils/update-current-marker");
 const Syncer = require("../sync/syncer");
 
-module.exports = command =>
-  command
-    .description("synchronize with configured backends")
-    .run(async ({ props }) => {
-      const { config, Punch } = props;
+const { Command } = require("@ratwizard/cli");
 
-      const syncer = new Syncer(config, Punch);
-      const services = config.sync.services.filter(s => s.enabled);
+module.exports = new Command("sync")
+  .description("synchronize with configured backends")
+  .action(async ({ props }) => {
+    const { config, Punch } = props;
 
-      await syncer.syncAll(services);
+    const syncer = new Syncer(config, Punch);
+    const services = config.sync.services.filter(s => s.enabled);
 
-      updateCurrentMarker(config, await Punch.current());
-    });
+    await syncer.syncAll(services);
+
+    updateCurrentMarker(config, await Punch.current());
+  });

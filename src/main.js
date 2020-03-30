@@ -10,11 +10,7 @@ if (BENCHMARK) {
   require("time-require");
 }
 
-const { command, invoke } = require("@ratwizard/cli")({
-  name: "punch",
-  version: pkg.version,
-  author: "Tony McCoy <tony@ratwizard.io>"
-});
+const { Command } = require("@ratwizard/cli");
 
 const EventEmitter = require("events");
 const bench = require("./utils/bench")({ disabled: !BENCHMARK });
@@ -34,143 +30,151 @@ bench.mark("punch loaded");
 ||          Commands         ||
 \* ========================= */
 
-const props = {
-  events,
-  config,
-  Punch
-};
+const program = new Command({
+  version: pkg.version,
+  props: {
+    events,
+    config,
+    Punch
+  }
+});
 
 // ----- Managing Punches ----- //
 
-command("in")
-  .fromPath(__dirname, "commands/in")
-  .withProps(props);
-
-command("out")
-  .fromPath(__dirname, "commands/out")
-  .withProps(props);
-
-command("create")
-  .fromPath(__dirname, "commands/create")
-  .withProps(props);
-
-command("delete")
-  .fromPath(__dirname, "commands/delete")
-  .withProps(props);
-
-command("adjust")
-  .fromPath(__dirname, "commands/adjust")
-  .withProps(props);
+program
+  .command("in <project>", {
+    description: "begin tracking time",
+    path: "./commands/in"
+  })
+  .command("out [project]", {
+    description: "stop tracking time",
+    path: "./commands/out"
+  })
+  .command("create <project>", {
+    description: "create a new punch with a start and end date",
+    path: "./commands/create"
+  })
+  .command("delete <id>", {
+    description: "delete a punch",
+    path: "./commands/delete"
+  })
+  .command("adjust <id>", {
+    description: "adjust a punch's start and end date",
+    path: "./commands/adjust"
+  });
 
 // ----- Managing Comments ----- //
 
-// Possible API for doing nested comments
-// Would add `punch comment add` and `punch comment delete` subcommands
-
-// group("comment", ({ command }) => {
-//   command("add")
-//     .fromPath(__dirname, "commands/comment-add")
-//     .withProps(props);
-
-//   command("delete")
-//     .fromPath(__dirname, "commands/comment-delete")
-//     .withProps(props);
-// });
-
-command("comment")
-  .fromPath(__dirname, "commands/comment")
-  .withProps(props);
-
-command("comment:add")
-  .fromPath(__dirname, "commands/comment-add")
-  .withProps(props);
-
-command("comment:delete")
-  .fromPath(__dirname, "commands/comment-delete")
-  .withProps(props);
-
-command("comment:edit")
-  .fromPath(__dirname, "commands/comment-edit")
-  .withProps(props);
+program
+  .command("comment <text...>", {
+    description: "add a comment to the current punch",
+    path: "./commands/comment"
+  })
+  .command("comment:add <id> <text...>", {
+    description: "add a comment to an existing punch",
+    path: "./commands/comment-add"
+  })
+  .command("comment:delete <id> <index>", {
+    description: "delete a punch comment",
+    path: "./commands/comment-delete"
+  })
+  .command("comment:edit <id> <index> <text...>", {
+    description: "edit a comment on an existing punch",
+    path: "./commands/comment-edit"
+  });
 
 // ----- Managing Tags ----- //
 
-command("tags")
-  .fromPath(__dirname, "commands/tags")
-  .withProps(props);
+program.command("tags", {
+  description: "view and manage comment tags",
+  path: "./commands/tags"
+});
 
 // ----- Logging ----- //
 
-command("log")
-  .fromPath(__dirname, "commands/log")
-  .withProps(props);
+program.command("log [when...]", {
+  description: "show punches for a date range",
+  path: "./commands/log"
+});
 
 // ----- Data Import/Export ----- //
 
-command("import")
-  .fromPath(__dirname, "commands/import")
-  .withProps(props);
-
-command("export")
-  .fromPath(__dirname, "commands/export")
-  .withProps(props);
-
-command("invoice")
-  .fromPath(__dirname, "commands/invoice")
-  .withProps(props);
-
-command("sync")
-  .fromPath(__dirname, "commands/sync")
-  .withProps(props);
+program
+  .command("import", {
+    description: "import punch data from other sources",
+    path: "./commands/import"
+  })
+  .command("export", {
+    description: "export punch data to other destinations",
+    path: "./commands/export"
+  })
+  .command("invoice", {
+    description: "generate an invoice",
+    path: "./commands/invoice"
+  })
+  .command("sync", {
+    description: "synchronize with an external source or server",
+    path: "./commands/sync"
+  });
 
 // ----- Managing Projects ----- //
 
-command("projects")
-  .fromPath(__dirname, "commands/projects")
-  .withProps(props);
-
-command("project:rename")
-  .fromPath(__dirname, "commands/project-rename")
-  .withProps(props);
-
-command("project:purge")
-  .fromPath(__dirname, "commands/project-purge")
-  .withProps(props);
-
-command("project:rerate")
-  .fromPath(__dirname, "commands/project-rerate")
-  .withProps(props);
+program
+  .command("projects", {
+    description: "view a summary of projects",
+    path: "./commands/projects"
+  })
+  .command("project:rename", {
+    description: "change a project's alias and update punches",
+    path: "./commands/project-rename"
+  })
+  .command("project:purge", {
+    description: "delete all punches for a certain project",
+    path: "./commands/project-purge"
+  })
+  .command("project:rerate", {
+    description: "update existing punches with a new pay rate",
+    path: "./commands/project-rerate"
+  });
 
 // ----- Misc ----- //
 
-command("watch")
-  .fromPath(__dirname, "commands/watch")
-  .withProps(props);
-
-command("config")
-  .fromPath(__dirname, "commands/config")
-  .withProps(props);
+program
+  .command("watch", {
+    description: "show your current punch in realtime",
+    path: "./commands/watch"
+  })
+  .command("config", {
+    description: "edit your punch configuration",
+    path: "./commands/config"
+  });
 
 // ----- Server ----- //
 
-command("serve")
-  .fromPath(__dirname, "commands/serve")
-  .withProps(props);
-
-command("server:hash")
-  .fromPath(__dirname, "commands/server-hash")
-  .withProps(props);
+program
+  .command("serve", {
+    description: "start a server with a web-based UI",
+    path: "./commands/serve"
+  })
+  .command("server:hash", {
+    description: "hash a password to be used for login on the server",
+    path: "./commands/server-hash"
+  });
 
 // ----- Lifecycle ----- //
 
-let isServing = false;
+let isPersistent = false;
 
 events.on("server:started", () => {
-  isServing = true;
+  isPersistent = true;
 });
 
-invoke().then(() => {
-  if (!isServing) {
+events.on("watch:started", () => {
+  isPersistent = true;
+});
+
+program.run(process.argv).then(() => {
+  if (!isPersistent) {
     exitHandler({ exit: true });
   }
 });

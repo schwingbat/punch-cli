@@ -2,7 +2,8 @@ module.exports = function(config, project) {
   // Turn the detailed object into an array of formatted stats.
 
   const formatDistance = require("date-fns/formatDistance");
-  const formatDate = require("date-fns/format");
+  // const formatDate = require("date-fns/format");
+  const moment = require("moment-timezone");
   const chalk = require("chalk");
   const formatCurrency = require("./currency");
   const formatDuration = require("./duration");
@@ -32,7 +33,7 @@ module.exports = function(config, project) {
       { label: "Punches", value: totalPunches },
       {
         label: "Started",
-        value: formatDate(firstPunch.in, config.display.dateFormat)
+        value: moment(firstPunch.in).format(config.display.dateFormat)
       },
       { label: "Last active", value: lastActive }
     ]

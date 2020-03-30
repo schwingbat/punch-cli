@@ -3,8 +3,11 @@ const chalk = require("chalk");
 const formatDistance = require("date-fns/formatDistance");
 const Table = require("../format/table");
 
-module.exports = command =>
-  command.description("show tags you've used").run(async ({ props }) => {
+const { Command } = require("@ratwizard/cli");
+
+module.exports = new Command()
+  .description("show tags you've used")
+  .action(async ({ props }) => {
     const { config, Punch } = props;
 
     // Do something

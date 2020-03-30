@@ -3,43 +3,43 @@ const { dayPunches } = require("../logging/printing");
 const chalk = require("chalk");
 const handleSync = require("../utils/handle-sync");
 
-module.exports = command =>
-  command
-    .description("add a comment to a specific punch")
-    .arg("punch-id", {
-      key: "punchId",
-      description:
-        "ID of a given punch (use `punch log --with-ids` to find IDs)"
-    })
-    .arg("comment", {
-      description: "comment text",
-      splat: true,
-      parse: words => words.join(" ")
-    })
-    .run(async ({ args, props }) => {
-      const { config, Punch } = props;
+const { Command } = require("@ratwizard/cli");
 
-      const punch = await Punch.find(p => p.id === args.punchId);
+module.exports = new Command()
+  .description("add a comment to a specific punch")
+  .arg("punch-id", {
+    key: "punchId",
+    description: "ID of a given punch (use `punch log --with-ids` to find IDs)"
+  })
+  .arg("comment", {
+    description: "comment text",
+    splat: true,
+    parse: words => words.join(" ")
+  })
+  .action(async ({ args, props }) => {
+    const { config, Punch } = props;
 
-      if (punch) {
-        let str = "\n";
+    const punch = await Punch.find(p => p.id === args.punchId);
 
-        str +=
-          "  " + dayPunches([punch], punch.in, config).replace(/\n/g, "\n  ");
-        str += "  " + chalk.green(` + ${args.comment}`);
-        str += "\n\n";
+    if (punch) {
+      let str = "\n";
 
-        str += "Add comment?";
+      str +=
+        "  " + dayPunches([punch], punch.in, config).replace(/\n/g, "\n  ");
+      str += "  " + chalk.green(` + ${args.comment}`);
+      str += "\n\n";
 
-        if (confirm(str)) {
-          punch.addComment(args.comment);
-          await punch.save();
+      str += "Add comment?";
 
-          console.log("\nComment added.");
+      if (confirm(str)) {
+        punch.addComment(args.comment);
+        await punch.save();
 
-          await handleSync({ config, Punch });
-        }
-      } else {
-        console.log("Punch not found");
+        console.log("\nComment added.");
+
+        await handleSync({ config, Punch });
       }
-    });
+    } else {
+      console.log("Punch not found");
+    }
+  });

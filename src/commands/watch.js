@@ -10,81 +10,82 @@ const printLength = require("../utils/print-length");
 const formatCurrency = require("../format/currency");
 const formatDuration = require("../format/duration");
 
-module.exports = command =>
-  command
-    .description(
-      "continue running to show automatically updated stats of your current session"
-    )
-    .flag("animate", "a", {
-      description:
-        "enable animations for the clock (may cause flicker in some terminals)",
-      boolean: true
-    })
-    .run(async ({ flags, props }) => {
-      const { config, Punch } = props;
+const { Command } = require("@ratwizard/cli");
 
-      const animate = flags.animate;
-      const active = await Punch.current();
+module.exports = new Command("watch")
+  .description(
+    "continue running to show automatically updated stats of your current session"
+  )
+  .option("animate", "a", {
+    description:
+      "enable animations for the clock (may cause flicker in some terminals)",
+    boolean: true
+  })
+  .action(async ({ options, props }) => {
+    const { config, Punch } = props;
 
-      if (active) {
-        const clock = Clock({
-          style: "clock-block",
-          letterSpacing: 1,
-          animate: animate
-        });
+    const animate = options.animate;
+    const active = await Punch.current();
 
-        const now = new Date();
+    if (active) {
+      const clock = Clock({
+        style: "clock-block",
+        letterSpacing: 1,
+        animate: animate
+      });
 
-        // Get total for month and day
-        let monthlyTotal = 0;
-        let dailyTotal = 0;
+      const now = new Date();
 
-        // Total daily and monthly amounts.
-        // Skip the active punch so we can just add its current pay() value
-        // to get correct amounts for daily and monthly earnings.
-        const punches = await Punch.select(
-          p =>
-            p.in >= startOfMonth(now) &&
-            p.in <= endOfMonth(now) &&
-            p.id !== active.id
+      // Get total for month and day
+      let monthlyTotal = 0;
+      let dailyTotal = 0;
+
+      // Total daily and monthly amounts.
+      // Skip the active punch so we can just add its current pay() value
+      // to get correct amounts for daily and monthly earnings.
+      const punches = await Punch.select(
+        p =>
+          p.in >= startOfMonth(now) &&
+          p.in <= endOfMonth(now) &&
+          p.id !== active.id
+      );
+
+      punches.forEach(p => {
+        if (p.in >= startOfDay(now) && p.in <= endOfDay(now)) {
+          dailyTotal += p.pay();
+        }
+        monthlyTotal += p.pay();
+      });
+
+      const update = () => {
+        const duration = active.duration();
+        const activePay = active.pay();
+        const numbers = clock.display(
+          formatDuration(duration, { style: "clock" })
         );
 
-        punches.forEach(p => {
-          if (p.in >= startOfDay(now) && p.in <= endOfDay(now)) {
-            dailyTotal += p.pay();
-          }
-          monthlyTotal += p.pay();
-        });
+        let topLine = `Working on ${getLabelFor(config, active.project)}`;
+        let bottomLine = "";
 
-        const update = () => {
-          const duration = active.duration();
-          const activePay = active.pay();
-          const numbers = clock.display(
-            formatDuration(duration, { style: "clock" })
-          );
+        // Don't bother showing money stats for unpaid projects.
+        if (activePay > 0) {
+          const money = formatCurrency(activePay);
+          const numbersLength = printLength(numbers.split("\n")[0]);
+          const monthly =
+            formatCurrency(monthlyTotal + activePay) + " this month";
+          const daily = formatCurrency(dailyTotal + activePay) + " today";
 
-          let topLine = `Working on ${getLabelFor(config, active.project)}`;
-          let bottomLine = "";
+          topLine += money.padStart(numbersLength - topLine.length, " ");
+          bottomLine =
+            monthly + daily.padStart(numbersLength - monthly.length, " ");
+        }
 
-          // Don't bother showing money stats for unpaid projects.
-          if (activePay > 0) {
-            const money = formatCurrency(activePay);
-            const numbersLength = printLength(numbers.split("\n")[0]);
-            const monthly =
-              formatCurrency(monthlyTotal + activePay) + " this month";
-            const daily = formatCurrency(dailyTotal + activePay) + " today";
+        logUpdate("\n" + topLine + "\n" + numbers + bottomLine);
+      };
 
-            topLine += money.padStart(numbersLength - topLine.length, " ");
-            bottomLine =
-              monthly + daily.padStart(numbersLength - monthly.length, " ");
-          }
-
-          logUpdate("\n" + topLine + "\n" + numbers + bottomLine);
-        };
-
-        update();
-        setInterval(update, animate ? 64 : 1000);
-      } else {
-        console.log(messageFor("not-punched-in"));
-      }
-    });
+      update();
+      setInterval(update, animate ? 64 : 1000);
+    } else {
+      console.log(messageFor("not-punched-in"));
+    }
+  });
