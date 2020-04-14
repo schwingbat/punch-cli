@@ -21,7 +21,7 @@ route.get("/", async function (req, res) {
   };
 
   const today = moment().tz(config.display.timeZone);
-  const yesterday = moment(today).add(1, "days");
+  const yesterday = moment(today).subtract(1, "days");
   const lastWeek = moment(today).subtract(1, "weeks");
   const lastMonth = moment(today).subtract(1, "months");
 
@@ -46,12 +46,18 @@ route.get("/", async function (req, res) {
     end: thisMonthIntervalEnd.toDate(),
   };
 
+  const lastMonthInterval = {
+    start: moment(lastMonth).startOf("month").toDate(),
+    end: moment(lastMonth).endOf("month").toDate(),
+  };
+
   const summaries = {
     today: await getDaySummary(today, props),
     yesterday: await getDaySummary(yesterday, props),
     thisWeek: await getWeekSummary(thisWeekInterval, props),
     lastWeek: await getWeekSummary(lastWeekInterval, props),
     thisMonth: await getMonthSummary(thisMonthInterval, props),
+    lastMonth: await getMonthSummary(lastMonthInterval, props),
   };
 
   res.render("sections/dashboard/index", {

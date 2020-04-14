@@ -188,6 +188,34 @@
         </div>
       {{/with}}
     </section>
+
+    <section>
+      <header>
+        <h1>Last Month</h1>
+      </header>
+
+      {{#with summaries.lastMonth}}
+        <div class="subsection">
+          {{> dashboard/section-summary . }}
+        </div>
+
+        <div class="subsection">
+          <header>
+            <span>Weekly Average</span>
+          </header>
+
+          {{> dashboard/section-summary weeklyAverage small=true }}
+        </div>
+
+        <div class="subsection">
+          <header>
+            <span>By Project</span>
+          </header>
+
+          {{> dashboard/projects-summary . }}
+        </div>
+      {{/with}}
+    </section>
   </div>
   
 </div>
