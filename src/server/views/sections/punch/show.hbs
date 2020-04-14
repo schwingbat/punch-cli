@@ -9,60 +9,87 @@
 
   <div class="container">
     <section>
-      <div class="subsection">
-        <header>
-          <span>Project</span>
-        </header>
-        <a
-          href="/projects/{{project.alias}}"
-          class="color-{{ifNotDefined project.color "gray"}}">
-          {{project.name}}
-        </a>
-      </div>
+      <div class="punch-show__details">
+        <div class="punch-show__details-item">
+          <div class="punch-show__details-label">
+            <span>Project</span>
+          </div>
+          <div class="punch-show__details-content">
+            <a
+              href="/projects/{{project.alias}}"
+              class="color-{{ifNotDefined project.color "gray"}}">
+              {{project.name}}
+            </a>
+          </div>
+        </div> <!-- /project -->
 
-      <div class="subsection">
-        <span>{{formatDate punch.in}}</span>
-      </div>
+        <div class="punch-show__details-item">
+          <div class="punch-show__details-label">
+            <span>Start</span>
+          </div>
+          <div class="punch-show__details-content">
+            <span>{{formatDateTime punch.in}}</span>
+          </div>
+        </div> <!-- /start -->
 
-      <div class="subsection">
-        <div class="punch-show__summary">
-          <span class="font-bold">
-            {{formatTime punch.in}} &mdash;
+        <div class="punch-show__details-item">
+          <div class="punch-show__details-label">
+            <span>End</span>
+          </div>
+          <div class="punch-show__details-content">
+            <span>
+              {{#if isActive}}
+                <span class="punch-show__label--faded">---</span>
+              {{else}}
+                {{formatDateTime punch.out}}
+              {{/if}}
+            </span>
+          </div>
+        </div> <!-- /end -->
 
-            {{#if isActive}}
-              NOW
-            {{else}}
-              {{formatTime punch.out}}
-            {{/if}}
-          </span>
-          <span>
-            {{#if isActive}}
-              <span
-                data-ticker="duration"
-                data-ticker-value="{{dateDiffInMs punch.in punch.out}}">
-                {{formatDurationDates punch.in punch.out}}
-              </span>
-
-              {{#if isPaid}}
-                &middot;
+        <div class="punch-show__details-item">
+          <div class="punch-show__details-label">
+            <span>Duration</span>
+          </div>
+          <div class="punch-show__details-content">
+            <span>
+              {{#if isActive}}
                 <span
-                  data-ticker="currency"
-                  data-ticker-value="{{earnings}}"
-                  data-ticker-hourly-rate="{{punch.rate}}">
-
-                  {{formatCurrency earnings}}
+                  data-ticker="duration"
+                  data-ticker-value="{{dateDiffInMs punch.in punch.out}}">
+                  {{formatDurationDates punch.in punch.out}}
                 </span>
+              {{else}}
+                {{formatDurationDates punch.in punch.out resolution="minutes"}}
               {{/if}}
-            {{else}}
-              {{formatDurationDates punch.in punch.out resolution="minutes"}}
+            </span>
+          </div>
+        </div> <!-- /duration -->
 
+        <div class="punch-show__details-item">
+          <div class="punch-show__details-label">
+            <span>Earnings</span>
+          </div>
+          <div class="punch-show__details-content">
+            <span>
               {{#if isPaid}}
-                &middot;
-                {{formatCurrency earnings}}
+                {{#if isActive}}
+                  <span
+                    data-ticker="currency"
+                    data-ticker-value="{{earnings}}"
+                    data-ticker-hourly-rate="{{punch.rate}}">
+
+                    {{formatCurrency earnings}}
+                  </span>
+                {{else}}
+                  {{formatCurrency earnings}}
+                {{/if}}
+              {{else}}
+                <span class="punch-show__label--faded">---</span>
               {{/if}}
-            {{/if}}
-          </span>
-        </div>
+            </span>
+          </div>
+        </div> <!-- /earnings -->
       </div>
 
       {{#if isActive}}
