@@ -12,6 +12,7 @@ if (BENCHMARK) {
 
 const { Command } = require("@ratwizard/cli");
 
+const hammerspoon = require("./utils/hammerspoon");
 const EventEmitter = require("events");
 const bench = require("./utils/bench")({ disabled: !BENCHMARK });
 const config = require("./config").load();
@@ -35,8 +36,8 @@ const program = new Command({
   props: {
     events,
     config,
-    Punch
-  }
+    Punch,
+  },
 });
 
 // ----- Managing Punches ----- //
@@ -44,23 +45,23 @@ const program = new Command({
 program
   .command("in <project>", {
     description: "begin tracking time",
-    path: "./commands/in"
+    path: "./commands/in",
   })
   .command("out [project]", {
     description: "stop tracking time",
-    path: "./commands/out"
+    path: "./commands/out",
   })
   .command("create <project>", {
     description: "create a new punch with a start and end date",
-    path: "./commands/create"
+    path: "./commands/create",
   })
   .command("delete <id>", {
     description: "delete a punch",
-    path: "./commands/delete"
+    path: "./commands/delete",
   })
   .command("adjust <id>", {
     description: "adjust a punch's start and end date",
-    path: "./commands/adjust"
+    path: "./commands/adjust",
   });
 
 // ----- Managing Comments ----- //
@@ -68,33 +69,33 @@ program
 program
   .command("comment <text...>", {
     description: "add a comment to the current punch",
-    path: "./commands/comment"
+    path: "./commands/comment",
   })
   .command("comment:add <id> <text...>", {
     description: "add a comment to an existing punch",
-    path: "./commands/comment-add"
+    path: "./commands/comment-add",
   })
   .command("comment:delete <id> <index>", {
     description: "delete a punch comment",
-    path: "./commands/comment-delete"
+    path: "./commands/comment-delete",
   })
   .command("comment:edit <id> <index> <text...>", {
     description: "edit a comment on an existing punch",
-    path: "./commands/comment-edit"
+    path: "./commands/comment-edit",
   });
 
 // ----- Managing Tags ----- //
 
 program.command("tags", {
   description: "view and manage comment tags",
-  path: "./commands/tags"
+  path: "./commands/tags",
 });
 
 // ----- Logging ----- //
 
 program.command("log [when...]", {
   description: "show punches for a date range",
-  path: "./commands/log"
+  path: "./commands/log",
 });
 
 // ----- Data Import/Export ----- //
@@ -102,19 +103,19 @@ program.command("log [when...]", {
 program
   .command("import", {
     description: "import punch data from other sources",
-    path: "./commands/import"
+    path: "./commands/import",
   })
   .command("export", {
     description: "export punch data to other destinations",
-    path: "./commands/export"
+    path: "./commands/export",
   })
   .command("invoice", {
     description: "generate an invoice",
-    path: "./commands/invoice"
+    path: "./commands/invoice",
   })
   .command("sync", {
     description: "synchronize with an external source or server",
-    path: "./commands/sync"
+    path: "./commands/sync",
   });
 
 // ----- Managing Projects ----- //
@@ -122,19 +123,19 @@ program
 program
   .command("projects", {
     description: "view a summary of projects",
-    path: "./commands/projects"
+    path: "./commands/projects",
   })
   .command("project:rename", {
     description: "change a project's alias and update punches",
-    path: "./commands/project-rename"
+    path: "./commands/project-rename",
   })
   .command("project:purge", {
     description: "delete all punches for a certain project",
-    path: "./commands/project-purge"
+    path: "./commands/project-purge",
   })
   .command("project:rerate", {
     description: "update existing punches with a new pay rate",
-    path: "./commands/project-rerate"
+    path: "./commands/project-rerate",
   });
 
 // ----- Misc ----- //
@@ -142,11 +143,11 @@ program
 program
   .command("watch", {
     description: "show your current punch in realtime",
-    path: "./commands/watch"
+    path: "./commands/watch",
   })
   .command("config", {
     description: "edit your punch configuration",
-    path: "./commands/config"
+    path: "./commands/config",
   });
 
 // ----- Server ----- //
@@ -154,11 +155,11 @@ program
 program
   .command("serve", {
     description: "start a server with a web-based UI",
-    path: "./commands/serve"
+    path: "./commands/serve",
   })
   .command("server:hash", {
     description: "hash a password to be used for login on the server",
-    path: "./commands/server-hash"
+    path: "./commands/server-hash",
   });
 
 // ----- Lifecycle ----- //
@@ -171,6 +172,16 @@ events.on("server:started", () => {
 
 events.on("watch:started", () => {
   isPersistent = true;
+});
+
+// Write hammerspoon.json when data changes.
+// TODO: Repackage this as an optional plugin
+events.on("willexit", async () => {
+  await hammerspoon(config, Punch);
+});
+
+events.on("server:punchupdated", async () => {
+  await hammerspoon(config, Punch);
 });
 
 program.run(process.argv).then(() => {
@@ -187,7 +198,9 @@ async function exitHandler(options) {
 
   if (options.exit) {
     events.emit("willexit");
-    process.exit();
+    hammerspoon(config, Punch).then(() => {
+      process.exit();
+    });
   }
 }
 

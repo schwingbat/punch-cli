@@ -9,32 +9,32 @@ module.exports = new Command()
   .description("replace an existing comment")
   .arg("punch-id", {
     key: "punchId",
-    description: "ID of a given punch (use `punch log --with-ids` to find IDs)"
+    description: "ID of a given punch (use `punch log --with-ids` to find IDs)",
   })
   .arg("comment-index", {
     key: "commentIndex",
     description: "index of the comment to replace",
-    parse: parseInt
+    parse: parseInt,
   })
   .arg("new-comment", {
     key: "newComment",
-    description: "new comment text"
+    description: "new comment text",
   })
-  .options("update-timestamp", "u", {
+  .option("update-timestamp", "u", {
     key: "updateTimestamp",
     description: "updates the comment's timestamp to the current time",
-    boolean: true
+    boolean: true,
   })
-  .run(async ({ args, options, props }) => {
+  .action(async ({ args, options, props }) => {
     const { config, Punch } = props;
 
-    const punch = await Punch.find(p => p.id === args.punchId);
+    const punch = await Punch.find((p) => p.id === args.punchId);
 
     if (punch) {
       if (punch.comments[args.commentIndex]) {
         const lines = dayPunches([punch], punch.in, config)
           .split("\n")
-          .filter(l => l != "");
+          .filter((l) => l != "");
 
         let str = "\n  " + lines.shift() + "\n  ";
 

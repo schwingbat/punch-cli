@@ -59,7 +59,7 @@ module.exports = new Command({
     let current;
 
     if (args.project) {
-      current = await Punch.current(args.project);
+      current = (await Punch.current(args.project))[0];
     } else {
       const punchedIn = await allPunchedIn({ config, Punch });
 
@@ -73,7 +73,7 @@ module.exports = new Command({
         loader.stop(str);
         return;
       } else if (punchedIn.length == 1) {
-        current = await Punch.current(punchedIn[0]);
+        current = (await Punch.current(punchedIn[0]))[0];
       }
     }
 

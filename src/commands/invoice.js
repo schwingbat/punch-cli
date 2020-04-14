@@ -15,27 +15,27 @@ module.exports = new Command()
   .usage("invoice [--options] <project> <startDate> <endDate> <outputFile>")
   .description("generate an invoice for a project")
   .arg("project", {
-    description: "project alias"
+    description: "project alias",
   })
   .arg("startDate", {
     description: "start date for invoice period",
-    parse: parseDate
+    parse: parseDate,
   })
   .arg("endDate", {
     description: "end date for invoice period",
-    parse: parseDate
+    parse: parseDate,
   })
   .arg("outputFile", {
     description: "file to output to",
-    parse: resolvePath
+    parse: resolvePath,
   })
   .option("format", "f", {
     description:
-      "specify a format rather than inferring from output file extension"
+      "specify a format rather than inferring from output file extension",
   })
   .option("yes", "y", {
     description: "generate without confirming details",
-    boolean: true
+    boolean: true,
   })
   .action(async ({ args, options, props }) => {
     const { config, Punch } = props;
@@ -46,27 +46,9 @@ module.exports = new Command()
       throw new Error("Project is not in your config file");
     }
 
-    // const t = print.table();
+    const active = (await Punch.current(project))[0];
 
-    // t.header()
-    //   .col("Name")
-    //   .col("Email")
-    //   .col("Favorite Color");
-
-    // t.row()
-    //   .col("Tony")
-    //   .col("tony@ratwizard.io")
-    //   .col("Purple");
-
-    // t.row()
-    //   .col("Bob")
-    //   .col("test", { width: 2, align: "right" });
-
-    // t.print();
-
-    const active = await Punch.current();
-
-    if (active && active.project === project) {
+    if (active) {
       return console.log(
         `You're currently punched in on ${getLabelFor(
           config,
@@ -115,14 +97,14 @@ module.exports = new Command()
           { label: "Project", value: project.name },
           {
             label: "Start Date",
-            value: moment(startDate).format(config.display.dateFormat)
+            value: moment(startDate).format(config.display.dateFormat),
           },
           {
             label: "End Date",
-            value: moment(endDate).format(config.display.dateFormat)
+            value: moment(endDate).format(config.display.dateFormat),
           },
           { label: "Invoice Format", value: fileFormat },
-          { label: "Output To", value: outputFile }
+          { label: "Output To", value: outputFile },
         ])
     );
 
@@ -132,7 +114,7 @@ module.exports = new Command()
 
       const invoicer = Invoicer(config);
       const punches = await Punch.select(
-        p =>
+        (p) =>
           p.project === project.alias &&
           p.in.getTime() >= startDate.getTime() &&
           p.in.getTime() <= endDate.getTime()
@@ -150,8 +132,8 @@ module.exports = new Command()
             output: {
               path: resolvePath(outputFile),
               format: fileFormat,
-              customFormat: !!options.format
-            }
+              customFormat: !!options.format,
+            },
           },
           false
         );

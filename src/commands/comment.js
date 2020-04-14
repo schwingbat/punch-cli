@@ -4,22 +4,29 @@ const { dayPunches } = require("../logging/printing");
 const chalk = require("chalk");
 const formatDate = require("date-fns/format");
 const handleSync = require("../utils/handle-sync");
+const dedent = require("dedent");
 
 const { Command } = require("@ratwizard/cli");
 
 module.exports = new Command()
   .description("add a comment to remember what you worked on")
+  .examples([
+    '{*} "did some work"',
+    '{*} -t 11:17AM "did thing until this time"',
+    '{*} -p punch -t 2020-04-15@2:15PM "Did a lot of work"',
+  ])
   .arg("comment", {
     description: "a description of what you worked on",
     splat: true,
-    parse: words => words.join(" ")
+    parse: (words) => words.join(" "),
   })
-  .option("project", "p", {
-    description: "the active project to add the comment to"
+  .option("-p, --project <alias>", {
+    description:
+      "project to comment on (required if tracking multiple projects)",
   })
-  .option("time", "t", {
+  .option("-t, --time <timestamp>", {
     description: "set a custom timestamp for the comment (defaults to now)",
-    parse: parseDateTime
+    parse: parseDateTime,
   })
   .action(async ({ args, options, props }) => {
     const { config, Punch } = props;
@@ -44,7 +51,7 @@ module.exports = new Command()
       return;
     }
 
-    const current = await Punch.current(project);
+    const current = (await Punch.current(project))[0];
 
     if (current) {
       current.addComment(args.comment, time || null);

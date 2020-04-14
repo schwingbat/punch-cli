@@ -13,5 +13,5 @@ module.exports = new Command("sync")
 
     await syncer.syncAll(services);
 
-    updateCurrentMarker(config, await Punch.current());
+    updateCurrentMarker(config, (await Punch.current()));
   });

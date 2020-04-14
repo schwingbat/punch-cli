@@ -25,7 +25,7 @@ module.exports = new Command("watch")
     const { config, Punch } = props;
 
     const animate = options.animate;
-    const active = await Punch.current();
+    const active = (await Punch.current())[0];
 
     if (active) {
       const clock = Clock({

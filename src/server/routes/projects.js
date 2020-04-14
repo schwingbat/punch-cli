@@ -17,7 +17,7 @@ route.get("/:alias", async function(req, res) {
   const project = projects[req.params.alias];
 
   if (project) {
-    const currentPunch = await Punch.current(project.alias);
+    const currentPunch = (await Punch.current(project.alias))[0];
     const recentPunches = (
       await Punch.filter(p => p.out != null && p.project === project.alias)
     )

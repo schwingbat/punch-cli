@@ -637,7 +637,7 @@ ol.unstyled {
 
 .punch-list__comments {
   margin-top: 0.5em;
-  font-size: 0.85em;
+  /* font-size: 1em; */
 }
 
 .punch-list__comments > li {
@@ -961,12 +961,19 @@ ol.unstyled {
 .dashboard .clock-header__time {
   font-size: 3em;
   font-weight: lighter;
+  /* text-align: right; */
 }
 
 .dashboard .no-active-punches {
   /* color: var(--color-gray); */
   display: block;
   margin-bottom: 1.5em;
+}
+
+@media (min-width: 800px) {
+  .dashboard .clock-header__time {
+    text-align: right;
+  }
 }
 
 /* ----- Section Summary ----- */

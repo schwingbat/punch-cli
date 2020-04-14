@@ -39,7 +39,7 @@ module.exports = new Command()
 
     await handleSync({ silent: true, config, Punch });
 
-    const current = await Punch.current(project);
+    const current = (await Punch.current(project))[0];
 
     if (current) {
       loader.stop(

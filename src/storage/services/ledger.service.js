@@ -85,20 +85,22 @@ module.exports = function(config, Punch, events) {
       hasChanges = true;
     },
 
-    // Returns the currently running punch (or null)
+    // Returns the currently running punches
     // Optionally filters by project
     async current(project) {
+      let active = [];
+      
       for (let i = 0; i < punches.length; i++) {
         if (
           !punches[i].deleted &&
           punches[i].out == null &&
           (!project || punches[i].project === project)
         ) {
-          return punches[i];
+          active.push(punches[i]);
         }
       }
 
-      return null;
+      return active;
     },
 
     // Returns the most recent punch

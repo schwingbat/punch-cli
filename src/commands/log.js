@@ -3,52 +3,47 @@ const Log = require("../logging/log");
 
 const { Command } = require("@ratwizard/cli");
 
-module.exports = new Command({
-  usage: "log [--options] [when...]",
-  description: "show a summary of punches for a given period",
-  examples: [
+module.exports = new Command()
+  .usage("log [--options] [when...]")
+  .description("show a summary of punches for a given period")
+  .examples([
     "punch log today",
     "punch log last tuesday",
     "punch log this month",
     "punch log this week",
-    "punch log -s 2018-11-25 -e 2018-12-25 -p punch"
-  ],
-  args: [
-    {
-      name: "when",
-      description: "time period to log",
-      default: "today",
-      splat: true,
-      parse: value => value.join(" ")
-    }
-  ],
-  options: {
-    "-s, --start <datetime>": {
-      description: "log punches between specific dates (use with --end)"
-    },
-    "-e, --end <datetime>": {
-      description: "log punches between specific dates (use with --start)"
-    },
-    "-p, --project <alias>": {
-      description: "show only punches for a given project"
-    },
-    "-o, --object <object>": {
-      description:
-        "show only punches tagged with a given comment object (e.g. @task:1669)"
-    },
-    "-t, --tag <tag>": {
-      description: "show only punches with a specific #tag"
-    },
-    "-i, --with-ids": {
-      description: "print punch IDs",
-      boolean: true
-    },
-    "--with-graphics": {
-      description: "override app config and show hourly punch graphics",
-      boolean: true
-    }
-  },
-  action: async function({ args, options, props }) {
+    "punch log -s 2018-11-25 -e 2018-12-25 -p punch",
+  ])
+  .arg("when", {
+    description: "time period to log",
+    default: "today",
+    splat: true,
+    parse: (value) => value.join(" "),
+  })
+  .option("-s, --start <datetime>", {
+    description: "log punches between specific dates (use with --end)",
+  })
+  .option("-e, --end <datetime>", {
+    description: "log punches between specific dates (use with --start)",
+  })
+  .option("-p, --project <alias>", {
+    description: "show only punches for a given project",
+  })
+  .option("-o, --object <object>", {
+    description:
+      "show only punches tagged with a given comment object (e.g. @task:1669)",
+  })
+  .option("-t, --tag <tag>", {
+    description: "show only punches with a specific #tag",
+  })
+  .option("-i, --with-ids", {
+    description: "print punch IDs",
+    boolean: true,
+  })
+  .option("--with-graphics", {
+    description: "override app config and show hourly punch graphics",
+    boolean: true,
+  })
+  .action(async function ({ args, options, props }) {
     const { config, Punch } = props;
     let { start, end } = options;
 
@@ -64,7 +59,7 @@ module.exports = new Command({
         unit: "period",
         modifier: 0,
         start: fuzzyParse(start).start,
-        end: fuzzyParse(end).end
+        end: fuzzyParse(end).end,
       };
     } else {
       interval = fuzzyParse(args.when);
@@ -82,5 +77,4 @@ module.exports = new Command({
     if (interval) {
       await Log(config, Punch).forInterval(interval, options);
     }
-  }
-});
+  });

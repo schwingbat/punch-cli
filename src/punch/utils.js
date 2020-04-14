@@ -6,7 +6,7 @@ const allPunchedIn = async ({ config, Punch }) => {
   const punchedIn = [];
 
   for (let i = 0; i < names.length; i++) {
-    if (await Punch.current(names[i])) {
+    if ((await Punch.current(names[i])).length > 0) {
       punchedIn.push(names[i]);
     }
   }

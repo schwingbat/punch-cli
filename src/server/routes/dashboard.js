@@ -1,4 +1,5 @@
 const route = require("express").Router();
+const moment = require("moment-timezone");
 const startOfDay = require("date-fns/startOfDay");
 const endOfDay = require("date-fns/endOfDay");
 const startOfWeek = require("date-fns/startOfWeek");
@@ -12,63 +13,65 @@ const differenceInDays = require("date-fns/differenceInDays");
 const differenceInWeeks = require("date-fns/differenceInWeeks");
 const { ascendingBy, descendingBy } = require("../../utils/sort-factories");
 
-route.get("/", async function(req, res) {
+route.get("/", async function (req, res) {
   const { props } = req;
   const { config, Punch } = props;
 
-  const currentPunches = await Punch.filter(punch => punch.out == null);
+  const currentPunches = await Punch.filter((punch) => punch.out == null);
 
   const current = {
     any: currentPunches.length > 0,
-    punches: currentPunches.map(punch => {
+    punches: currentPunches.map((punch) => {
       return {
         ...punch,
-        project: config.projects[punch.project]
+        project: config.projects[punch.project],
       };
-    })
+    }),
   };
 
-  const today = new Date();
-  const yesterday = addDays(today, -1);
-  const lastWeek = addWeeks(today, -1);
-  const lastMonth = addMonths(today, -1);
+  const today = moment();
+  const yesterday = moment(today).add(1, "days");
+  const lastWeek = moment(today).subtract(1, "weeks");
+  const lastMonth = moment(today).subtract(1, "months");
 
-  const weekOptions = {
-    weekStartsOn: 1 // Start on Monday
-  };
-
-  const endOfThisWeek = endOfWeek(today, weekOptions);
+  const endOfThisWeek = moment(today).endOf("week");
   const thisWeekIntervalEnd = endOfThisWeek > today ? today : endOfThisWeek;
 
-  const endOfThisMonth = endOfWeek(today, weekOptions);
+  const endOfThisMonth = moment(today).endOf("month");
   const thisMonthIntervalEnd = endOfThisMonth > today ? today : endOfThisMonth;
 
   const thisWeekInterval = {
-    start: startOfWeek(today, weekOptions),
-    end: thisWeekIntervalEnd
+    start: moment(today).startOf("week").toDate(),
+    end: thisWeekIntervalEnd.toDate(),
   };
 
   const lastWeekInterval = {
-    start: startOfWeek(lastWeek, weekOptions),
-    end: endOfWeek(lastWeek, weekOptions)
+    start: moment(lastWeek).startOf("week").toDate(),
+    end: moment(lastWeek).endOf("week").toDate(),
   };
 
   const thisMonthInterval = {
-    start: startOfMonth(today),
-    end: thisMonthIntervalEnd
+    start: moment(today).startOf("month").toDate(),
+    end: thisMonthIntervalEnd.toDate(),
   };
+
+  console.log({
+    thisWeekInterval,
+    lastWeekInterval,
+    thisMonthInterval,
+  });
 
   const summaries = {
     today: await getDaySummary(today, props),
     yesterday: await getDaySummary(yesterday, props),
     thisWeek: await getWeekSummary(thisWeekInterval, props),
     lastWeek: await getWeekSummary(lastWeekInterval, props),
-    thisMonth: await getMonthSummary(thisMonthInterval, props)
+    thisMonth: await getMonthSummary(thisMonthInterval, props),
   };
 
   res.render("sections/dashboard/index", {
     current,
-    summaries
+    summaries,
   });
 });
 
@@ -76,15 +79,15 @@ module.exports = route;
 
 async function getDaySummary(date, { config, Punch }) {
   const interval = {
-    start: startOfDay(date),
-    end: endOfDay(date)
+    start: moment(date).startOf("day").toDate(),
+    end: moment(date).endOf("day").toDate(),
   };
 
   let duration = 0;
   let earnings = 0;
 
   const punches = await Punch.filter(
-    p => p.durationWithinInterval(interval) > 0
+    (p) => p.durationWithinInterval(interval) > 0
   );
 
   for (const punch of punches) {
@@ -96,13 +99,13 @@ async function getDaySummary(date, { config, Punch }) {
     punches: punches.sort(ascendingBy("in")),
     duration,
     earnings,
-    projects: getProjectsSummary(punches, interval, { config })
+    projects: getProjectsSummary(punches, interval, { config }),
   };
 }
 
 async function getWeekSummary(interval, { config, Punch }) {
   const punches = await Punch.filter(
-    p => p.durationWithinInterval(interval) > 0
+    (p) => p.durationWithinInterval(interval) > 0
   );
 
   let duration = 0;
@@ -121,14 +124,14 @@ async function getWeekSummary(interval, { config, Punch }) {
     projects: getProjectsSummary(punches, interval, { config }),
     dailyAverage: {
       duration: duration / totalDays,
-      earnings: earnings / totalDays
-    }
+      earnings: earnings / totalDays,
+    },
   };
 }
 
 async function getMonthSummary(interval, { config, Punch }) {
   const punches = await Punch.filter(
-    p => p.durationWithinInterval(interval) > 0
+    (p) => p.durationWithinInterval(interval) > 0
   );
 
   let duration = 0;
@@ -147,8 +150,8 @@ async function getMonthSummary(interval, { config, Punch }) {
     projects: getProjectsSummary(punches, interval, { config }),
     weeklyAverage: {
       duration: duration / weeks,
-      earnings: earnings / weeks
-    }
+      earnings: earnings / weeks,
+    },
   };
 }
 
@@ -157,7 +160,7 @@ function getProjectsSummary(punches, interval, { config }) {
 
   const totals = {
     duration: 0,
-    earnings: 0
+    earnings: 0,
   };
   const byProject = {};
 
@@ -165,7 +168,7 @@ function getProjectsSummary(punches, interval, { config }) {
     if (!byProject[punch.project]) {
       byProject[punch.project] = {
         duration: 0,
-        earnings: 0
+        earnings: 0,
       };
     }
 
@@ -192,7 +195,7 @@ function getProjectsSummary(punches, interval, { config }) {
       color: getFallbackColor(color, projects[alias]),
       duration,
       earnings,
-      percentage
+      percentage,
     });
   }
 
