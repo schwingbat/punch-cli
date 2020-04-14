@@ -1,14 +1,5 @@
 const route = require("express").Router();
 const moment = require("moment-timezone");
-const startOfDay = require("date-fns/startOfDay");
-const endOfDay = require("date-fns/endOfDay");
-const startOfWeek = require("date-fns/startOfWeek");
-const startOfMonth = require("date-fns/startOfMonth");
-const endOfMonth = require("date-fns/endOfMonth");
-const endOfWeek = require("date-fns/endOfWeek");
-const addMonths = require("date-fns/addMonths");
-const addWeeks = require("date-fns/addWeeks");
-const addDays = require("date-fns/addDays");
 const differenceInDays = require("date-fns/differenceInDays");
 const differenceInWeeks = require("date-fns/differenceInWeeks");
 const { ascendingBy, descendingBy } = require("../../utils/sort-factories");
@@ -29,7 +20,7 @@ route.get("/", async function (req, res) {
     }),
   };
 
-  const today = moment();
+  const today = moment().tz(config.display.timeZone);
   const yesterday = moment(today).add(1, "days");
   const lastWeek = moment(today).subtract(1, "weeks");
   const lastMonth = moment(today).subtract(1, "months");
@@ -54,12 +45,6 @@ route.get("/", async function (req, res) {
     start: moment(today).startOf("month").toDate(),
     end: thisMonthIntervalEnd.toDate(),
   };
-
-  console.log({
-    thisWeekInterval,
-    lastWeekInterval,
-    thisMonthInterval,
-  });
 
   const summaries = {
     today: await getDaySummary(today, props),

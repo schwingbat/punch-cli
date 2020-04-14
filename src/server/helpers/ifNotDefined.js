@@ -1,5 +1,5 @@
 module.exports = () =>
-  function(value, fallback) {
+  function (value, fallback) {
     if (value != null) {
       return value;
     } else {

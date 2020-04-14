@@ -1,17 +1,18 @@
 const route = require("express").Router();
 const { ascendingBy, descendingBy } = require("../../utils/sort-factories");
 const format = require("date-fns/format");
+const moment = require("moment-timezone");
 
-route.get("/", async function(req, res) {
+route.get("/", async function (req, res) {
   const page = Number(req.query.page || 1);
   const count = Number(req.query.count || 100);
 
-  const { Punch } = req.props;
+  const { Punch, config } = req.props;
 
   const punches = (await Punch.all()).sort(descendingBy("in"));
 
   const slice = punches.slice((page - 1) * count, page * count);
-  const groups = groupByDate(slice);
+  const groups = groupByDate(slice, config.display.timeZone);
 
   const totalPages = Math.ceil(punches.length / count);
   const countQuery = req.query.count ? `&count=${req.query.count}` : "";
@@ -34,16 +35,13 @@ route.get("/", async function(req, res) {
 
 module.exports = route;
 
-function groupByDate(punches) {
+function groupByDate(punches, timeZone) {
   const groups = {};
 
   for (const punch of punches) {
-    let y = punch.in.getFullYear();
-    let m = punch.in.getMonth();
-    let d = punch.in.getDate();
-
-    const key = `${y}-${m}-${d}`;
-
+    
+    const key = moment(punch.in).tz(timeZone).format("Y-MM-DD");
+    
     if (!groups[key]) {
       groups[key] = [];
     }
@@ -54,10 +52,10 @@ function groupByDate(punches) {
   const groupsArray = [];
 
   for (const key in groups) {
-    const date = groups[key][0].in;
+    const date = moment(groups[key][0].in).tz(timeZone);
 
     groupsArray.push({
-      title: format(date, "eee, MMM d, yyyy"),
+      title: date.format("ddd, MMM D, Y"),
       punches: groups[key].sort(ascendingBy("in"))
     });
   }

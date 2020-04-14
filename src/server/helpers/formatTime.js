@@ -1,7 +1,7 @@
 const moment = require("moment-timezone");
 
 module.exports = props =>
-  function(value) {
+  function (value) {
     const { config } = props;
 
     return moment(value || null)

@@ -4,7 +4,7 @@ module.exports = props =>
   /**
    * Converts tags and comment objects to other HTML.
    */
-  function(comment) {
+  function (comment) {
     let text = comment.comment;
 
     for (const object of comment.objects) {
@@ -23,4 +23,4 @@ module.exports = props =>
     return new Handlebars.SafeString(`<span>${text}</span>`);
   };
 
-function renderWrikeLink() {}
+function renderWrikeLink() { }

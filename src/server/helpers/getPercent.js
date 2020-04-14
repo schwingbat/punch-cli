@@ -1,4 +1,4 @@
 module.exports = () =>
-  function(one, two) {
+  function (one, two) {
     return (one / two) * 100;
   };

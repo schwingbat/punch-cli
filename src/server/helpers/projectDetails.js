@@ -1,7 +1,7 @@
 const _ = require("lodash");
 
 module.exports = ({ config }) =>
-  function(value, field) {
+  function (value, field) {
     let project;
 
     if (
