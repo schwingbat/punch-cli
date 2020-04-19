@@ -1,5 +1,5 @@
-const parseDateTime = require("../../utils/parse-datetime");
-const { confirm } = require("../../punch/utils");
+const parseDateTime = require("../utils/parse-datetime");
+const { confirm } = require("../punch/utils");
 
 const { Command } = require("@ratwizard/cli");
 

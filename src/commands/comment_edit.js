@@ -11,16 +11,16 @@ module.exports = new Command()
     key: "punchId",
     description: "ID of a given punch (use `punch log --with-ids` to find IDs)",
   })
-  .arg("comment-index", {
+  .arg("index", {
     key: "commentIndex",
     description: "index of the comment to replace",
     parse: parseInt,
   })
-  .arg("new-comment", {
+  .arg("text", {
     key: "newComment",
     description: "new comment text",
   })
-  .option("update-timestamp", "u", {
+  .option("-u, --update-timestamp <timestamp>", {
     key: "updateTimestamp",
     description: "updates the comment's timestamp to the current time",
     boolean: true,

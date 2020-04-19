@@ -9,13 +9,13 @@ const { Command } = require("@ratwizard/cli");
 
 module.exports = new Command()
   .description("import punch data")
-  .examples(["punch import ~/export.csv -f hourstracker"])
+  .examples(["{*} ~/export.csv -f hourstracker"])
   .arg("file", {
-    description: "path to a file of importable data"
+    description: "path to a file of importable data",
   })
-  .option("format", "f", {
+  .option("-f, --format <name>", {
     description:
-      "name of function to handle import (defined in ~/.punch/formatters/import)"
+      "name of function to handle import (defined in ~/.punch/formatters/import)",
   })
   .action(async ({ args, options, props }) => {
     const { config, Punch } = props;

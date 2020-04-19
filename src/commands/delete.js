@@ -4,19 +4,19 @@ const { dayPunches } = require("../logging/printing");
 const { Command } = require("@ratwizard/cli");
 
 module.exports = new Command()
-  .usage("delete [--yes] <id>")
+  .usage("{*} [--yes] <id>")
   .description("delete a punch")
   .arg("id", {
-    description: "ID of a given punch (use `punch log --with-ids` to find IDs)"
+    description: "ID of a given punch (use `punch log --with-ids` to find IDs)",
   })
-  .option("yes", "y", {
+  .option("-y, --yes", {
     description: "delete without confirmation",
-    boolean: true
+    boolean: true,
   })
   .action(async ({ args, options, props }) => {
     const { config, Punch } = props;
 
-    const punch = await Punch.find(p => p.id === args.id);
+    const punch = await Punch.find((p) => p.id === args.id);
 
     if (punch) {
       console.log(

@@ -62,104 +62,99 @@ program
   .command("adjust <id>", {
     description: "adjust a punch's start and end date",
     path: "./commands/adjust",
-  });
+  })
 
-// ----- Managing Comments ----- //
+  // ----- Logging ----- //
 
-program
+  .command("log [when...]", {
+    description: "show punches for a date range",
+    path: "./commands/log",
+  })
+
+  // ----- Managing Tags ----- //
+
+  .command("tags", {
+    description: "view and manage comment tags",
+    path: "./commands/tags",
+  })
+
+  // ----- Misc ----- //
+
+  .command("sync", {
+    description: "synchronize with an external source or server",
+    path: "./commands/sync",
+  })
+  .command("watch", {
+    description: "show your current punch in realtime",
+    path: "./commands/watch",
+  })
+  .command("invoice", {
+    description: "generate an invoice",
+    path: "./commands/invoice",
+  })
+  .command("config", {
+    description: "edit your punch configuration",
+    path: "./commands/config",
+  })
+
+  // ----- Managing Comments ----- //
+
   .command("comment <text...>", {
     description: "add a comment to the current punch",
     path: "./commands/comment",
   })
   .command("comment:add <id> <text...>", {
     description: "add a comment to an existing punch",
-    path: "./commands/comment-add",
-  })
-  .command("comment:delete <id> <index>", {
-    description: "delete a punch comment",
-    path: "./commands/comment-delete",
+    path: "./commands/comment_add",
   })
   .command("comment:edit <id> <index> <text...>", {
     description: "edit a comment on an existing punch",
-    path: "./commands/comment-edit",
-  });
-
-// ----- Managing Tags ----- //
-
-program.command("tags", {
-  description: "view and manage comment tags",
-  path: "./commands/tags",
-});
-
-// ----- Logging ----- //
-
-program.command("log [when...]", {
-  description: "show punches for a date range",
-  path: "./commands/log",
-});
-
-// ----- Data Import/Export ----- //
-
-program
-  .command("import", {
-    description: "import punch data from other sources",
-    path: "./commands/import",
+    path: "./commands/comment_edit",
   })
-  .command("export", {
-    description: "export punch data to other destinations",
-    path: "./commands/export",
+  .command("comment:delete <id> <index>", {
+    description: "delete a punch comment",
+    path: "./commands/comment_delete",
   })
-  .command("invoice", {
-    description: "generate an invoice",
-    path: "./commands/invoice",
-  })
-  .command("sync", {
-    description: "synchronize with an external source or server",
-    path: "./commands/sync",
-  });
 
-// ----- Managing Projects ----- //
+  // ----- Managing Projects ----- //
 
-program
-  .command("projects", {
+  .command("project:list", {
     description: "view a summary of projects",
-    path: "./commands/projects",
+    path: "./commands/project_list",
   })
   .command("project:rename", {
     description: "change a project's alias and update punches",
-    path: "./commands/project-rename",
-  })
-  .command("project:purge", {
-    description: "delete all punches for a certain project",
-    path: "./commands/project-purge",
+    path: "./commands/project_rename",
   })
   .command("project:rerate", {
     description: "update existing punches with a new pay rate",
-    path: "./commands/project-rerate",
-  });
-
-// ----- Misc ----- //
-
-program
-  .command("watch", {
-    description: "show your current punch in realtime",
-    path: "./commands/watch",
+    path: "./commands/project_rerate",
   })
-  .command("config", {
-    description: "edit your punch configuration",
-    path: "./commands/config",
-  });
-
-// ----- Server ----- //
-
-program
-  .command("serve", {
-    description: "start a server with a web-based UI",
-    path: "./commands/serve",
+  .command("project:purge", {
+    description: "delete all punches for a certain project",
+    path: "./commands/project_purge",
   })
+
+  // ----- Data Import/Export ----- //
+
+  .command("data:import", {
+    description: "import punch data from other sources",
+    path: "./commands/data_import",
+  })
+  .command("data:export", {
+    description: "export punch data to other destinations",
+    path: "./commands/data_export",
+  })
+
+  // ----- Server ----- //
+
   .command("server:hash", {
     description: "hash a password to be used for login on the server",
     path: "./commands/server-hash",
+  })
+  .command("serve", {
+    description: "start a server with a web-based UI",
+    path: "./commands/serve",
   });
 
 // ----- Lifecycle ----- //

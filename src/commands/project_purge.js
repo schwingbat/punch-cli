@@ -1,6 +1,6 @@
-const { confirm } = require("../../punch/utils");
-const formatDuration = require("../../format/duration");
-const getLabelFor = require("../../utils/get-label-for");
+const { confirm } = require("../punch/utils");
+const formatDuration = require("../format/duration");
+const getLabelFor = require("../utils/get-label-for");
 
 const { Command } = require("@ratwizard/cli");
 

@@ -10,23 +10,23 @@ const { confirmAdjustedTime } = require("../punch/utils");
 const { Command } = require("@ratwizard/cli");
 
 module.exports = new Command()
-  .usage("in [--options] <project>")
+  .usage("{*} [--options] <project>")
   .description("start tracking time on a project")
   .examples([
-    "punch in my-project",
-    "punch in -t 9:15am my-project",
-    "punch in my-project --start=2019-05-14@12:41pm"
+    "{*} my-project",
+    "{*} -t 9:15am my-project",
+    "{*} my-project --start=2019-05-14@12:41pm",
   ])
   .arg("project", {
-    description: "name of the project"
+    description: "name of the project",
   })
-  .option("time", "t", {
-    description: "time to set as punch in time (defaults to current time)",
-    parse: parseDateTime
+  .option("-t, --time <string>", {
+    description: "time to use as the punch start (defaults to now)",
+    parse: parseDateTime,
   })
-  .option("start", "s", {
-    description: "time to set as punch in time (same as --time / -t)",
-    parse: parseDateTime
+  .option("-s, --start <string>", {
+    description: "time to use as the punch start (same as --time / -t)",
+    parse: parseDateTime,
   })
   .action(async ({ args, options, props }) => {
     const { config, Punch } = props;
@@ -59,7 +59,7 @@ module.exports = new Command()
 
         const punch = new Punch({
           project: project,
-          in: time || new Date()
+          in: time || new Date(),
         });
 
         await punch.save();

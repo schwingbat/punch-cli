@@ -31,7 +31,7 @@ module.exports = new Command()
   .action(async ({ args, options, props }) => {
     const { config, Punch } = props;
 
-    const punchedIn = await allPunchedIn({ config, Punch });
+    const punchedIn = await Punch.current();
     const { project, time } = options;
 
     if (punchedIn.length > 1 && !project) {

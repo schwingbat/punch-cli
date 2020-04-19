@@ -10,18 +10,18 @@ const { Command } = require("@ratwizard/cli");
 module.exports = new Command()
   .description("create a punch")
   .arg("project", {
-    description: "name of the project"
+    description: "name of the project",
   })
-  .option("start", "s", {
-    description: "start time and date (e.g. MM/DD/yyyy@12:00PM)",
-    parse: parseDateTime
+  .option("-s, --start <timestamp>", {
+    description: "start time and date (e.g. MM/DD/YYYY@12:00PM)",
+    parse: parseDateTime,
   })
-  .option("end", "e", {
+  .option("-e, --end <timestamp>", {
     description: "end time and date",
-    parse: parseDateTime
+    parse: parseDateTime,
   })
-  .option("comment", "c", {
-    description: "a description of what you worked on"
+  .option("-c, --comment <text>", {
+    description: "a description of what you worked on",
   })
   .action(async ({ args, options, props }) => {
     const { config, Punch } = props;
@@ -66,7 +66,7 @@ module.exports = new Command()
         project: project.alias,
         in: timeIn,
         out: timeOut,
-        rate: project.hourlyRate || 0
+        rate: project.hourlyRate || 0,
       });
 
       if (comment) {

@@ -12,28 +12,30 @@ const moment = require("moment-timezone");
 const { Command } = require("@ratwizard/cli");
 
 module.exports = new Command()
-  .usage("invoice [--options] <project> <startDate> <endDate> <outputFile>")
   .description("generate an invoice for a project")
   .arg("project", {
     description: "project alias",
   })
-  .arg("startDate", {
+  .arg("start", {
+    key: "startDate",
     description: "start date for invoice period",
     parse: parseDate,
   })
-  .arg("endDate", {
+  .arg("end", {
+    key: "endDate",
     description: "end date for invoice period",
     parse: parseDate,
   })
-  .arg("outputFile", {
+  .arg("output", {
+    key: "outputFile",
     description: "file to output to",
     parse: resolvePath,
   })
-  .option("format", "f", {
+  .option("-f, --format <ext>", {
     description:
       "specify a format rather than inferring from output file extension",
   })
-  .option("yes", "y", {
+  .option("-y, --yes", {
     description: "generate without confirming details",
     boolean: true,
   })

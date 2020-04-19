@@ -1,7 +1,7 @@
 const {
   allPunchedIn,
   confirm,
-  confirmAdjustedTime
+  confirmAdjustedTime,
 } = require("../punch/utils");
 const parseDateTime = require("../utils/parse-datetime");
 const chalk = require("chalk");
@@ -15,38 +15,33 @@ const updateCurrentMarker = require("../utils/update-current-marker");
 
 const { Command } = require("@ratwizard/cli");
 
-module.exports = new Command({
-  usage: "out [--options] [project]",
-  description: "stop tracking time",
-  examples: [
-    "punch out",
-    "punch out my-project",
-    "punch out --time 7:30PM --comment 'did some work'",
-    "punch out -t 2020-03-15@5:15AM"
-  ],
-  args: [
-    {
-      name: "project",
-      description:
-        "name of the project (required if punched in on multiple projects)",
-      optional: true
-    }
-  ],
-  options: {
-    "-c, --comment <text>": {
-      description: "add a description of what you worked on"
-    },
-    "-t, --time <datetime>": {
-      description: "time to set as punch out time (defaults to now)",
-      parse: parseDateTime
-    },
-    "--no-comment": {
-      key: "noComment",
-      description: "punch out without warning about a lack of comments",
-      boolean: true
-    }
-  },
-  action: async function({ args, options, props }) {
+module.exports = new Command()
+  .usage("{*} [--options] [project]")
+  .description("stop tracking time")
+  .examples([
+    "{*}",
+    "{*} my-project",
+    "{*} --time 7:30PM --comment 'did some work'",
+    "{*} -t 2020-03-15@5:15AM",
+  ])
+  .arg("project", {
+    description:
+      "name of the project (required if punched in on multiple projects)",
+    optional: true,
+  })
+  .option("-c, --comment <text>", {
+    description: "add a description of what you worked on",
+  })
+  .option("-t, --time <timestamp>", {
+    description: "time to set as punch out time (defaults to now)",
+    parse: parseDateTime,
+  })
+  .option("--no-comment", {
+    key: "noComment",
+    description: "punch out without warning about a lack of comments",
+    boolean: true,
+  })
+  .action(async function ({ args, options, props }) {
     const { config, Punch } = props;
 
     const loader = Loader();
@@ -68,7 +63,7 @@ module.exports = new Command({
         str += punchedIn.join("\n  ");
         str += "\n\n";
         str += "Specify which one you want to punch out of:\n  ";
-        str += punchedIn.map(s => `punch out ${s}`).join("\n  ");
+        str += punchedIn.map((s) => `punch out ${s}`).join("\n  ");
         str += "\n";
         loader.stop(str);
         return;
@@ -112,7 +107,7 @@ module.exports = new Command({
       if (!dryRun) {
         await current.punchOut(options.comment, {
           autosave: true,
-          time: options.time || new Date()
+          time: options.time || new Date(),
         });
       }
 
@@ -136,5 +131,4 @@ module.exports = new Command({
         `${chalk.yellow(config.symbols.warning)} You're not punched in!`
       );
     }
-  }
-});
+  });

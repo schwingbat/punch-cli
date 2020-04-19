@@ -4,8 +4,8 @@ const { Command } = require("@ratwizard/cli");
 
 module.exports = new Command()
   .description("open config file in editor")
-  .option("editor", "e", {
-    description: "editor command (vim, code, etc.)"
+  .option("-e, --editor <name>", {
+    description: "editor command (vim, code, etc.)",
   })
   .action(({ options, props }) => {
     const { config } = props;

@@ -6,23 +6,23 @@ const formatDate = require("date-fns/format");
 const { Command } = require("@ratwizard/cli");
 
 module.exports = new Command()
-  .usage("adjust [--options] <id>")
+  .usage("{*} [--options] <id>")
   .description("adjust punch start/end times")
   .arg("id", {
-    description: "ID of a given punch (use 'punch log --with-ids' to find IDs)"
+    description: "ID of a given punch (use 'punch log --with-ids' to find IDs)",
   })
-  .option("start", "s", {
+  .option("-s, --start <datetime>", {
     description: "start date and time for punch",
-    parse: parseDateTime
+    parse: parseDateTime,
   })
-  .option("end", "e", {
+  .option("-e, --end <datetime>", {
     description: "end date and time for punch",
-    parse: parseDateTime
+    parse: parseDateTime,
   })
   .action(async ({ args, options, props }) => {
     const { config, Punch } = props;
 
-    const punch = await Punch.find(p => p.id === args.id);
+    const punch = await Punch.find((p) => p.id === args.id);
 
     if (punch) {
       if (!punch.out && options.end) {

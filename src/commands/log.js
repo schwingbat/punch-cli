@@ -4,14 +4,14 @@ const Log = require("../logging/log");
 const { Command } = require("@ratwizard/cli");
 
 module.exports = new Command()
-  .usage("log [--options] [when...]")
+  .usage("{*} [--options] [when...]")
   .description("show a summary of punches for a given period")
   .examples([
-    "punch log today",
-    "punch log last tuesday",
-    "punch log this month",
-    "punch log this week",
-    "punch log -s 2018-11-25 -e 2018-12-25 -p punch",
+    "{*} today",
+    "{*} last tuesday",
+    "{*} this month",
+    "{*} this week",
+    "{*} -s 2018-11-25 -e 2018-12-25 -p punch",
   ])
   .arg("when", {
     description: "time period to log",
@@ -19,20 +19,20 @@ module.exports = new Command()
     splat: true,
     parse: (value) => value.join(" "),
   })
-  .option("-s, --start <datetime>", {
+  .option("-s, --start <timestamp>", {
     description: "log punches between specific dates (use with --end)",
   })
-  .option("-e, --end <datetime>", {
+  .option("-e, --end <timestamp>", {
     description: "log punches between specific dates (use with --start)",
   })
   .option("-p, --project <alias>", {
     description: "show only punches for a given project",
   })
-  .option("-o, --object <object>", {
+  .option("-o, --object <name>", {
     description:
       "show only punches tagged with a given comment object (e.g. @task:1669)",
   })
-  .option("-t, --tag <tag>", {
+  .option("-t, --tag <name>", {
     description: "show only punches with a specific #tag",
   })
   .option("-i, --with-ids", {

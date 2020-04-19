@@ -8,25 +8,25 @@ const { Command } = require("@ratwizard/cli");
 
 module.exports = new Command()
   .description("export punch data")
-  .option("start", "s", {
+  .option("-s, --start <timestamp>", {
     description: "start date for punch selection",
-    parse: parseDateTime
+    parse: parseDateTime,
   })
-  .option("end", "e", {
+  .option("-e, --end <timestamp>", {
     description: "end date for punch selection",
-    type: parseDateTime
+    type: parseDateTime,
   })
-  .option("project", "p", {
-    description: "project name for punch selection"
+  .option("-p, --project <alias>", {
+    description: "project name for punch selection",
   })
-  .option("tag", "t", {
-    description: "comment tag values for punch selection"
+  .option("-t, --tag <name>", {
+    description: "comment tag values for punch selection",
   })
-  .option("format", "f", {
-    description: "formatting function file name (looks in ~/.punch/formatters)"
+  .option("-f, --format <name>", {
+    description: "formatting function file name (looks in ~/.punch/formatters)",
   })
-  .option("output", "o", {
-    description: "file path to save to (prints to console by default)"
+  .option("-o, --output <path>", {
+    description: "file path to save to (prints to console by default)",
   })
   .action(async ({ options, props }) => {
     const { config, Punch } = props;
@@ -56,13 +56,13 @@ module.exports = new Command()
           "  // Do your thing!",
           " ",
           "  return str",
-          "}"
+          "}",
         ].join("\n")
       );
       return;
     }
 
-    const punches = await Punch.filter(p => {
+    const punches = await Punch.filter((p) => {
       if (start && p.in < start) {
         return false;
       }

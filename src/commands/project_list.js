@@ -6,7 +6,7 @@ const padWithLines = require("../logging/pad-with-lines");
 
 const { Command } = require("@ratwizard/cli");
 
-module.exports = new Command("projects")
+module.exports = new Command()
   .description("show statistics for projects in your config file")
   .action(async ({ props }) => {
     const { config, Punch } = props;
@@ -19,7 +19,7 @@ module.exports = new Command("projects")
 
     for (let i = 0; i < names.length; i++) {
       const project = names[i];
-      const punches = allPunches.filter(p => p.project === project);
+      const punches = allPunches.filter((p) => p.project === project);
 
       if (punches.length > 0) {
         let firstPunch = punches[0];
@@ -43,14 +43,14 @@ module.exports = new Command("projects")
           hourlyRate,
           firstPunch,
           latestPunch,
-          totalPunches: punches.length
+          totalPunches: punches.length,
         });
       }
     }
 
     let str = "";
 
-    summaries.sort(ascendingBy("fullName")).forEach(s => {
+    summaries.sort(ascendingBy("fullName")).forEach((s) => {
       str += projectSummary(formatSummary(config, s)) + "\n\n";
     });
 
