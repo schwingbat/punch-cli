@@ -12,28 +12,44 @@
   <div class="container">
     {{#with project}}
     <section>
-      {{#if client}}
-      <div class="subsection">
-        <header>
-          <span>Client</span>
-        </header>
-        {{> client-card client=client }}
+      <header>
+        <h1>{{name}}</h1>
+      </header>
+
+      <div class="detailsTable">
+        {{#if client}}
+        <div class="detailsTable__item">
+          <div class="detailsTable__itemLabel">
+            <span>Client</span>
+          </div>
+          <div class="detailsTable__itemContent">
+            {{> client-card client=client }}
+          </div>
+        </div>
+        {{/if}}
+
+        <div class="detailsTable__item">
+          <div class="detailsTable__itemLabel">
+            <span>Last Active</span>
+          </div>
+          <div class="detailsTable__itemContent">
+            {{@root.lastActiveLabel}}
+          </div>
+        </div>
+
+        <div class="detailsTable__item">
+          <div class="detailsTable__itemLabel">
+            <span>Hourly Rate</span>
+          </div>
+          <div class="detailsTable__itemContent">
+            {{#if hourlyRate}}
+              {{formatCurrency hourlyRate}}
+            {{else}}
+              ---
+            {{/if}}
+          </div>
+        </div>
       </div>
-      {{/if}}
-      <div class="subsection">
-        <header>
-          <span>Last Active</span>
-        </header>
-        {{@root.lastActiveLabel}}
-      </div>
-      {{#if hourlyRate}}
-      <div class="subsection">
-        <header>
-          <span>Hourly Rate</span>
-        </header>
-        {{formatCurrency hourlyRate}}
-      </div>
-      {{/if}}
     </section>
     {{/with}}
     

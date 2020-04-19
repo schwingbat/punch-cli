@@ -9,12 +9,16 @@
 
   <div class="container">
     <section>
-      <div class="punch-show__details">
-        <div class="punch-show__details-item">
-          <div class="punch-show__details-label">
+      <header>
+        <h1>Punch for {{project.name}}</h1>
+      </header>
+
+      <div class="detailsTable">
+        <div class="detailsTable__item">
+          <div class="detailsTable__itemLabel">
             <span>Project</span>
           </div>
-          <div class="punch-show__details-content">
+          <div class="detailsTable__itemContent">
             <a
               href="/projects/{{project.alias}}"
               class="color-{{ifNotDefined project.color "gray"}}">
@@ -23,20 +27,20 @@
           </div>
         </div> <!-- /project -->
 
-        <div class="punch-show__details-item">
-          <div class="punch-show__details-label">
+        <div class="detailsTable__item">
+          <div class="detailsTable__itemLabel">
             <span>Start</span>
           </div>
-          <div class="punch-show__details-content">
+          <div class="detailsTable__itemContent">
             <span>{{formatDateTime punch.in}}</span>
           </div>
         </div> <!-- /start -->
 
-        <div class="punch-show__details-item">
-          <div class="punch-show__details-label">
+        <div class="detailsTable__item">
+          <div class="detailsTable__itemLabel">
             <span>End</span>
           </div>
-          <div class="punch-show__details-content">
+          <div class="detailsTable__itemContent">
             <span>
               {{#if isActive}}
                 <span class="punch-show__label--faded">---</span>
@@ -47,11 +51,11 @@
           </div>
         </div> <!-- /end -->
 
-        <div class="punch-show__details-item">
-          <div class="punch-show__details-label">
+        <div class="detailsTable__item">
+          <div class="detailsTable__itemLabel">
             <span>Duration</span>
           </div>
-          <div class="punch-show__details-content">
+          <div class="detailsTable__itemContent">
             <span>
               {{#if isActive}}
                 <span
@@ -66,11 +70,11 @@
           </div>
         </div> <!-- /duration -->
 
-        <div class="punch-show__details-item">
-          <div class="punch-show__details-label">
+        <div class="detailsTable__item">
+          <div class="detailsTable__itemLabel">
             <span>Earnings</span>
           </div>
-          <div class="punch-show__details-content">
+          <div class="detailsTable__itemContent">
             <span>
               {{#if isPaid}}
                 {{#if isActive}}
@@ -116,21 +120,17 @@
       <ul class="punch-show__comments unstyled">
         {{#if comments}}
           {{#each comments}}
-          <li>
-            <div class="punch-show__comment">
-              <div class="punch-show__comment-timestamp">
-                <div class="punch-show__timestamp-group">
-                  <div class="punch-show__comment-dot fill-{{ifNotDefined (projectDetails ../project "color") "gray"}}"></div>
-                  <span class="color-gray">{{dateDiffOffset ../in timestamp}}</span>
-                </div>
-              </div>
-              <div class="punch-show__comment-text">
-                {{comment}}
-              </div>
+          <li class="punch-show__comment">
+            <div class="punch-show__comment-timestamp">
+              <div class="punch-show__comment-dot fill-{{ifNotDefined (projectDetails ../project "color") "gray"}}"></div>
+              <span class="color-gray">{{dateDiffOffset ../in timestamp}}</span>
+            </div>
+            <div class="punch-show__comment-text">
+              {{comment}}
             </div>
             <div class="punch-show__comment-actions">
               <a
-                class="button button--pill"
+                class="button -small -pill"
                 href="/punch/{{@root.punch.id}}/comment/{{id}}/edit">
                 <svg class="button__icon">
                   <title>Edit icon</title>
@@ -141,7 +141,7 @@
                 </span>
               </a>
               <a
-                class="button button--pill"
+                class="button -small -pill"
                 href="/punch/{{@root.punch.id}}/comment/{{id}}/delete">
                 <svg class="button__icon">
                   <title>Delete icon</title>

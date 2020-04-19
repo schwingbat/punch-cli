@@ -79,7 +79,7 @@ body {
   --text-input-border-color: #000;
   --text-input-placeholder-color: #969aa5;
 
-  --card-color: var(--button-color);
+  --card-color: #e1e5e9;
 
   font-family: var(--font-family);
   font-size: 16px; /* Base is 16px - other elements use rem or em. */
@@ -364,13 +364,16 @@ ol.unstyled {
   color: var(--button-text-color);
 }
 
-.button--danger {
+.button--danger,
+.button.-danger {
   background-color: var(--button-color--danger);
 }
 
-.button--pill {
+.button--pill,
+.button.-pill {
   /* 50% radius doesn't work with rectangular elements */
-  border-radius: calc(999px * var(--roundness));
+  /* border-radius: calc(999px * var(--roundness)); */
+  border-radius: 9999px;
 }
 
 .button__icon {
@@ -379,10 +382,25 @@ ol.unstyled {
   stroke: var(--button-text-color);
   fill: none;
   stroke-width: 1.4;
+  margin-right: 0.5em;
+}
+
+.button.-small {
+  height: 33px;
+  line-height: 33px;
+  /* font-size: 0.9em; */
+  padding: 0 0.7em;
+}
+
+.button.-small .button__icon {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2;
+  margin-right: 0.4em;
 }
 
 .button span {
-  padding: 0 0.5em;
+  /* padding: 0 0.5em; */
 }
 
 /* ----- Dropdown ----- */
@@ -390,7 +408,7 @@ ol.unstyled {
 .dropdown {
   font-family: var(--font-family);
   color: var(--text-color);
-  background-color: var(--button-color);
+  background-color: var(--text-input-bg-color);
   display: flex;
   align-items: center;
   overflow: hidden;
@@ -444,7 +462,7 @@ ol.unstyled {
 .text-area {
   font-family: var(--font-family);
   color: var(--text-color);
-  background-color: var(--button-color);
+  background-color: var(--text-input-bg-color);
   outline: none;
   border: none;
   font-size: 1em;
@@ -717,6 +735,67 @@ ol.unstyled {
 .page-selector__label {
   text-align: center;
   margin-bottom: 0.3em;
+}
+
+/* -------- Details Table -------- */
+
+.detailsTable {
+  display: flex;
+  flex-flow: column nowrap;
+  width: 100%;
+}
+
+.detailsTable__item {
+  display: table-row;
+  padding-top: 0.75em;
+}
+
+.detailsTable__item:not(:first-child) {
+  border-top: 1px solid var(--border-color);
+}
+
+.detailsTable__itemLabel {
+  display: table-cell;
+  font-weight: bold;
+  padding-bottom: 0.25em;
+  white-space: nowrap;
+}
+
+.detailsTable__itemContent {
+  padding-bottom: 0.75em;
+  font-weight: normal;
+}
+
+@media (min-width: 800px) {
+  .detailsTable {
+    display: table;
+  }
+
+  .detailsTable__item {
+    position: relative;
+    flex-direction: row;
+  }
+
+  .detailsTable__item:not(:first-child):after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: var(--border-color);
+  }
+
+  .detailsTable__itemLabel {
+    width: 8em;
+    text-align: right;
+    padding-right: 1.5em;
+    padding-bottom: 0;
+  }
+
+  .detailsTable__itemContent {
+    padding-top: 0.75em;
+  }
 }
 
 /*====================================*\
@@ -1055,60 +1134,17 @@ ol.unstyled {
   justify-content: space-between;
 }
 
-.punch-show__details {
-  display: flex;
-  flex-flow: column nowrap;
-}
-
-.punch-show__details-item {
-  display: flex;
-  flex-flow: column nowrap;
-  padding: 0.75em 0;
-}
-
-.punch-show__details-item:not(:first-child) {
-  border-top: 1px solid var(--border-color);
-}
-
-.punch-show__details-label {
-  font-weight: bold;
-  padding-bottom: 0.25em;
-}
-
-.punch-show__details-content {
-}
-
-@media (min-width: 800px) {
-  .punch-show__details-item {
-    flex-direction: row;
-  }
-
-  .punch-show__details-label {
-    width: 7em;
-    text-align: right;
-    padding-right: 1.5em;
-    padding-bottom: 0;
-  }
-}
-
 .punch-show__comments {
   margin-bottom: 1.2em;
 }
 
-.punch-show__comments > li {
-  margin-bottom: 2em;
-}
-
 .punch-show__comment {
+  margin-bottom: 2em;
   display: flex;
   flex-flow: column nowrap;
 }
 
 .punch-show__comment-timestamp {
-  /* flex: 0 0 100px; */
-}
-
-.punch-show__timestamp-group {
   display: flex;
   align-items: center;
 }
@@ -1124,10 +1160,12 @@ ol.unstyled {
   line-height: 1.418;
   margin-left: 1.2em;
   margin-top: 0.5em;
+  background-color: var(--text-input-bg-color);
+  padding: 1em;
 }
 
 .punch-show__comment-actions {
-  margin-top: 0.5em;
+  margin-top: -0.75em;
   margin-left: 1.2em;
   display: flex;
   align-items: center;
