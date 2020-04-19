@@ -4,7 +4,7 @@
 
 module.exports = function (config, Punch) {
   return {
-    name: "template",
+    name: "remote",
 
     // Saves a single punch object
     async save(punch) {},
