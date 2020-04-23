@@ -25,6 +25,14 @@ const Punch = require("./punch/punch")(config);
 const storage = require("./storage")(config)(Punch, events);
 Punch.setStorage(storage);
 
+const consolePrinter = require("./printing/printers/console");
+const print = require("./printing")({
+  printer: consolePrinter(),
+  config,
+});
+
+const input = require("./input");
+
 bench.mark("punch loaded");
 
 /* ========================= *\
@@ -36,6 +44,8 @@ const program = new Command({
   props: {
     events,
     config,
+    print,
+    input,
     Punch,
   },
 });

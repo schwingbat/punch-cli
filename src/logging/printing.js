@@ -8,19 +8,19 @@ const Table = require("../format/table");
 const formatCurrency = require("../format/currency");
 const formatDuration = require("../format/duration");
 const wordWrap = require("@fardog/wordwrap")(0, 80, {
-  lengthFn: require("../utils/print-length.js")
+  lengthFn: require("../utils/print-length.js"),
 });
 const realTime = require("../utils/real-time");
 
 function delimitedList(items, inners = " / ", outers) {
-  let joined = items.filter(i => i).join(chalk.grey(inners));
+  let joined = items.filter((i) => i).join(chalk.grey(inners));
   if (outers) {
     joined = chalk.grey(outers[0]) + joined + chalk.grey(outers[1]);
   }
   return joined;
 }
 
-const labelTable = items => {
+const labelTable = (items) => {
   let str = "";
   let length = items.reduce(
     (longest, item) =>
@@ -58,7 +58,7 @@ function projectHeader(text, stats) {
     str +=
       " " +
       delimitedList(
-        stats.filter(s => s).map(s => s.toString()),
+        stats.filter((s) => s).map((s) => s.toString()),
         " / ",
         ["(", ")"]
       );
@@ -86,7 +86,7 @@ function summaryTable(projects, opts = {}) {
 
   opts = Object.assign(
     {
-      total: true
+      total: true,
     },
     opts
   );
@@ -94,7 +94,7 @@ function summaryTable(projects, opts = {}) {
   let total = {
     time: 0,
     pay: 0,
-    punchCount: 0
+    punchCount: 0,
   };
 
   const table = new Table({
@@ -102,27 +102,27 @@ function summaryTable(projects, opts = {}) {
       {
         align: "left",
         leftPadding: 0,
-        rightPadding: 1
+        rightPadding: 1,
       },
       {
         align: "right",
         leftPadding: 1,
-        rightPadding: 1
+        rightPadding: 1,
       },
       {
         align: "right",
         leftPadding: 1,
-        rightPadding: 1
+        rightPadding: 1,
       },
       {
         align: "right",
         leftPadding: 1,
-        rightPadding: 0
-      }
-    ]
+        rightPadding: 0,
+      },
+    ],
   });
 
-  projects.forEach(project => {
+  projects.forEach((project) => {
     total.time += project.time;
     total.pay += project.pay;
     total.punchCount += project.punches.length;
@@ -133,7 +133,7 @@ function summaryTable(projects, opts = {}) {
       project.isPaid ? formatCurrency(project.pay) : chalk.grey("---"),
       project.punches.length +
         " punch" +
-        (project.punches.length === 1 ? "" : "es")
+        (project.punches.length === 1 ? "" : "es"),
     ]);
   });
 
@@ -144,9 +144,9 @@ function summaryTable(projects, opts = {}) {
 
     for (const project of projects) {
       punches.push(
-        ...project.punches.map(p => ({
+        ...project.punches.map((p) => ({
           start: p.in,
-          end: p.out || new Date()
+          end: p.out || new Date(),
         }))
       );
     }
@@ -163,8 +163,8 @@ function summaryTable(projects, opts = {}) {
         timeDiffers ? `${formatDuration(rtime)} ${chalk.cyan("[Real]")}` : null,
         timeDiffers ? `${time} ${chalk.cyan("[Tracked]")}` : time,
         formatCurrency(total.pay),
-        total.punchCount + " punch" + (total.punchCount === 1 ? "" : "es")
-      ].filter(x => x),
+        total.punchCount + " punch" + (total.punchCount === 1 ? "" : "es"),
+      ].filter((x) => x),
       " / ",
       ["(", ")"]
     );
@@ -210,218 +210,259 @@ function daySummaryHeader({ date, stats, dateFormat }) {
   return header + "\n";
 }
 
-function dayPunches(punches, date, config) {
-  const symbols = config.symbols;
+function dayPunches(punches, date, config, wrapIndent = "") {
+  const span = {
+    start: moment(date).startOf("day").toDate(),
+    end: moment(date).endOf("day").toDate(),
+  };
+
+  return punches.reduce(
+    (str, punch) => str + dayPunch(punch, span, config, wrapIndent + "\n"),
+    ""
+  );
+}
+
+// const fmt = new PunchFormatter(punch);
+
+// buf.push(fmt.header(), "\n");
+// fmt.comments().forEach((comment) => {
+//   const style = comment.id === 1234 ? "remove" : "normal";
+//   buf.push(comment.format({ style }));
+// });
+
+function dayPunch(punch, timespan, config, newline) {
   let str = "";
 
-  const dateStart = new Date(date);
-  dateStart.setHours(0, 0, 0, 0);
-  const dateEnd = new Date(dateStart);
-  dateEnd.setHours(23, 59, 59, 999);
-
   // Calculate length of 12:00pm formatted, which should be as long as a time with a given format could be.
+
   const maxTimeLength = moment(new Date(2000, 11, 15, 12, 0, 0)).format(
     config.display.timeFormat
   ).length;
 
-  punches.forEach(punch => {
-    let start;
-    let end;
-    let carryForward = 0;
-    let carryBack = 0;
+  str += dayPunchHeader(punch, timespan, config, newline, maxTimeLength);
 
-    let out = punch.out || new Date();
+  let lastCommentStamp = punch.in;
 
-    if (punch.in < dateStart) {
-      carryBack = dateStart.getTime() - punch.in.getTime();
-      start = dateStart;
-    } else {
-      start = punch.in;
-    }
+  if (punch.comments.length > 0) {
+    for (let c = 0; c < punch.comments.length; c++) {
+      const comment = punch.comments[c];
 
-    if (out > dateEnd) {
-      carryForward = out.getTime() - dateEnd.getTime();
-      end = dateEnd;
-    } else {
-      end = out;
-    }
+      str += dayPunchComment(
+        punch,
+        comment,
+        config,
+        lastCommentStamp,
+        maxTimeLength
+      );
 
-    const midnightString = moment(new Date(2020, 1, 1, 0, 0)).format(
-      config.display.timeFormat
-    );
+      lastCommentStamp = comment.timestamp;
 
-    const carryOverValue = midnightString;
-
-    let timeSpan = "";
-    if (carryBack) {
-      timeSpan += carryOverValue.padStart(maxTimeLength) + " - ";
-    } else {
-      timeSpan +=
-        moment(start)
-          .format(config.display.timeFormat)
-          .padStart(maxTimeLength) + " - ";
-    }
-    if (punch.out) {
-      if (carryForward) {
-        timeSpan += carryOverValue.padStart(maxTimeLength);
-      } else {
-        timeSpan += moment(end)
-          .format(config.display.timeFormat)
-          .padStart(maxTimeLength);
+      // Break line if this comment isn't the last.
+      if (punch.comments[c + 1]) {
+        str += newline;
       }
-    } else {
-      timeSpan += "NOW".padStart(maxTimeLength);
     }
 
-    if (punch.out) {
-      timeSpan = chalk.cyan(timeSpan);
-    } else {
-      timeSpan = chalk.bold.green(timeSpan);
-    }
+    str += newline;
+  }
 
-    const project = config.projects[punch.project];
-    const projectName = project ? project.name : punch.project;
-    let time;
-    const hours =
-      punch.durationWithinInterval({ start: dateStart, end: dateEnd }) /
-      3600000;
-    if (hours < 1) {
-      time = `${~~(hours * 60)}m`;
-    } else {
-      time = `${hours.toFixed(1)}h`;
-    }
+  return str;
+}
 
-    if (carryBack) {
-      let s = "";
-      let hrs =
-        punch.durationWithinInterval({ start: punch.in, end: dateStart }) /
-        3600000;
+function dayPunchHeader(punch, timespan, config, newline, maxTimeLength) {
+  let str = "";
+  let start;
+  let end;
+  let carryForward = 0;
+  let carryBack = 0;
 
-      s +=
-        moment(punch.in)
-          .format(config.display.timeFormat)
-          .padStart(maxTimeLength) + " - ";
-      s += carryOverValue.padEnd(maxTimeLength);
-      if (hrs < 1) {
-        s += `${~~(hrs * 60)}m`.padStart(6);
-      } else {
-        s += `${hrs.toFixed(1)}h`.padStart(6);
-      }
-      s += ` [${projectName}]`;
-      s += " (yesterday)";
-      str += chalk.grey(s) + "\n";
-    }
+  const dateStart = timespan.start;
+  const dateEnd = timespan.end;
 
-    str += timeSpan;
-    str += chalk.blue(time.padStart(6));
-    str += chalk.yellow(` [${projectName}]`);
-    if (punch.rate) {
-      str += chalk.grey(` ($${punch.pay().toFixed(2)})`);
-    }
-    str += "\n";
+  let out = punch.out || new Date();
 
+  if (punch.in < dateStart) {
+    carryBack = dateStart.getTime() - punch.in.getTime();
+    start = dateStart;
+  } else {
+    start = punch.in;
+  }
+
+  if (out > dateEnd) {
+    carryForward = out.getTime() - dateEnd.getTime();
+    end = dateEnd;
+  } else {
+    end = out;
+  }
+
+  const midnightString = moment(new Date(2020, 1, 1, 0, 0)).format(
+    config.display.timeFormat
+  );
+
+  const carryOverValue = midnightString;
+
+  let timeSpan = "";
+  if (carryBack) {
+    timeSpan += carryOverValue.padStart(maxTimeLength) + " - ";
+  } else {
+    timeSpan +=
+      moment(start).format(config.display.timeFormat).padStart(maxTimeLength) +
+      " - ";
+  }
+  if (punch.out) {
     if (carryForward) {
-      let s = "";
-      let hrs =
-        punch.durationWithinInterval({ start: dateEnd, end: out }) / 3600000;
-
-      s += carryOverValue.padStart(maxTimeLength) + " - ";
-      s += moment(out)
+      timeSpan += carryOverValue.padStart(maxTimeLength);
+    } else {
+      timeSpan += moment(end)
         .format(config.display.timeFormat)
         .padStart(maxTimeLength);
-      if (hrs < 1) {
-        s += `${~~(hrs * 60)}m`.padStart(6);
-      } else {
-        s += `${hrs.toFixed(1)}h`.padStart(6);
-      }
-      s += ` [${projectName}]`;
-      s += " (tomorrow)";
-      s += "\n";
-      str += chalk.grey(s);
+    }
+  } else {
+    timeSpan += "NOW".padStart(maxTimeLength);
+  }
+
+  if (punch.out) {
+    timeSpan = chalk.cyan(timeSpan);
+  } else {
+    timeSpan = chalk.bold.green(timeSpan);
+  }
+
+  const project = config.projects[punch.project];
+  const projectName = project ? project.name : punch.project;
+  let time;
+  const hours =
+    punch.durationWithinInterval({ start: dateStart, end: dateEnd }) / 3600000;
+  if (hours < 1) {
+    time = `${~~(hours * 60)}m`;
+  } else {
+    time = `${hours.toFixed(1)}h`;
+  }
+
+  if (carryBack) {
+    let s = "";
+    let hrs =
+      punch.durationWithinInterval({ start: punch.in, end: dateStart }) /
+      3600000;
+
+    s +=
+      moment(punch.in)
+        .format(config.display.timeFormat)
+        .padStart(maxTimeLength) + " - ";
+    s += carryOverValue.padEnd(maxTimeLength);
+    if (hrs < 1) {
+      s += `${~~(hrs * 60)}m`.padStart(6);
+    } else {
+      s += `${hrs.toFixed(1)}h`.padStart(6);
+    }
+    s += ` [${projectName}]`;
+    s += " (yesterday)";
+    str += chalk.grey(s) + newline;
+  }
+
+  str += timeSpan;
+  str += chalk.blue(time.padStart(6));
+  str += chalk.yellow(` [${projectName}]`);
+  if (punch.rate) {
+    str += chalk.grey(` ($${punch.pay().toFixed(2)})`);
+  }
+  str += newline;
+
+  if (carryForward) {
+    let s = "";
+    let hrs =
+      punch.durationWithinInterval({ start: dateEnd, end: out }) / 3600000;
+
+    s += carryOverValue.padStart(maxTimeLength) + " - ";
+    s += moment(out).format(config.display.timeFormat).padStart(maxTimeLength);
+    if (hrs < 1) {
+      s += `${~~(hrs * 60)}m`.padStart(6);
+    } else {
+      s += `${hrs.toFixed(1)}h`.padStart(6);
+    }
+    s += ` [${projectName}]`;
+    s += " (tomorrow)";
+    s += newline;
+    str += chalk.grey(s);
+  }
+
+  if (config.display.showPunchIDs) {
+    str += "   " + chalk.grey(`ID: ${punch.id}`) + newline;
+  }
+
+  return str;
+}
+
+function dayPunchComment(
+  punch,
+  comment,
+  config,
+  previousTimestamp,
+  maxTimeLength
+) {
+  const symbols = config.symbols;
+
+  let str = "";
+  let line = "";
+  let wrapPos = 1;
+
+  line += chalk.grey(`   ${symbols.logSessionBullet} `);
+  wrapPos += 5;
+
+  const c = punch.comments.indexOf(comment);
+
+  if (config.display.showCommentIndices) {
+    line += chalk.bold(`[${c}] `);
+    wrapPos += 3 + c.toString().length;
+  }
+
+  if (
+    config.display.showCommentTimestamps &&
+    !config.display.commentRelativeTimestamps.enabled
+  ) {
+    let timestamp =
+      moment(comment.timestamp).format(config.display.timeFormat) + ": ";
+    line += timestamp;
+    wrapPos += timestamp.length;
+  }
+
+  if (config.display.commentRelativeTimestamps.enabled) {
+    let diff;
+
+    if (config.display.commentRelativeTimestamps.fromPreviousComment) {
+      diff =
+        Math.min(punch.out || new Date(), comment.timestamp) -
+        previousTimestamp;
+    } else {
+      diff = Math.min(punch.out || new Date(), comment.timestamp) - punch.in;
     }
 
-    if (config.display.showPunchIDs) {
-      str += "   " + chalk.grey(`ID: ${punch.id}`) + "\n";
-    }
+    let timestamp =
+      "+" +
+      formatDuration(diff, {
+        resolution: "minutes",
+        padded: true,
+        showHours: true,
+      }) +
+      ":";
 
-    let lastCommentStamp = punch.in;
+    // Align to the left accounting for the max width of the user's time format.
+    const timeLength = maxTimeLength + 1;
+    // if (timestamp.length < timeLength) timestamp = " " + timestamp;
 
-    if (punch.comments.length > 0) {
-      for (let c = 0; c < punch.comments.length; c++) {
-        const comment = punch.comments[c];
+    timestamp = timestamp.padStart(timeLength);
 
-        let line = "";
-        let wrapPos = 1;
+    line += timestamp;
+    wrapPos += timestamp.length;
+  }
 
-        line += chalk.grey(`   ${symbols.logSessionBullet} `);
-        wrapPos += 5;
+  line = line.padEnd(25, " ");
+  wrapPos = 16;
 
-        if (config.display.showCommentIndices) {
-          line += chalk.bold(`[${c}] `);
-          wrapPos += 3 + c.toString().length;
-        }
+  line =
+    chalk.cyan(line) +
+    wordWrap(comment.toString()).replace("\n", "\n".padEnd(wrapPos, " "));
 
-        if (
-          config.display.showCommentTimestamps &&
-          !config.display.commentRelativeTimestamps.enabled
-        ) {
-          let timestamp =
-            moment(comment.timestamp).format(config.display.timeFormat) + ": ";
-          line += timestamp;
-          wrapPos += timestamp.length;
-        }
-
-        if (config.display.commentRelativeTimestamps.enabled) {
-          let diff;
-
-          if (config.display.commentRelativeTimestamps.fromPreviousComment) {
-            diff =
-              Math.min(punch.out || new Date(), comment.timestamp) -
-              lastCommentStamp;
-          } else {
-            diff =
-              Math.min(punch.out || new Date(), comment.timestamp) - punch.in;
-          }
-
-          let timestamp =
-            "+" +
-            formatDuration(diff, {
-              resolution: "minutes",
-              padded: true,
-              showHours: true
-            }) +
-            ":";
-
-          // Align to the left accounting for the max width of the user's time format.
-          const timeLength = maxTimeLength + 1;
-          // if (timestamp.length < timeLength) timestamp = " " + timestamp;
-
-          timestamp = timestamp.padStart(timeLength);
-
-          line += timestamp;
-          wrapPos += timestamp.length;
-
-          lastCommentStamp = comment.timestamp;
-        }
-
-        line = line.padEnd(25, " ");
-        wrapPos = 16;
-
-        line =
-          chalk.cyan(line) +
-          wordWrap(comment.toString()).replace("\n", "\n".padEnd(wrapPos, " "));
-
-        str += line;
-
-        // Break line if this comment isn't the last.
-        if (punch.comments[c + 1]) {
-          str += "\n";
-        }
-      }
-
-      str += "\n";
-    }
-  });
+  str += line;
 
   return str;
 }
@@ -430,18 +471,14 @@ function simplePunches(punches, config) {
   const symbols = config.symbols;
   let str = "";
 
-  punches.forEach(punch => {
+  punches.forEach((punch) => {
     let out = punch.out || new Date();
 
     let timeSpan = "";
     timeSpan +=
-      moment(punch.in)
-        .format(config.display.timeFormat)
-        .padStart(8) + " - ";
+      moment(punch.in).format(config.display.timeFormat).padStart(8) + " - ";
     if (punch.out) {
-      timeSpan += moment(out)
-        .format(config.display.timeFormat)
-        .padStart(8);
+      timeSpan += moment(out).format(config.display.timeFormat).padStart(8);
     } else {
       timeSpan += "NOW".padStart(8);
     }
@@ -532,5 +569,5 @@ module.exports = {
   monthSummaryHeader,
   projectHeader,
   projectDay,
-  projectSummary
+  projectSummary,
 };

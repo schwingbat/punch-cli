@@ -1,7 +1,7 @@
 const parseDateTime = require("../utils/parse-datetime");
 const { confirm } = require("../punch/utils");
+const { formatDateTime } = require("../format/date");
 const chalk = require("chalk");
-const formatDate = require("date-fns/format");
 
 const { Command } = require("@ratwizard/cli");
 
@@ -20,13 +20,13 @@ module.exports = new Command()
     parse: parseDateTime,
   })
   .action(async ({ args, options, props }) => {
-    const { config, Punch } = props;
+    const { print, Punch } = props;
 
     const punch = await Punch.find((p) => p.id === args.id);
 
     if (punch) {
       if (!punch.out && options.end) {
-        return console.log(
+        return print(
           "You can't set an end for a running punch. Use " +
             chalk.bold("punch out -t <value>") +
             " to set a punch out time."
@@ -37,62 +37,51 @@ module.exports = new Command()
       let punchOut = options.end || punch.out;
 
       if (punchOut != null && punchOut < punchIn) {
-        console.log("Punch can't end before it starts.");
+        print("Punch can't end before it starts.");
         return;
       }
 
       // TODO: Show comparison/preview of changes with a real confirmation
 
-      const width = 40;
+      const buf = print.buffer();
 
-      const { dateFormat, timeFormat } = config.display;
-      const dateTimeFormat = `${dateFormat} ${timeFormat}`;
+      let inBefore = formatDateTime(punch.in);
+      let outBefore = punch.out ? formatDateTime(punch.out) : "RUNNING";
+      let inAfter = formatDateTime(punchIn);
+      let outAfter = punchOut ? formatDateTime(punchOut) : "RUNNING";
 
-      let str = "";
+      buf.newline().push("Punch In").newline();
 
-      let inBefore = formatDate(punch.in, dateTimeFormat);
-      let outBefore = punch.out
-        ? formatDate(punch.out, dateTimeFormat)
-        : "RUNNING";
-      let inAfter = formatDate(punchIn, dateTimeFormat);
-      let outAfter = punchOut
-        ? formatDate(punchOut, dateTimeFormat)
-        : "RUNNING";
-
-      str += "\n";
-
-      str += "Punch In\n";
       if (options.start != null) {
         // Show change before if it's earlier and after if it's later.
         if (punchIn < punch.in) {
-          str += chalk.green(`+ ${inAfter}`) + "\n";
-          str += chalk.red(`- ${inBefore}`) + "\n";
+          buf.push(chalk.green(`+ ${inAfter}`)).newline();
+          buf.push(chalk.red(`- ${inBefore}`)).newline();
         } else {
-          str += chalk.red(`- ${inBefore}`) + "\n";
-          str += chalk.green(`+ ${inAfter}`) + "\n";
+          buf.push(chalk.red(`- ${inBefore}`)).newline();
+          buf.push(chalk.green(`+ ${inAfter}`)).newline();
         }
       } else {
-        str += `  ${inBefore}`;
+        buf.push(`  ${inBefore}`);
       }
 
-      str += "Punch Out\n";
+      buf.push("Punch Out").newline();
       if (options.end != null) {
         if (punchOut < punch.out) {
-          str += chalk.green(`+ ${outAfter}`) + "\n";
-          str += chalk.red(`- ${outBefore}`) + "\n";
+          buf.push(chalk.green(`+ ${outAfter}`)).newline();
+          buf.push(chalk.red(`- ${outBefore}`)).newline();
         } else {
-          str += chalk.red(`- ${outBefore}`) + "\n";
-          str += chalk.green(`+ ${outAfter}`) + "\n";
+          buf.push(chalk.red(`- ${outBefore}`)).newline();
+          buf.push(chalk.green(`+ ${outAfter}`)).newline();
         }
       } else {
-        str += `  ${outBefore}`;
+        buf.push(`  ${outBefore}`);
       }
 
-      str += "\n";
+      buf.newline();
+      buf.push("Adjust times?");
 
-      console.log(str);
-
-      if (confirm("Adjust times?")) {
+      if (confirm(buf)) {
         if (options.start) {
           punch.in = options.start;
         }
@@ -104,9 +93,9 @@ module.exports = new Command()
         punch.update();
 
         await punch.save();
-        console.log("Saved");
+        print("Saved");
       }
     } else {
-      console.log("Punch not found");
+      print("Punch not found");
     }
   });

@@ -1,7 +1,5 @@
-const { confirm } = require("../punch/utils");
-const { dayPunches } = require("../logging/printing");
 const handleSync = require("../utils/handle-sync");
-const chalk = require("chalk");
+const PunchFormatter = require("../format/punch");
 
 const { Command } = require("@ratwizard/cli");
 
@@ -9,44 +7,51 @@ module.exports = new Command()
   .description("delete a comment from a punch")
   .arg("punch-id", {
     key: "punchId",
-    description: "ID of a given punch (use `punch log --with-ids` to find IDs)"
+    description: "ID of a given punch (use `punch log --with-ids` to find IDs)",
   })
   .arg("comment-index", {
     key: "commentIndex",
     description: "index of the comment to replace",
-    parse: parseInt
+    parse: parseInt,
   })
   .action(async ({ args, props }) => {
-    const { config, Punch } = props;
+    const { input, print, config, Punch } = props;
 
-    const punch = await Punch.find(p => p.id === args.punchId);
+    const punch = await Punch.find((p) => p.id === args.punchId);
 
     if (punch) {
       if (punch.comments[args.commentIndex]) {
-        const lines = dayPunches([punch], punch.in, config)
-          .split("\n")
-          .filter(l => l != "");
+        const buf = print.buffer();
 
-        let str = "\n  " + lines.shift() + "\n  ";
+        buf.newline();
+        buf.indent(2);
 
-        for (let i = 0; i < lines.length; i++) {
-          if (i === args.commentIndex) {
-            str +=
-              "     " +
-              chalk.red("- " + punch.comments[i].toStringPlain()) +
-              "\n  ";
-          } else {
-            str += "  " + lines[i] + "\n  ";
-          }
-        }
+        const formatter = new PunchFormatter(punch);
+        buf.push(formatter.header(), "\n");
+        formatter.comments().forEach((comment, i) => {
+          const style = i === args.commentIndex ? "remove" : "normal";
+          buf.push(comment.format({ style }), "\n");
+        });
 
-        str += "\nDelete comment?";
+        buf.dedent();
+        buf.push("\nDelete comment?");
 
-        if (confirm(str)) {
+        if (await input.confirm(buf)) {
           const id = punch.comments[args.commentIndex].id;
 
           punch.deleteComment(id);
           await punch.save();
+
+          // Print updated punch details.
+          const buf = print.buffer().newline().indent(2);
+
+          const formatter = new PunchFormatter(punch);
+          buf.push(formatter.header(), "\n");
+          formatter.comments().forEach((comment, i) => {
+            buf.push(comment.format(), "\n");
+          });
+
+          print(buf);
 
           console.log("\nComment deleted.");
 
