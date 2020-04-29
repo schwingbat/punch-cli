@@ -1,7 +1,9 @@
 const fuzzyParse = require("../utils/fuzzy-parse");
+const parseDateTime = require("../utils/parse-datetime");
 const Log = require("../logging/log");
-
+const moment = require("moment-timezone");
 const { Command } = require("@ratwizard/cli");
+const util = require("util");
 
 module.exports = new Command()
   .usage("{*} [--options] [when...]")
@@ -45,22 +47,45 @@ module.exports = new Command()
   })
   .action(async function ({ args, options, props }) {
     const { config, Punch } = props;
-    let { start, end } = options;
 
-    let interval;
-
-    if ((start && !end) || (!start && end)) {
-      console.log("--start and --end options must be used together");
+    if ((options.start && !options.end) || (!options.start && options.end)) {
+      console.log(`--start and --end options must be used together.`);
       return;
     }
 
-    if (start && end) {
+    let interval;
+
+    if (options.start || options.end) {
+      const start = moment(
+        options.start ? parseDateTime(options.start) : new Date()
+      ).startOf("day");
+
+      const end = moment(
+        options.end ? parseDateTime(options.end) : new Date()
+      ).endOf("day");
+
       interval = {
-        unit: "period",
+        unit: "day",
         modifier: 0,
-        start: fuzzyParse(start).start,
-        end: fuzzyParse(end).end,
+        start: start.toDate(),
+        end: end.toDate(),
       };
+
+      const hours = end.diff(start, "hours");
+      const days = hours / 24;
+      const weeks = days / 7;
+      const months = weeks / 4;
+
+      if (~~months > 0) {
+        interval.unit = "month";
+        interval.modifier *= ~~months;
+      } else if (~~days > 0) {
+        interval.unit = "week";
+        interval.modifier *= ~~weeks;
+      } else {
+        interval.unit = "day";
+        interval.modifier *= ~~days;
+      }
     } else {
       interval = fuzzyParse(args.when);
     }

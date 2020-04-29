@@ -29,8 +29,12 @@ module.exports = new Command()
         const formatter = new PunchFormatter(punch);
         buf.push(formatter.header(), "\n");
         formatter.comments().forEach((comment, i) => {
-          const style = i === args.commentIndex ? "remove" : "normal";
-          buf.push(comment.format({ style }), "\n");
+          buf.push(
+            comment.format({
+              style: i === args.commentIndex ? "remove" : "normal",
+            }),
+            "\n"
+          );
         });
 
         buf.dedent();
@@ -47,7 +51,7 @@ module.exports = new Command()
 
           const formatter = new PunchFormatter(punch);
           buf.push(formatter.header(), "\n");
-          formatter.comments().forEach((comment, i) => {
+          formatter.comments().forEach((comment) => {
             buf.push(comment.format(), "\n");
           });
 

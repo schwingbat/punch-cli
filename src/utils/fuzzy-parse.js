@@ -2,11 +2,11 @@
   Takes a fuzzy string like "two days ago" or "last wednesday"
   and makes it into a useful Interval.
 */
-
 const startOfDay = require("date-fns/startOfDay");
 const endOfDay = require("date-fns/endOfDay");
 const addDays = require("date-fns/addDays");
 const differenceInDays = require("date-fns/differenceInDays");
+const differenceInHours = require("date-fns/differenceInHours");
 const startOfWeek = require("date-fns/startOfWeek");
 const endOfWeek = require("date-fns/endOfWeek");
 const addWeeks = require("date-fns/addWeeks");
@@ -19,11 +19,28 @@ const addYears = require("date-fns/addYears");
 
 const parseDate = require("./parse-date");
 
-module.exports = function(string, opts = {}) {
+function dateFromChrono(components) {
+  const implied = components.impliedValues;
+  const known = components.knownValues;
+
+  return new Date(
+    ...[
+      implied.year || known.year || 0,
+      (implied.month || known.month || 1) - 1,
+      implied.day || known.day || 0,
+      implied.hour || known.hour || 0,
+      implied.minute || known.minute || 0,
+      implied.second || known.second || 0,
+      implied.millisecond || known.millisecond || 0,
+    ]
+  );
+}
+
+module.exports = function (string, opts = {}) {
   const { now, pastTendency } = Object.assign(
     {
       now: new Date(),
-      pastTendency: true
+      pastTendency: true,
     },
     opts
   );
@@ -77,9 +94,6 @@ module.exports = function(string, opts = {}) {
         if (pastTendency) {
           modifier *= -1;
         }
-      } else if (weekdays.includes(first) || months.includes(first)) {
-        modifier = pastTendency ? -1 : 1;
-        unit = first;
       } else if (/^\d{4,}$/.test(first)) {
         modifier = pastTendency
           ? parseInt(first) - now.getFullYear()
@@ -91,7 +105,36 @@ module.exports = function(string, opts = {}) {
           modifier *= -1;
         }
       } else {
-        unit = parts[0];
+        modifier = pastTendency ? -1 : 1;
+
+        const chrono = require("chrono-node");
+        const parsed = chrono.parse(string)[0];
+
+        if (parsed) {
+          if (parsed.start && parsed.end) {
+            start = startOfDay(dateFromChrono(parsed.start));
+            end = endOfDay(dateFromChrono(parsed.end));
+          } else if (parsed.start && !parsed.end) {
+            start = startOfDay(dateFromChrono(parsed.start));
+            end = endOfDay(dateFromChrono(parsed.start));
+          }
+
+          const hours = differenceInHours(end, start);
+          const days = hours / 24;
+          const weeks = days / 7;
+          const months = weeks / 4;
+
+          if (~~months > 0) {
+            unit = "month";
+            modifier *= ~~months;
+          } else if (~~days > 0) {
+            unit = "week";
+            modifier *= ~~weeks;
+          } else {
+            unit = "day";
+            modifier *= ~~days;
+          }
+        }
       }
 
       // Singularize the unit.
@@ -99,7 +142,7 @@ module.exports = function(string, opts = {}) {
         unit = unit.replace(/[s|ies]$/, "");
       }
 
-      if (!(modifier === 0 && parts[2] === "ago")) {
+      if ((!(modifier === 0 && parts[2] === "ago") && !start) || !end) {
         modifier = modifier || 0;
 
         if (unit === "day") {
@@ -147,18 +190,11 @@ module.exports = function(string, opts = {}) {
     }
   }
 
-  // console.log({
-  //   start,
-  //   end,
-  //   unit: unit || '???',
-  //   modifier: modifier || 0
-  // })
-
   return {
     start,
     end,
     unit: unit || "???",
-    modifier: modifier || 0
+    modifier: modifier || 0,
   };
 };
 
@@ -183,7 +219,7 @@ const numbers = [
   "seventeen",
   "eighteen",
   "nineteen",
-  "twenty"
+  "twenty",
 ];
 
 const months = [
@@ -198,7 +234,7 @@ const months = [
   "september",
   "october",
   "november",
-  "december"
+  "december",
 ];
 
 const weekdays = [
@@ -208,5 +244,5 @@ const weekdays = [
   "wednesday",
   "thursday",
   "friday",
-  "saturday"
+  "saturday",
 ];

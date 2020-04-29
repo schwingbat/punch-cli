@@ -11,6 +11,7 @@ const wordWrap = require("@fardog/wordwrap")(0, 80, {
   lengthFn: require("../utils/print-length.js"),
 });
 const realTime = require("../utils/real-time");
+const PunchFormatter = require("../format/punch");
 
 function delimitedList(items, inners = " / ", outers) {
   let joined = items.filter((i) => i).join(chalk.grey(inners));
@@ -129,7 +130,7 @@ function summaryTable(projects, opts = {}) {
 
     table.push([
       chalk.yellow(project.name),
-      formatDuration(project.time, { padded: true }),
+      formatDuration(project.time, { resolution: "m", padded: true }),
       project.isPaid ? formatCurrency(project.pay) : chalk.grey("---"),
       project.punches.length +
         " punch" +
@@ -210,263 +211,19 @@ function daySummaryHeader({ date, stats, dateFormat }) {
   return header + "\n";
 }
 
-function dayPunches(punches, date, config, wrapIndent = "") {
-  const span = {
-    start: moment(date).startOf("day").toDate(),
-    end: moment(date).endOf("day").toDate(),
-  };
-
-  return punches.reduce(
-    (str, punch) => str + dayPunch(punch, span, config, wrapIndent + "\n"),
-    ""
-  );
-}
-
-// const fmt = new PunchFormatter(punch);
-
-// buf.push(fmt.header(), "\n");
-// fmt.comments().forEach((comment) => {
-//   const style = comment.id === 1234 ? "remove" : "normal";
-//   buf.push(comment.format({ style }));
-// });
-
-function dayPunch(punch, timespan, config, newline) {
+function dayPunches(punches, date) {
   let str = "";
-
-  // Calculate length of 12:00pm formatted, which should be as long as a time with a given format could be.
-
-  const maxTimeLength = moment(new Date(2000, 11, 15, 12, 0, 0)).format(
-    config.display.timeFormat
-  ).length;
-
-  str += dayPunchHeader(punch, timespan, config, newline, maxTimeLength);
-
-  let lastCommentStamp = punch.in;
-
-  if (punch.comments.length > 0) {
-    for (let c = 0; c < punch.comments.length; c++) {
-      const comment = punch.comments[c];
-
-      str += dayPunchComment(
-        punch,
-        comment,
-        config,
-        lastCommentStamp,
-        maxTimeLength
-      );
-
-      lastCommentStamp = comment.timestamp;
-
-      // Break line if this comment isn't the last.
-      if (punch.comments[c + 1]) {
-        str += newline;
-      }
-    }
-
-    str += newline;
+  for (const punch of punches) {
+    const formatter = new PunchFormatter(punch, { date });
+    str += formatter.header();
+    formatter.comments().forEach((comment) => {
+      str += comment.format() + "\n";
+    });
   }
-
   return str;
 }
 
-function dayPunchHeader(punch, timespan, config, newline, maxTimeLength) {
-  let str = "";
-  let start;
-  let end;
-  let carryForward = 0;
-  let carryBack = 0;
-
-  const dateStart = timespan.start;
-  const dateEnd = timespan.end;
-
-  let out = punch.out || new Date();
-
-  if (punch.in < dateStart) {
-    carryBack = dateStart.getTime() - punch.in.getTime();
-    start = dateStart;
-  } else {
-    start = punch.in;
-  }
-
-  if (out > dateEnd) {
-    carryForward = out.getTime() - dateEnd.getTime();
-    end = dateEnd;
-  } else {
-    end = out;
-  }
-
-  const midnightString = moment(new Date(2020, 1, 1, 0, 0)).format(
-    config.display.timeFormat
-  );
-
-  const carryOverValue = midnightString;
-
-  let timeSpan = "";
-  if (carryBack) {
-    timeSpan += carryOverValue.padStart(maxTimeLength) + " - ";
-  } else {
-    timeSpan +=
-      moment(start).format(config.display.timeFormat).padStart(maxTimeLength) +
-      " - ";
-  }
-  if (punch.out) {
-    if (carryForward) {
-      timeSpan += carryOverValue.padStart(maxTimeLength);
-    } else {
-      timeSpan += moment(end)
-        .format(config.display.timeFormat)
-        .padStart(maxTimeLength);
-    }
-  } else {
-    timeSpan += "NOW".padStart(maxTimeLength);
-  }
-
-  if (punch.out) {
-    timeSpan = chalk.cyan(timeSpan);
-  } else {
-    timeSpan = chalk.bold.green(timeSpan);
-  }
-
-  const project = config.projects[punch.project];
-  const projectName = project ? project.name : punch.project;
-  let time;
-  const hours =
-    punch.durationWithinInterval({ start: dateStart, end: dateEnd }) / 3600000;
-  if (hours < 1) {
-    time = `${~~(hours * 60)}m`;
-  } else {
-    time = `${hours.toFixed(1)}h`;
-  }
-
-  if (carryBack) {
-    let s = "";
-    let hrs =
-      punch.durationWithinInterval({ start: punch.in, end: dateStart }) /
-      3600000;
-
-    s +=
-      moment(punch.in)
-        .format(config.display.timeFormat)
-        .padStart(maxTimeLength) + " - ";
-    s += carryOverValue.padEnd(maxTimeLength);
-    if (hrs < 1) {
-      s += `${~~(hrs * 60)}m`.padStart(6);
-    } else {
-      s += `${hrs.toFixed(1)}h`.padStart(6);
-    }
-    s += ` [${projectName}]`;
-    s += " (yesterday)";
-    str += chalk.grey(s) + newline;
-  }
-
-  str += timeSpan;
-  str += chalk.blue(time.padStart(6));
-  str += chalk.yellow(` [${projectName}]`);
-  if (punch.rate) {
-    str += chalk.grey(` ($${punch.pay().toFixed(2)})`);
-  }
-  str += newline;
-
-  if (carryForward) {
-    let s = "";
-    let hrs =
-      punch.durationWithinInterval({ start: dateEnd, end: out }) / 3600000;
-
-    s += carryOverValue.padStart(maxTimeLength) + " - ";
-    s += moment(out).format(config.display.timeFormat).padStart(maxTimeLength);
-    if (hrs < 1) {
-      s += `${~~(hrs * 60)}m`.padStart(6);
-    } else {
-      s += `${hrs.toFixed(1)}h`.padStart(6);
-    }
-    s += ` [${projectName}]`;
-    s += " (tomorrow)";
-    s += newline;
-    str += chalk.grey(s);
-  }
-
-  if (config.display.showPunchIDs) {
-    str += "   " + chalk.grey(`ID: ${punch.id}`) + newline;
-  }
-
-  return str;
-}
-
-function dayPunchComment(
-  punch,
-  comment,
-  config,
-  previousTimestamp,
-  maxTimeLength
-) {
-  const symbols = config.symbols;
-
-  let str = "";
-  let line = "";
-  let wrapPos = 1;
-
-  line += chalk.grey(`   ${symbols.logSessionBullet} `);
-  wrapPos += 5;
-
-  const c = punch.comments.indexOf(comment);
-
-  if (config.display.showCommentIndices) {
-    line += chalk.bold(`[${c}] `);
-    wrapPos += 3 + c.toString().length;
-  }
-
-  if (
-    config.display.showCommentTimestamps &&
-    !config.display.commentRelativeTimestamps.enabled
-  ) {
-    let timestamp =
-      moment(comment.timestamp).format(config.display.timeFormat) + ": ";
-    line += timestamp;
-    wrapPos += timestamp.length;
-  }
-
-  if (config.display.commentRelativeTimestamps.enabled) {
-    let diff;
-
-    if (config.display.commentRelativeTimestamps.fromPreviousComment) {
-      diff =
-        Math.min(punch.out || new Date(), comment.timestamp) -
-        previousTimestamp;
-    } else {
-      diff = Math.min(punch.out || new Date(), comment.timestamp) - punch.in;
-    }
-
-    let timestamp =
-      "+" +
-      formatDuration(diff, {
-        resolution: "minutes",
-        padded: true,
-        showHours: true,
-      }) +
-      ":";
-
-    // Align to the left accounting for the max width of the user's time format.
-    const timeLength = maxTimeLength + 1;
-    // if (timestamp.length < timeLength) timestamp = " " + timestamp;
-
-    timestamp = timestamp.padStart(timeLength);
-
-    line += timestamp;
-    wrapPos += timestamp.length;
-  }
-
-  line = line.padEnd(25, " ");
-  wrapPos = 16;
-
-  line =
-    chalk.cyan(line) +
-    wordWrap(comment.toString()).replace("\n", "\n".padEnd(wrapPos, " "));
-
-  str += line;
-
-  return str;
-}
-
+// TODO: Factor out - only used in formatting preview input in data:import command.
 function simplePunches(punches, config) {
   const symbols = config.symbols;
   let str = "";

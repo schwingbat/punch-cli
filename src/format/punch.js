@@ -6,8 +6,11 @@ const wordWrap = require("@fardog/wordwrap")(0, 80, {
   lengthFn: require("../utils/print-length.js"),
 });
 
+/**
+ *
+ */
 module.exports = class PunchFormatter {
-  constructor(punch, { date, newline = "" } = {}) {
+  constructor(punch, { date, newline = "\n" } = {}) {
     date = date || punch.in;
 
     this._punch = punch;
@@ -23,6 +26,13 @@ module.exports = class PunchFormatter {
     ).length;
   }
 
+  /**
+   * Prints a header with summary information.
+   *
+   * @example
+   * new PunchFormatter(punch).header()
+   * // 10:30 AM -  1:34 PM   26m [Punch]
+   */
   header() {
     const punch = this._punch;
     const timespan = this._timespan;
@@ -203,14 +213,7 @@ module.exports = class PunchFormatter {
         diff = Math.min(punch.out || new Date(), comment.timestamp) - punch.in;
       }
 
-      let timestamp =
-        "+" +
-        formatDuration(diff, {
-          resolution: "minutes",
-          padded: true,
-          showHours: true,
-        }) +
-        ":";
+      let timestamp = "+" + formatDuration(diff, { resolution: "m" }) + ":";
 
       // Align to the left accounting for the max width of the user's time format.
       const timeLength = maxTimeLength + 1;

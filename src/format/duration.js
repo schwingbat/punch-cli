@@ -1,16 +1,34 @@
+const units = {
+  ms: 0,
+  s: 1,
+  m: 2,
+  h: 3,
+};
+
+const unitAliases = {
+  millisecond: "ms",
+  milliseconds: "ms",
+
+  second: "s",
+  seconds: "s",
+
+  minute: "m",
+  minutes: "m",
+
+  hour: "h",
+  hours: "h",
+};
+
 module.exports = function formatDuration(milliseconds, opts = {}) {
-  let resolution = resolutions[opts.resolution];
+  let resolution = units[unitAliases[opts.resolution] || opts.resolution] || 1;
   let padded = opts.padded || false;
-  if (resolution == null) {
-    resolution = 1;
-  }
 
   if (opts.fractional) {
-    if (resolution === resolutions.hour) {
+    if (resolution === units.h) {
       return (milliseconds / 3600000).toFixed(1) + (opts.long ? " hours" : "h");
-    } else if (resolution === resolutions.minute) {
+    } else if (resolution === units.m) {
       return (milliseconds / 60000).toFixed(1) + (opts.long ? " minutes" : "m");
-    } else if (resolution === resolutions.second) {
+    } else if (resolution === units.s) {
       return (milliseconds / 1000).toFixed(1) + (opts.long ? " seconds" : "s");
     }
   }
@@ -45,29 +63,24 @@ module.exports = function formatDuration(milliseconds, opts = {}) {
 
   const parts = {};
 
-  if (resolution <= resolutions.hours) {
-    if (resolution === resolutions.hours || hours > 0 || opts.showHours) {
+  if (resolution <= units.h) {
+    if (resolution === units.h || hours > 0 || opts.showHours) {
       parts.hours = hours;
     }
   }
-  if (resolution <= resolutions.minutes) {
-    if (resolution === resolutions.minutes || minutes > 0 || hours > 0) {
+  if (resolution <= units.m) {
+    if (resolution === units.m || minutes > 0 || hours > 0) {
       parts.minutes = minutes;
     }
   }
-  if (resolution <= resolutions.seconds) {
-    if (
-      resolution === resolutions.seconds ||
-      seconds > 0 ||
-      minutes > 0 ||
-      hours > 0
-    ) {
+  if (resolution <= units.s) {
+    if (resolution === units.s || seconds > 0 || minutes > 0 || hours > 0) {
       parts.seconds = seconds;
     }
   }
-  if (resolution <= resolutions.milliseconds) {
+  if (resolution <= units.ms) {
     if (
-      resolution === resolutions.milliseconds ||
+      resolution === units.ms ||
       milliseconds > 0 ||
       seconds > 0 ||
       minutes > 0 ||
@@ -143,24 +156,4 @@ module.exports = function formatDuration(milliseconds, opts = {}) {
       return out.join(" ");
     }
   }
-};
-
-const resolutions = {
-  0: 0,
-  1: 1,
-  2: 2,
-  3: 3,
-
-  ms: 0,
-  millisecond: 0,
-  milliseconds: 0,
-
-  second: 1,
-  seconds: 1,
-
-  minute: 2,
-  minutes: 2,
-
-  hour: 3,
-  hours: 3
 };

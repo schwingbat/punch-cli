@@ -37,8 +37,12 @@ module.exports = new Command()
 
       buf.push(formatter.header(), "\n");
       formatter.comments().forEach((comment) => {
-        const style = comment.id === "TEMP_ID" ? "add" : "normal";
-        buf.push(comment.format({ style }), "\n");
+        buf.push(
+          comment.format({
+            style: comment.id === "TEMP_ID" ? "add" : "normal",
+          }),
+          "\n"
+        );
       });
 
       buf.newline();
