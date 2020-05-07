@@ -18,7 +18,7 @@ module.exports = new Command()
   .arg("comment", {
     description: "a description of what you worked on",
     splat: true,
-    parse: (words) => words.join(" "),
+    parse: (...words) => words.join(" "),
   })
   .option("-p, --project <alias>", {
     description:
