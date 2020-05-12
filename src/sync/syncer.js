@@ -49,7 +49,7 @@ function Syncer(config, Punch) {
     const punches = await Punch.all();
 
     // Punches should be uploaded if they don't exist remotely or if the local copy is newer.
-    const uploads = punches.filter(punch => {
+    const uploads = punches.filter((punch) => {
       return (
         !manifest.hasOwnProperty(punch.id) || manifest[punch.id] < punch.updated
       );
@@ -58,14 +58,14 @@ function Syncer(config, Punch) {
     // Punches should be downloaded if they don't exist locally or if the remote copy is newer.
     const downloads = [];
     for (const id in manifest) {
-      const punch = punches.find(p => p.id === id);
+      const punch = punches.find((p) => p.id === id);
       if (!punch || punch.updated < manifest[id]) {
         downloads.push(id);
       }
     }
 
     // Delete a punch if the manifest has the literal null value instead of a timestamp
-    const deletions = punches.filter(punch => {
+    const deletions = punches.filter((punch) => {
       return manifest[punch.id] === null;
     });
 
@@ -123,9 +123,9 @@ function Syncer(config, Punch) {
       // const uploader = loader();
       // const downloader = loader();
 
-      const up = value =>
+      const up = (value) =>
         `${grey("[")}${magenta(symbols.syncUpload)} ${value}${grey("]")}`;
-      const down = value =>
+      const down = (value) =>
         `${grey("[")}${cyan(symbols.syncDownload)} ${value}${grey("]")}`;
 
       // loader.stop(
@@ -167,7 +167,7 @@ function Syncer(config, Punch) {
   return {
     sync,
     syncAll,
-    diff
+    diff,
   };
 }
 
@@ -206,9 +206,12 @@ function loadCredentials(config, punchConfigPath) {
           case ".json":
             parsed = JSON.parse(read);
             break;
+          case ".mon":
+            parsed = require("@schwingbat/mon").parse(read);
+            break;
           default:
             throw new Error(
-              `${ext} files are not supported as credential sources - must be .json or .yaml`
+              `${ext} files are not supported as credential sources - must be .json, .yaml or .mon`
             );
         }
       } catch (err) {

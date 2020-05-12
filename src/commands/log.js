@@ -3,7 +3,6 @@ const parseDateTime = require("../utils/parse-datetime");
 const Log = require("../logging/log");
 const moment = require("moment-timezone");
 const { Command } = require("@ratwizard/cli");
-const util = require("util");
 
 module.exports = new Command()
   .usage("{*} [--options] [when...]")

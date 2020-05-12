@@ -25,7 +25,7 @@ exports.load = (configPath = null) => {
 
   // Try to load the user's config.
   if (fs.existsSync(configPath)) {
-    userConfig = require(configPath);
+    userConfig = JSON.parse(fs.readFileSync(configPath, "utf-8"));
   } else {
     console.log(
       chalk.yellow("WARNING") +
