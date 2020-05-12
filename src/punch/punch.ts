@@ -1,16 +1,22 @@
-const uuid = require("uuid");
-const is = require("@schwingbat/is");
-const extractObjects = require("./comment-objects/extract");
-const chalk = require("chalk");
-const { ascendingBy } = require("../utils/sort-factories");
+import { v1 } from "uuid";
+import { not } from "@schwingbat/is";
+import extractObjects from "./comment-objects/extract";
+import { magenta, grey, green, yellow } from "chalk";
+import { ascendingBy } from "../utils/sort-factories";
 
-module.exports = function(config) {
+export default function (config) {
   /*=======================*\
   ||       Comments        ||
   \*=======================*/
 
   class Comment {
-    constructor(comment, timestamp = new Date(), id = uuid.v1()) {
+    id: string;
+    objects: any[];
+    tags: any[];
+    comment: string;
+    timestamp: Date;
+
+    constructor(comment, timestamp = new Date(), id = v1()) {
       const extracted = extractObjects(comment);
       this.id = id;
       this.objects = extracted.objects;
@@ -40,7 +46,7 @@ module.exports = function(config) {
 
     hasTag(tag) {
       tag = tag.replace(/^#/, "").toLowerCase();
-      return !!this.tags.find(t => t.string.toLowerCase() === tag);
+      return !!this.tags.find((t) => t.string.toLowerCase() === tag);
     }
 
     /**
@@ -59,22 +65,21 @@ module.exports = function(config) {
         slices.push({
           start: tag.start,
           end: tag.end,
-          value: chalk.magenta(comment.slice(tag.start, tag.end))
+          value: magenta(comment.slice(tag.start, tag.end)),
         });
       }
 
       for (let object of this.objects) {
         let value = "";
 
-        value += chalk.grey("@");
-        value += chalk.green(object.key.string);
-        (value += chalk.grey(":")),
-          (value += chalk.yellow(object.value.string));
+        value += grey("@");
+        value += green(object.key.string);
+        (value += grey(":")), (value += yellow(object.value.string));
 
         slices.push({
           start: object.key.start - 1,
           end: object.value.end,
-          value
+          value,
         });
       }
 
@@ -88,7 +93,7 @@ module.exports = function(config) {
         newSlices.push({
           start: marker,
           end: slice.start - 1,
-          value: comment.slice(marker, slice.start)
+          value: comment.slice(marker, slice.start),
         });
 
         marker = slice.end;
@@ -99,14 +104,14 @@ module.exports = function(config) {
         newSlices.push({
           start: marker,
           end: comment.length - 1,
-          value: comment.slice(marker, comment.length)
+          value: comment.slice(marker, comment.length),
         });
       }
 
       return slices
         .concat(newSlices)
         .sort(ascendingBy("start"))
-        .map(s => s.value)
+        .map((s) => s.value)
         .join("");
     }
 
@@ -114,14 +119,10 @@ module.exports = function(config) {
       return this.comment;
     }
 
-    objects() {
-      return this.objects;
-    }
-
     toJSON() {
       return {
         comment: this.comment,
-        timestamp: this.timestamp.getTime()
+        timestamp: this.timestamp.getTime(),
       };
     }
   }
@@ -143,25 +144,25 @@ module.exports = function(config) {
     */
 
     constructor(props) {
-      if (is.not.an.object(props)) {
+      if (not.an.object(props)) {
         throw new Error(
           "The only argument to the Punch constructor should be an object. Received " +
             typeof props
         );
       }
-      if (is.not.a.string(props.project)) {
+      if (not.a.string(props.project)) {
         throw new Error(
           'Punch requires a "project" field (string) to be specified in the props object.'
         );
       }
 
-      this.id = props.id || uuid.v1();
+      this.id = props.id || v1();
       this.project = props.project;
       this.in = new Date(props.in || new Date());
       this.out = props.out ? new Date(props.out || new Date()) : null;
       this.comments = props.comments
         ? props.comments.map(
-            c => new Comment(c.comment || c, c.timestamp, c.id)
+            (c) => new Comment(c.comment || c, c.timestamp, c.id)
           )
         : [];
       if (props.rate) {
@@ -199,7 +200,7 @@ module.exports = function(config) {
     }
 
     deleteComment(id) {
-      this.comments = this.comments.filter(comment => comment.id !== id);
+      this.comments = this.comments.filter((comment) => comment.id !== id);
 
       this.update();
     }
@@ -212,7 +213,7 @@ module.exports = function(config) {
      * @param {Date?} timestamp - A new timestamp. Reuses existing stamp if not specified.
      */
     editComment(id, text, timestamp = null) {
-      this.comments = this.comments.map(comment => {
+      this.comments = this.comments.map((comment) => {
         if (comment.id == id) {
           return new Comment(text, timestamp || comment.timestamp, id);
         } else {
@@ -284,9 +285,9 @@ module.exports = function(config) {
         in: this.in.getTime(),
         out: this.out ? this.out.getTime() : null,
         rate: this.rate,
-        comments: this.comments.map(comment => comment.toJSON()),
+        comments: this.comments.map((comment) => comment.toJSON()),
         created: this.created.getTime(),
-        updated: this.updated.getTime()
+        updated: this.updated.getTime(),
       };
       return json;
     }
@@ -313,35 +314,35 @@ module.exports = function(config) {
   ||        Static         ||
   \*=======================*/
 
-  Punch.setStorage = function(_storage) {
+  Punch.setStorage = function (_storage) {
     storage = _storage;
   };
 
-  Punch.current = async function(project) {
+  Punch.current = async function (project) {
     return storage.current(project);
   };
 
-  Punch.latest = async function() {
+  Punch.latest = async function () {
     return storage.latest();
   };
 
-  Punch.select = async function(fn) {
+  Punch.select = async function (fn) {
     return storage.filter(fn);
   };
 
-  Punch.filter = async function(fn) {
+  Punch.filter = async function (fn) {
     return storage.filter(fn);
   };
 
-  Punch.find = async function(fn) {
+  Punch.find = async function (fn) {
     return storage.find(fn);
   };
 
-  Punch.all = async function() {
+  Punch.all = async function () {
     return storage.select(() => true);
   };
 
   Punch.Comment = Comment;
 
   return Punch;
-};
+}

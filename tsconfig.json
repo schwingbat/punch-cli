@@ -1,0 +1,17 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "allowJs": true,
+    "module": "commonjs",
+    "noImplicitAny": false,
+    "noImplicitReturns": true,
+    "esModuleInterop": true,
+    "removeComments": false,
+    "declaration": true,
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "outDir": "./dist"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "coverage", "src/**/*.test.ts"]
+}
