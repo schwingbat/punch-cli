@@ -3,6 +3,7 @@ const path = require("path");
 const fs = require("fs");
 const os = require("os");
 const deepmerge = require("deepmerge");
+const chalk = require("chalk");
 const deref = require("./deref-projects");
 
 let current = null;

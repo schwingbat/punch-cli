@@ -12,7 +12,7 @@ module.exports = new Command()
   .arg("comment", {
     description: "comment text",
     splat: true,
-    parse: (words) => words.join(" "),
+    parse: (...words) => words.join(" "),
   })
   .action(async ({ args, props }) => {
     const { input, print, config, Punch } = props;

@@ -18,7 +18,7 @@ module.exports = new Command()
     description: "time period to log",
     default: "today",
     splat: true,
-    parse: (value) => value.join(" "),
+    parse: (...words) => words.join(" "),
   })
   .option("-s, --start <timestamp>", {
     description: "log punches between specific dates (use with --end)",
