@@ -4,7 +4,7 @@ const configPath = path.join(__dirname, "../test/testconfig.json");
 // const brokenConfigPath = path.join(__dirname, '../test/brokentestconfig.json')
 const MockStorage = require("../test/mocks/storage.mock");
 const config = require("../config");
-const _punch = require("./punch");
+const _punch = require("./punch").default;
 const isValidDate = require("date-fns/isValid");
 
 describe("Punch", () => {
@@ -35,13 +35,13 @@ describe("Punch", () => {
         comments: [
           {
             comment: "test 1",
-            timestamp: 12345
+            timestamp: 12345,
           },
           {
             comment: "test 2",
-            timestamp: 123456
-          }
-        ]
+            timestamp: 123456,
+          },
+        ],
       });
 
       expect(punch.comments.length).toBe(2);
@@ -50,7 +50,7 @@ describe("Punch", () => {
     it("creates comment objects if comments are plain strings", () => {
       const punch = new Punch({
         project: "test",
-        comments: ["test 1", "test 2"]
+        comments: ["test 1", "test 2"],
       });
 
       expect(punch.comments.length).toBe(2);
@@ -88,7 +88,7 @@ describe("Punch", () => {
           new Punch({
             project: "test",
             in: timeIn.getTime(),
-            out: timeOut.getTime()
+            out: timeOut.getTime(),
           })
       ).toThrow();
     });
@@ -169,7 +169,7 @@ describe("Punch", () => {
         project: "test",
         in: timeIn.getTime(),
         out: timeOut.getTime(),
-        rate: 62
+        rate: 62,
       });
       expect(punch.pay()).toBe(155);
     });
@@ -192,12 +192,12 @@ describe("Punch", () => {
         comments: [
           {
             comment: "test comment",
-            timestamp: timeOut.getTime()
-          }
+            timestamp: timeOut.getTime(),
+          },
         ],
         rate: 35.0,
         created: timeIn.getTime(),
-        updated: timeOut.getTime()
+        updated: timeOut.getTime(),
       };
 
       data2 = Object.assign({}, data);

@@ -165,7 +165,7 @@ module.exports = class PunchFormatter {
     return str;
   }
 
-  _formatComment(previousTimestamp, comment, newline, style = "normal") {
+  _formatComment(previousTimestamp, comment, index, newline, style = "normal") {
     const punch = this._punch;
     const maxTimeLength = this._maxTimeLength;
     const symbols = config.symbols;
@@ -188,8 +188,9 @@ module.exports = class PunchFormatter {
     wrapPos += 5;
 
     if (config.display.showCommentIndices) {
-      line += chalk.bold(`[${c}] `);
-      wrapPos += 3 + c.toString().length;
+      const label = `[${index}] `;
+      line += chalk.bold(label);
+      wrapPos += label.length;
     }
 
     if (
@@ -226,11 +227,11 @@ module.exports = class PunchFormatter {
     }
 
     line = line.padEnd(25, " ");
-    wrapPos = 16;
+    // wrapPos = 16;
 
     const text = wordWrap(comment.toString()).replace(
       "\n",
-      "\n".padEnd(wrapPos, " ")
+      "\n".padEnd(wrapPos + 1, " ")
     );
 
     switch (style) {
@@ -255,7 +256,7 @@ module.exports = class PunchFormatter {
 
     let lastTimestamp = this._punch.in;
 
-    return this._punch.comments.map((comment) => {
+    return this._punch.comments.map((comment, index) => {
       return {
         id: comment.id,
         format: ({ style } = {}) => {
@@ -263,6 +264,7 @@ module.exports = class PunchFormatter {
             this,
             lastTimestamp,
             comment,
+            index,
             _newline,
             style
           );
