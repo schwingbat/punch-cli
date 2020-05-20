@@ -7,7 +7,7 @@ describe("extract", () => {
     expect(extract(comment)).toEqual({
       comment,
       objects: [],
-      tags: []
+      tags: [],
     });
   });
 
@@ -19,15 +19,19 @@ describe("extract", () => {
       comment,
       objects: [
         {
+          start: 31,
+          end: 41,
           key: { start: 32, end: 36, string: "task" },
-          value: { start: 37, end: 41, string: "1234" }
+          value: { start: 37, end: 41, string: "1234" },
         },
         {
+          start: 42,
+          end: 55,
           key: { start: 43, end: 49, string: "pickle" },
-          value: { start: 50, end: 55, string: "flarf" }
-        }
+          value: { start: 50, end: 55, string: "flarf" },
+        },
       ],
-      tags: []
+      tags: [],
     });
   });
 
@@ -39,11 +43,13 @@ describe("extract", () => {
       comment,
       objects: [
         {
+          start: 15,
+          end: 28,
           key: { start: 16, end: 20, string: "some" },
-          value: { start: 21, end: 28, string: "objects" }
-        }
+          value: { start: 21, end: 28, string: "objects" },
+        },
       ],
-      tags: [{ start: 35, end: 49, string: "in-the-middle" }]
+      tags: [{ start: 35, end: 50, string: "in-the-middle", params: [] }],
     });
   });
 
@@ -54,14 +60,31 @@ describe("extract", () => {
       comment,
       objects: [
         {
+          start: 31,
+          end: 41,
           key: { start: 32, end: 36, string: "vsts" },
-          value: { start: 37, end: 41, string: "1234" }
-        }
+          value: { start: 37, end: 41, string: "1234" },
+        },
       ],
       tags: [
-        { start: 9, end: 17, string: "awesome" },
-        { start: 42, end: 47, string: "tags" }
-      ]
+        { start: 9, end: 18, string: "awesome", params: [] },
+        { start: 42, end: 48, string: "tags", params: [] },
+      ],
+    });
+  });
+
+  it("parses tags with parameters", () => {
+    const comment =
+      "This is a comment with #tag[param] and another #multi[param, tag]";
+    const result = extract(comment);
+
+    expect(result).toEqual({
+      comment,
+      objects: [],
+      tags: [
+        { start: 23, end: 34, string: "tag", params: ["param"] },
+        { start: 47, end: 65, string: "multi", params: ["param", "tag"] },
+      ],
     });
   });
 });

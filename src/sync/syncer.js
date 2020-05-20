@@ -73,6 +73,10 @@ function Syncer(config, Punch) {
   }
 
   async function sync(service) {
+    if (!service || !service.getManifest) {
+      throw new Error(`Parameter is not a valid sync service`);
+    }
+
     try {
       const manifest = await service.getManifest();
       const result = await diff(manifest);

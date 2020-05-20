@@ -36,10 +36,16 @@ describe("duration", () => {
     expect(formatDuration(fromParts({ minutes: 16 }))).toBe("16m 0s");
   });
 
+  it("wraps to the next hour at 60 minutes", () => {
+    // I was getting results like 4h 60m, which looks weird...
+    // Technically it's less than 5 hours, but this is for humans.
+    expect(formatDuration(17999999, { resolution: "minutes" })).toBe("5h 0m");
+  });
+
   it('uses long hour/minute/second labels when "long" option is passed', () => {
     expect(
       formatDuration(fromParts({ hours: 2, minutes: 13, seconds: 42 }), {
-        long: true
+        long: true,
       })
     ).toBe("2 hours, 13 minutes and 42 seconds");
     expect(formatDuration(fromParts({ hours: 4 }), { long: true })).toBe(
@@ -56,14 +62,14 @@ describe("duration", () => {
       hours: 5,
       minutes: 13,
       seconds: 12,
-      milliseconds: 124
+      milliseconds: 124,
     });
     let duration2 = fromParts({ minutes: 58, seconds: 15, milliseconds: 662 });
     let duration3 = fromParts({
       hours: 15,
       minutes: 32,
       seconds: 58,
-      milliseconds: 10
+      milliseconds: 10,
     });
 
     it("returns the expected result if resolution is set to hours", () => {

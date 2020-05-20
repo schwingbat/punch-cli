@@ -1,10 +1,26 @@
+const path = require("path");
 const uuid = require("uuid");
+const chalk = require("chalk");
 const is = require("@schwingbat/is");
 const extractObjects = require("./comment-objects/extract");
-const chalk = require("chalk");
 const { ascendingBy } = require("../utils/sort-factories");
 
-module.exports = function(config) {
+const tagRendererPath = path.join(
+  __dirname,
+  "comment-objects",
+  "tag-renderers"
+);
+
+function renderTag(tag) {
+  try {
+    const renderer = require(path.join(tagRendererPath, tag.string + ".js"));
+    return renderer(tag.string, tag.params);
+  } catch (err) {
+    return chalk.magenta("#" + tag.string);
+  }
+}
+
+module.exports = function (config) {
   /*=======================*\
   ||       Comments        ||
   \*=======================*/
@@ -40,7 +56,7 @@ module.exports = function(config) {
 
     hasTag(tag) {
       tag = tag.replace(/^#/, "").toLowerCase();
-      return !!this.tags.find(t => t.string.toLowerCase() === tag);
+      return !!this.tags.find((t) => t.string.toLowerCase() === tag);
     }
 
     /**
@@ -59,7 +75,7 @@ module.exports = function(config) {
         slices.push({
           start: tag.start,
           end: tag.end,
-          value: chalk.magenta(comment.slice(tag.start, tag.end))
+          value: renderTag(tag),
         });
       }
 
@@ -74,7 +90,7 @@ module.exports = function(config) {
         slices.push({
           start: object.key.start - 1,
           end: object.value.end,
-          value
+          value,
         });
       }
 
@@ -88,7 +104,7 @@ module.exports = function(config) {
         newSlices.push({
           start: marker,
           end: slice.start - 1,
-          value: comment.slice(marker, slice.start)
+          value: comment.slice(marker, slice.start),
         });
 
         marker = slice.end;
@@ -99,14 +115,14 @@ module.exports = function(config) {
         newSlices.push({
           start: marker,
           end: comment.length - 1,
-          value: comment.slice(marker, comment.length)
+          value: comment.slice(marker, comment.length),
         });
       }
 
       return slices
         .concat(newSlices)
         .sort(ascendingBy("start"))
-        .map(s => s.value)
+        .map((s) => s.value)
         .join("");
     }
 
@@ -121,7 +137,7 @@ module.exports = function(config) {
     toJSON() {
       return {
         comment: this.comment,
-        timestamp: this.timestamp.getTime()
+        timestamp: this.timestamp.getTime(),
       };
     }
   }
@@ -161,7 +177,7 @@ module.exports = function(config) {
       this.out = props.out ? new Date(props.out || new Date()) : null;
       this.comments = props.comments
         ? props.comments.map(
-            c => new Comment(c.comment || c, c.timestamp, c.id)
+            (c) => new Comment(c.comment || c, c.timestamp, c.id)
           )
         : [];
       if (props.rate) {
@@ -199,7 +215,7 @@ module.exports = function(config) {
     }
 
     deleteComment(id) {
-      this.comments = this.comments.filter(comment => comment.id !== id);
+      this.comments = this.comments.filter((comment) => comment.id !== id);
 
       this.update();
     }
@@ -212,7 +228,7 @@ module.exports = function(config) {
      * @param {Date?} timestamp - A new timestamp. Reuses existing stamp if not specified.
      */
     editComment(id, text, timestamp = null) {
-      this.comments = this.comments.map(comment => {
+      this.comments = this.comments.map((comment) => {
         if (comment.id == id) {
           return new Comment(text, timestamp || comment.timestamp, id);
         } else {
@@ -284,9 +300,9 @@ module.exports = function(config) {
         in: this.in.getTime(),
         out: this.out ? this.out.getTime() : null,
         rate: this.rate,
-        comments: this.comments.map(comment => comment.toJSON()),
+        comments: this.comments.map((comment) => comment.toJSON()),
         created: this.created.getTime(),
-        updated: this.updated.getTime()
+        updated: this.updated.getTime(),
       };
       return json;
     }
@@ -313,32 +329,32 @@ module.exports = function(config) {
   ||        Static         ||
   \*=======================*/
 
-  Punch.setStorage = function(_storage) {
+  Punch.setStorage = function (_storage) {
     storage = _storage;
   };
 
-  Punch.current = async function(project) {
+  Punch.current = async function (project) {
     return storage.current(project);
   };
 
-  Punch.latest = async function() {
+  Punch.latest = async function () {
     return storage.latest();
   };
 
-  Punch.select = async function(fn) {
+  Punch.select = async function (fn) {
     return storage.filter(fn);
   };
 
-  Punch.filter = async function(fn) {
+  Punch.filter = async function (fn) {
     return storage.filter(fn);
   };
 
-  Punch.find = async function(fn) {
+  Punch.find = async function (fn) {
     return storage.find(fn);
   };
 
-  Punch.all = async function() {
-    return storage.select(() => true);
+  Punch.all = async function () {
+    return storage.filter(() => true);
   };
 
   Punch.Comment = Comment;

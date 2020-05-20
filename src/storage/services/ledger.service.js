@@ -1,4 +1,4 @@
-module.exports = function(config, Punch, events) {
+module.exports = function (config, Punch, events) {
   const path = require("path");
   const fs = require("fs");
   const chokidar = require("chokidar");
@@ -14,7 +14,7 @@ module.exports = function(config, Punch, events) {
     if (punch.deleted) {
       return JSON.stringify({
         id: punch.id,
-        deleted: true
+        deleted: true,
       });
     } else {
       return JSON.stringify(punch.toJSON());
@@ -27,7 +27,7 @@ module.exports = function(config, Punch, events) {
     if (json.deleted) {
       return {
         id: json.id,
-        deleted: true
+        deleted: true,
       };
     } else {
       return new Punch(json);
@@ -48,7 +48,7 @@ module.exports = function(config, Punch, events) {
   events.on("server:started", () => {
     const watcher = chokidar.watch(ledgerPath);
 
-    watcher.on("change", path => {
+    watcher.on("change", (path) => {
       const writtenAt = fs.lstatSync(path).mtimeMs;
 
       if (writtenAt !== lastWritten) {
@@ -62,7 +62,7 @@ module.exports = function(config, Punch, events) {
     });
   });
 
-  const public = {
+  const pub = {
     name: "ledger",
 
     // Saves a single punch object
@@ -89,7 +89,7 @@ module.exports = function(config, Punch, events) {
     // Optionally filters by project
     async current(project) {
       let active = [];
-      
+
       for (let i = 0; i < punches.length; i++) {
         if (
           !punches[i].deleted &&
@@ -107,9 +107,9 @@ module.exports = function(config, Punch, events) {
     // Optionally filters by project
     async latest(project) {
       return punches
-        .map(p => p)
+        .map((p) => p)
         .sort(descendingBy("in"))
-        .find(p => !p.deleted && (!project || p.project === project));
+        .find((p) => !p.deleted && (!project || p.project === project));
     },
 
     async select(fn) {
@@ -118,11 +118,11 @@ module.exports = function(config, Punch, events) {
 
     // Returns an array of punches for which the passed function returns true.
     async filter(fn) {
-      return punches.filter(p => !p.deleted && fn(p));
+      return punches.filter((p) => !p.deleted && fn(p));
     },
 
     async find(fn) {
-      return punches.find(p => !p.deleted && fn(p));
+      return punches.find((p) => !p.deleted && fn(p));
     },
 
     // Deletes a given punch
@@ -140,7 +140,7 @@ module.exports = function(config, Punch, events) {
     async commit() {
       if (hasChanges) {
         let str = punches
-          .filter(p => p != null)
+          .filter((p) => p != null)
           .map(encodePunch)
           .join("\n");
 
@@ -154,18 +154,18 @@ module.exports = function(config, Punch, events) {
     // Close connections and do any necessary cleanup.
     async cleanUp() {
       // this.commit();
-    }
+    },
   };
 
   // Commit any pending changes before the program exits.
   events.on("willexit", () => {
-    public.commit();
+    pub.commit();
   });
 
   // Commit any time a punch or batch of punches is updated.
   events.on("server:punchupdated", () => {
-    public.commit();
+    pub.commit();
   });
 
-  return public;
+  return pub;
 };

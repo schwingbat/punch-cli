@@ -1,4 +1,4 @@
-module.exports = function(comment) {
+module.exports = function (comment) {
   const objects = [];
   const tags = [];
 
@@ -47,31 +47,67 @@ module.exports = function(comment) {
         key: {
           start: keyStart,
           end: keyEnd,
-          string: key
+          string: key,
         },
         value: {
           start: valueStart,
           end: i,
-          string: value
-        }
+          string: value,
+        },
       });
 
       continue;
     }
 
     // Parse #tag object
+    // Tags can also take parameters like #tag[param, param]
+    // Params can be handled by a custom tag formatter function when printed
     if (char === "#") {
       let startIndex = i;
+      let inParams = false;
+      let tagName = "";
+      let params = [];
+      let buf = "";
 
-      // Run until the next space or the end of the string
-      while (comment[i] !== " " && i < comment.length) {
+      i++; // Advance to the next character to skip the '#' delimiter.
+
+      loop: while (i < comment.length) {
+        if (inParams) {
+          // Parse params list
+          switch (comment[i]) {
+            case ",":
+              params.push(buf.trim());
+              buf = "";
+              break;
+            case "]":
+              inParams = false;
+              params.push(buf.trim());
+              break loop;
+            default:
+              buf += comment[i];
+              break;
+          }
+        } else {
+          switch (comment[i]) {
+            case " ":
+              break loop;
+            case "[":
+              inParams = true;
+              break;
+            default:
+              tagName += comment[i];
+              break;
+          }
+        }
+
         i++;
       }
 
       tags.push({
         start: startIndex,
-        end: i,
-        string: comment.slice(startIndex + 1, i)
+        end: i + 1,
+        string: tagName,
+        params,
       });
 
       continue;
@@ -83,6 +119,6 @@ module.exports = function(comment) {
   return {
     comment: comment.trim(),
     objects,
-    tags
+    tags,
   };
 };

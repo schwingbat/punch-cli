@@ -1,4 +1,5 @@
 const parseDateTime = require("./parse-datetime");
+const isSameDay = require("date-fns/isSameDay");
 
 describe("parseDateTime", () => {
   it("parses datetime with 12-hour time", () => {
@@ -22,33 +23,14 @@ describe("parseDateTime", () => {
     );
   });
 
-  it("throws an error if date and time are not separated by @", () => {
-    expect(() => {
-      parseDateTime("8.10.2018-10:14:10");
-    }).toThrow();
-  });
-
-  it("throws an error if date is not parseable", () => {
-    expect(() => {
-      parseDateTime("1.2.3@10:30AM");
-    }).toThrow();
-  });
-
-  it("throws an error if hour is greater than 12 and PM is specified", () => {
-    expect(() => {
-      parseDateTime("10.10.2018@15:30PM");
-    }).toThrow();
-  });
-
-  it("throws an error if time is not parseable", () => {
-    expect(() => {
-      parseDateTime("10.10.2018@4.12l3klsdf");
-    }).toThrow();
+  it("returns null if time is not parseable", () => {
+    expect(parseDateTime("f")).toBe(null);
   });
 
   it("parses just the time", () => {
     const expected = new Date();
-    expected.setHours(22, 30, 0);
+    expected.setHours(22, 30, 0, 0);
+    expected.setMilliseconds(0);
     expect(parseDateTime("10:30PM")).toEqual(expected);
 
     // Same day
@@ -60,8 +42,8 @@ describe("parseDateTime", () => {
 
   it("parses date without a time", () => {
     const expected = new Date(2016, 2, 5);
-    expect(parseDateTime("2016-3-5")).toEqual(expected);
-    expect(parseDateTime("3/5/2016")).toEqual(expected);
-    expect(parseDateTime("3.5.2016")).toEqual(expected);
+    expect(isSameDay(parseDateTime("2016-3-5"), expected)).toBe(true);
+    expect(isSameDay(parseDateTime("3/5/2016"), expected)).toBe(true);
+    expect(isSameDay(parseDateTime("3.5.2016"), expected)).toBe(true);
   });
 });

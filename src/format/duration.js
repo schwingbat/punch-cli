@@ -20,7 +20,8 @@ const unitAliases = {
 };
 
 module.exports = function formatDuration(milliseconds, opts = {}) {
-  let resolution = units[unitAliases[opts.resolution] || opts.resolution] || 1;
+  let resolution =
+    units[unitAliases[opts.resolution] || opts.resolution || "s"];
   let padded = opts.padded || false;
 
   if (opts.fractional) {
@@ -59,6 +60,12 @@ module.exports = function formatDuration(milliseconds, opts = {}) {
   }
   if (resolution > 2) {
     hours += Math.round(minutes / 60);
+  }
+
+  // Wrap 60 minutes to avoid the 4h 60m bug.
+  if (minutes === 60 && hours > 0) {
+    minutes -= 60;
+    hours += 1;
   }
 
   const parts = {};

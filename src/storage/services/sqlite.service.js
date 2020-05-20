@@ -1,4 +1,4 @@
-module.exports = function(config, Punch) {
+module.exports = function (config, Punch) {
   const fs = require("fs");
   const path = require("path");
   const Database = require("better-sqlite3");
@@ -41,13 +41,13 @@ module.exports = function(config, Punch) {
       in: data.inAt,
       out: data.outAt,
       rate: data.rate,
-      comments: comments.map(c => ({
+      comments: comments.map((c) => ({
         id: c.id,
         comment: c.comment,
-        timestamp: c.createdAt
+        timestamp: c.createdAt,
       })),
       create: data.createdAt,
-      updated: data.updatedAt
+      updated: data.updatedAt,
     });
   }
 
@@ -208,6 +208,6 @@ module.exports = function(config, Punch) {
     // Used to execute custom queries from elsewhere.
     run(fn) {
       return fn(db, instantiatePunch);
-    }
+    },
   };
 };

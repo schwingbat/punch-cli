@@ -1,7 +1,7 @@
 // This is a service template. Implement these methods and your new storage backend should work.
 // Takes the app config and a Punch constructor.
 
-module.exports = function(config, Punch) {
+module.exports = function (config, Punch) {
   return {
     name: "template",
 
@@ -32,6 +32,6 @@ module.exports = function(config, Punch) {
 
     // Called before the program exits.
     // Close connections and do any necessary cleanup.
-    async cleanUp() {}
+    async cleanUp() {},
   };
 };

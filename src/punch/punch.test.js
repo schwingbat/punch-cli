@@ -4,7 +4,7 @@ const configPath = path.join(__dirname, "../test/testconfig.json");
 // const brokenConfigPath = path.join(__dirname, '../test/brokentestconfig.json')
 const MockStorage = require("../test/mocks/storage.mock");
 const config = require("../config");
-const _punch = require("./punch").default;
+const _punch = require("./punch");
 const isValidDate = require("date-fns/isValid");
 
 describe("Punch", () => {
@@ -13,10 +13,12 @@ describe("Punch", () => {
   let Storage;
 
   beforeEach(() => {
-    const mockStorage = MockStorage({ storageType: "punchfile" });
-    Storage = mockStorage.Storage;
+    Punch = _punch(config.load(configPath));
+    const mockStorage = MockStorage(config, Punch);
+    Storage = mockStorage.Storage();
     mock = mockStorage.mock;
-    Punch = _punch(config.load(configPath), Storage);
+
+    Punch.setStorage(Storage);
   });
 
   describe("constructor", () => {
@@ -255,17 +257,17 @@ describe("Punch", () => {
       });
     });
 
-    describe("select", () => {
-      it("calls storage.select", async () => {
-        await Punch.select(() => true);
-        expect(mock.select.mock.calls.length).toBe(1);
+    describe("filter", () => {
+      it("calls storage.filter", async () => {
+        await Punch.filter(() => true);
+        expect(mock.filter.mock.calls.length).toBe(1);
       });
     });
 
     describe("all", () => {
-      it("calls storage.select", async () => {
+      it("calls storage.filter", async () => {
         await Punch.all();
-        expect(mock.select.mock.calls.length).toBe(1);
+        expect(mock.filter.mock.calls.length).toBe(1);
       });
     });
   });
