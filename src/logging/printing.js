@@ -216,7 +216,7 @@ function dayPunches(punches, date) {
   for (const punch of punches) {
     const formatter = new PunchFormatter(punch, { date });
     str += formatter.header();
-    formatter.comments().forEach((comment) => {
+    formatter.comments({ withCurrentSession: true }).forEach((comment) => {
       str += comment.format() + "\n";
     });
   }

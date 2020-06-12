@@ -241,6 +241,9 @@ module.exports = class PunchFormatter {
       case "remove":
         line = chalk.red(line + text);
         break;
+      case "faded":
+        line = chalk.cyan(line) + chalk.grey(text);
+        break;
       default:
         line = chalk.cyan(line) + text;
         break;
@@ -251,12 +254,12 @@ module.exports = class PunchFormatter {
     return str;
   }
 
-  comments() {
+  comments({ withCurrentSession = false } = {}) {
     const { _formatComment, _newline } = this;
 
     let lastTimestamp = this._punch.in;
 
-    return this._punch.comments.map((comment, index) => {
+    const comments = this._punch.comments.map((comment, index) => {
       return {
         id: comment.id,
         format: ({ style } = {}) => {
@@ -275,6 +278,32 @@ module.exports = class PunchFormatter {
         },
       };
     });
+
+    // Draw the currently active session as a special comment.
+    if (withCurrentSession && this._punch.out == null) {
+      comments.push({
+        id: null,
+        format: () => {
+          const currentComment = this._formatComment.call(
+            this,
+            lastTimestamp,
+            {
+              timestamp: new Date(),
+              toString() {
+                return "(current session)";
+              },
+            },
+            "?",
+            "\n",
+            "faded"
+          );
+
+          return currentComment;
+        },
+      });
+    }
+
+    return comments;
   }
 
   format() {
