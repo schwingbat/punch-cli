@@ -2,7 +2,7 @@ const mkdirp = require("mkdirp");
 const path = require("path");
 const fs = require("fs");
 const os = require("os");
-const deepmerge = require("deepmerge");
+const merge = require("mergerino");
 const chalk = require("chalk");
 const deref = require("./deref-projects");
 
@@ -35,7 +35,7 @@ exports.load = (configPath = null) => {
   }
 
   const defaults = require("./defaults.json");
-  const config = deepmerge(defaults, userConfig);
+  const config = merge(defaults, userConfig);
 
   // Replace client names with references to actual client objects.
   const { errors, projects } = deref(config);

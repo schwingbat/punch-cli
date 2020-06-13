@@ -204,18 +204,12 @@ function loadCredentials(config, punchConfigPath) {
 
       try {
         switch (ext) {
-          case ".yaml":
-            parsed = require("js-yaml").safeLoad(read);
-            break;
           case ".json":
             parsed = JSON.parse(read);
             break;
-          case ".mon":
-            parsed = require("@schwingbat/mon").parse(read);
-            break;
           default:
             throw new Error(
-              `${ext} files are not supported as credential sources - must be .json, .yaml or .mon`
+              `${ext} files are not supported as credential sources - must be .json`
             );
         }
       } catch (err) {

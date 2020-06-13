@@ -14,7 +14,6 @@ const templatesPath = path.join(
   "templates",
   "invoice"
 );
-const MON = require("@schwingbat/mon");
 
 function makeFontFace(font, fontDir) {
   let out = "@font-face {\n";
@@ -28,14 +27,11 @@ function makeFontFace(font, fontDir) {
   }
 
   out += `  src: `;
-  const paths = (font.path ? [font.path] : font.paths).map(p =>
+  const paths = (font.path ? [font.path] : font.paths).map((p) =>
     path.join(fontDir, p)
   );
   paths.forEach((fontPath, i) => {
-    const format = path
-      .extname(fontPath)
-      .toLowerCase()
-      .slice(1);
+    const format = path.extname(fontPath).toLowerCase().slice(1);
     const encoded = `data:application/x-font-${format};charset=utf-8;base64,${fs
       .readFileSync(fontPath)
       .toString("base64")}`;
@@ -58,44 +54,37 @@ function loadTemplate(directory) {
     styles: "",
     scripts: "",
     resources: directory,
-    render: function(data) {
+    render: function (data) {
       return this.template({
         styles: this.styles,
         scripts: this.scripts,
-        ...data
+        ...data,
       });
-    }
+    },
   };
 
-  let manifest;
-  if (fs.existsSync(path.join(directory, "template.mon"))) {
-    manifest = MON.parse(
-      fs.readFileSync(path.join(directory, "template.mon"), "utf8")
-    );
-  } else {
-    manifest = JSON.parse(
-      fs.readFileSync(path.join(directory, "template.json"), "utf8")
-    );
-  }
+  const manifest = JSON.parse(
+    fs.readFileSync(path.join(directory, "template.json"), "utf8")
+  );
 
   if (manifest.fonts) {
-    manifest.fonts.forEach(font => {
-      const fontPath = path.join(directory, font, "font-face.mon");
-      const fonts = MON.parse(fs.readFileSync(fontPath, "utf8"))["font-face"];
-      fonts.forEach(f => {
+    manifest.fonts.forEach((font) => {
+      const fontPath = path.join(directory, font, "font-face.json");
+      const fonts = JSON.parse(fs.readFileSync(fontPath, "utf8"))["font-face"];
+      fonts.forEach((f) => {
         entry.styles += makeFontFace(f, path.dirname(fontPath));
       });
     });
   }
 
   if (manifest.css) {
-    manifest.css.forEach(file => {
+    manifest.css.forEach((file) => {
       entry.styles += fs.readFileSync(path.join(directory, file), "utf8");
     });
   }
 
   if (manifest.js) {
-    manifest.js.forEach(file => {
+    manifest.js.forEach((file) => {
       entry.scripts += "<script>\n";
       entry.scripts += fs.readFileSync(path.join(directory, file), "utf8");
       entry.scripts += "</script>\n";
@@ -111,7 +100,7 @@ function loadTemplate(directory) {
 
 // Address Formatting //
 
-handlebars.registerHelper("format-address", function(val) {
+handlebars.registerHelper("format-address", function (val) {
   let out = "";
 
   if (typeof val === "object") {
@@ -127,10 +116,10 @@ handlebars.registerHelper("format-address", function(val) {
 
 const objectLabels = {
   generic: loadTemplate(path.join(templatesPath, "_objects", "generic")),
-  vsts: loadTemplate(path.join(templatesPath, "_objects", "vsts"))
+  vsts: loadTemplate(path.join(templatesPath, "_objects", "vsts")),
 };
 
-handlebars.registerHelper("object-label", function(key, value, config = {}) {
+handlebars.registerHelper("object-label", function (key, value, config = {}) {
   if (!objectLabels[key]) {
     return objectLabels.generic.render({ key, value, config });
   } else {
@@ -140,11 +129,11 @@ handlebars.registerHelper("object-label", function(key, value, config = {}) {
 
 // JSON formatting (for debugging) //
 
-handlebars.registerHelper("json", function(object, pretty = false) {
+handlebars.registerHelper("json", function (object, pretty = false) {
   return JSON.stringify(object, null, pretty ? 2 : null);
 });
 
-module.exports = function(name, data) {
+module.exports = function (name, data) {
   return loadTemplate(
     path.isAbsolute(name) ? name : path.join(templatesPath, name),
     data

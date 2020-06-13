@@ -6,24 +6,10 @@
   "bin": {
     "punch": "./src/main.js"
   },
-  "pkg": {
-    "assets": [
-      "src/resources/**/*"
-    ],
-    "targets": [
-      "node12"
-    ]
-  },
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "build": "yarn build:mac && yarn build:linux && yarn build:windows",
-    "build:mac": "pkg package.json --out-path dist/mac --target node12-macos-x64",
-    "build:windows": "pkg package.json --out-path dist/windows --target node12-win-x86",
-    "build:linux": "pkg package.json --out-path dist/linux --target node12-linux-x86",
-    "templates:compile": "nunjucks-precompile -i \"\\\\.njk$\" ./src/printing/templates > ./src/printing/templates/compiled.js",
-    "package": "node ./scripts/package.js"
+    "test:coverage": "jest --coverage"
   },
   "keywords": [],
   "author": "Tony McCoy <tony@ratwizard.io>",
@@ -34,40 +20,32 @@
     "@hapi/joi": "^17.1.1",
     "@ratwizard/cli": "^0.12.1",
     "@schwingbat/is": "^2.0.0",
-    "@schwingbat/mon": "^1.0.0",
     "ansi-regex": "^5.0.0",
     "aws-sdk": "^2.696.0",
     "bcrypt": "^5.0.0",
     "body-parser": "^1.19.0",
-    "caller-callsite": "^4.1.0",
     "chalk": "^4.1.0",
     "chokidar": "^3.4.0",
     "chrono-node": "^1.4.6",
-    "cli-table3": "^0.6.0",
     "connect-ensure-login": "^0.1.1",
     "connect-flash": "^0.1.1",
     "date-fns": "^2.14.0",
-    "date-fns-tz": "^1.0.10",
     "dedent": "^0.7.0",
-    "deepmerge": "^4.2.2",
     "express": "^4.17.1",
     "express-handlebars": "^4.0.4",
     "express-session": "^1.17.1",
     "fetch-defaults": "^1.0.0",
     "handlebars": "^4.7.6",
-    "js-yaml": "^3.14.0",
     "log-update": "^4.0.0",
     "mergerino": "^0.4.0",
     "mkdirp": "^1.0.4",
     "moment": "^2.26.0",
     "moment-timezone": "^0.5.31",
     "node-fetch": "^2.6.0",
-    "nunjucks": "^3.2.1",
     "open": "^7.0.4",
     "passport": "^0.4.1",
     "passport-local": "^1.0.0",
     "readline-sync": "^1.4.10",
-    "simple-duration": "^1.0.1",
     "terminal-link": "^2.1.1",
     "time-require": "^0.1.2",
     "uuid": "^8.1.0"
@@ -75,9 +53,7 @@
   "devDependencies": {
     "eslint": "^7.2.0",
     "eslint-plugin-jest": "^23.13.2",
-    "jest": "^26.0.1",
-    "jszip": "^3.4.0",
-    "pkg": "^4.4.8"
+    "jest": "^26.0.1"
   },
   "jest": {
     "testEnvironment": "node"
