@@ -19,10 +19,10 @@ module.exports = new Command("watch")
   .option("animate", "a", {
     description:
       "enable animations for the clock (may cause flicker in some terminals)",
-    boolean: true
+    boolean: true,
   })
   .action(async ({ options, props }) => {
-    const { config, Punch } = props;
+    const { config, events, Punch } = props;
 
     const animate = options.animate;
     const active = (await Punch.current())[0];
@@ -31,7 +31,10 @@ module.exports = new Command("watch")
       const clock = Clock({
         style: "clock-block",
         letterSpacing: 1,
-        animate: animate
+        animate: animate,
+        colors: {
+          digit: config.projects[active.project].color,
+        },
       });
 
       const now = new Date();
@@ -44,13 +47,13 @@ module.exports = new Command("watch")
       // Skip the active punch so we can just add its current pay() value
       // to get correct amounts for daily and monthly earnings.
       const punches = await Punch.select(
-        p =>
+        (p) =>
           p.in >= startOfMonth(now) &&
           p.in <= endOfMonth(now) &&
           p.id !== active.id
       );
 
-      punches.forEach(p => {
+      punches.forEach((p) => {
         if (p.in >= startOfDay(now) && p.in <= endOfDay(now)) {
           dailyTotal += p.pay();
         }
@@ -80,11 +83,20 @@ module.exports = new Command("watch")
             monthly + daily.padStart(numbersLength - monthly.length, " ");
         }
 
-        logUpdate("\n" + topLine + "\n" + numbers + bottomLine);
+        logUpdate(
+          "\n" +
+            topLine +
+            "\n" +
+            numbers +
+            bottomLine +
+            "\nPress ctrl+c to exit."
+        );
       };
 
       update();
       setInterval(update, animate ? 64 : 1000);
+
+      events.emit("watch:started");
     } else {
       console.log(messageFor("not-punched-in"));
     }

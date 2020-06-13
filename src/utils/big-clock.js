@@ -1,4 +1,6 @@
 const chalk = require("chalk");
+const merge = require("mergerino");
+const makeColorizer = require("./make-project-colorizer");
 
 function isCharHeader(line) {
   return /^---/.test(line);
@@ -21,7 +23,7 @@ function getCharName(line) {
 }
 
 function getKeyValue(line) {
-  return line.split(":").map(x => x.trim());
+  return line.split(":").map((x) => x.trim());
 }
 
 function getTransFrameInfo(line) {
@@ -45,7 +47,7 @@ function parseClockFile(clock) {
     name: "clock",
     spaceCharacter: " ",
     characters: {},
-    transitions: {}
+    transitions: {},
   };
 
   // Lines can be either a 'key: value' format
@@ -72,8 +74,8 @@ function parseClockFile(clock) {
             obj.transitions[frameInfo.from][frameInfo.to] = [];
           }
           obj.transitions[frameInfo.from][frameInfo.to].push({
-            lines: temp.filter(l => l !== ""),
-            timing: frameInfo.frame.timing
+            lines: temp.filter((l) => l !== ""),
+            timing: frameInfo.frame.timing,
           });
           i--;
         } else {
@@ -83,7 +85,7 @@ function parseClockFile(clock) {
         if (isCharHeader(lines[i]) || isTransFrameHeader(lines[i])) {
           inCharBlock = false;
           // Filter out blank lines (spaces count as non-blank)
-          obj.characters[charName] = temp.filter(l => l !== "");
+          obj.characters[charName] = temp.filter((l) => l !== "");
           i--;
         } else {
           temp.push(lines[i]);
@@ -107,21 +109,21 @@ function parseClockFile(clock) {
   }
 
   if (temp) {
-    obj.characters[charName] = temp.filter(l => l !== "");
+    obj.characters[charName] = temp.filter((l) => l !== "");
   }
 
   return obj;
 }
 
 function colorizeChar(lines, spaceChar, colors) {
-  return lines.map(line => {
+  return lines.map((line) => {
     return line
       .split("")
-      .map(c => {
+      .map((c) => {
         if (c === " ") {
           return spaceChar;
         } else {
-          return colors.digit ? chalk[colors.digit](c) : c;
+          return makeColorizer({ color: colors.digit })(c);
         }
       })
       .join("");
@@ -138,9 +140,7 @@ function validate(characters) {
 
     if (lines.length !== height) {
       errors.push(
-        `Character ${char} has a height of ${height}, but has ${
-          lines.length
-        } lines.`
+        `Character ${char} has a height of ${height}, but has ${lines.length} lines.`
       );
       continue;
     }
@@ -148,9 +148,7 @@ function validate(characters) {
     lines.forEach((line, i) => {
       if (line.length !== width) {
         errors.push(
-          `Line at index ${i} of character ${char} should be ${width} characters wide. Is ${
-            line.length
-          } wide.`
+          `Line at index ${i} of character ${char} should be ${width} characters wide. Is ${line.length} wide.`
         );
       }
     });
@@ -159,7 +157,7 @@ function validate(characters) {
   return errors;
 }
 
-module.exports = function({ style, letterSpacing, colors, animate }) {
+module.exports = function ({ style, letterSpacing, colors, animate }) {
   const path = require("path");
   const fs = require("fs");
   const printLength = require("./print-length");
@@ -168,13 +166,7 @@ module.exports = function({ style, letterSpacing, colors, animate }) {
   style = style || "clock-block";
   letterSpacing = letterSpacing || 1;
 
-  colors = Object.assign(
-    {
-      spaceCharacter: "grey",
-      digit: "cyan"
-    },
-    colors || {}
-  );
+  colors = merge({ spaceCharacter: "grey", digit: "cyan" }, colors || {});
 
   try {
     const clockPath = path.join(
@@ -214,10 +206,12 @@ module.exports = function({ style, letterSpacing, colors, animate }) {
   if (animate) {
     for (const from in clock.transitions) {
       for (const to in clock.transitions[from]) {
-        clock.transitions[from][to] = clock.transitions[from][to].map(char => ({
-          ...char,
-          lines: colorizeChar(char.lines, spaceChar, colors)
-        }));
+        clock.transitions[from][to] = clock.transitions[from][to].map(
+          (char) => ({
+            ...char,
+            lines: colorizeChar(char.lines, spaceChar, colors),
+          })
+        );
       }
     }
   }
@@ -227,10 +221,10 @@ module.exports = function({ style, letterSpacing, colors, animate }) {
 
   return {
     display(string) {
-      const chars = string.split("").map(c => clock.characters[c]);
+      const chars = string.split("").map((c) => clock.characters[c]);
 
       let output = "";
-      let height = Math.max(...chars.map(c => c.length));
+      let height = Math.max(...chars.map((c) => c.length));
 
       if (animate) {
         // Set up transitions if values have changed.
@@ -241,11 +235,11 @@ module.exports = function({ style, letterSpacing, colors, animate }) {
               const to = string[i];
               if (clock.transitions[from] && clock.transitions[from][to]) {
                 let accumulatedTiming = 0;
-                transitions[i] = clock.transitions[from][to].map(t => {
+                transitions[i] = clock.transitions[from][to].map((t) => {
                   accumulatedTiming += t.timing;
                   return {
                     ends: Date.now() + accumulatedTiming,
-                    ...t
+                    ...t,
                   };
                 });
               }
@@ -291,6 +285,6 @@ module.exports = function({ style, letterSpacing, colors, animate }) {
       }
       padding += "\n";
       return padding + output + padding;
-    }
+    },
   };
 };
