@@ -9,7 +9,7 @@ module.exports = new Command("project-purge")
   .arg("project", {
     description: "project alias",
   })
-  .action(async ({ props }) => {
+  .action(async ({ args, props }) => {
     const { project } = args;
     const { config, Punch } = props;
 
