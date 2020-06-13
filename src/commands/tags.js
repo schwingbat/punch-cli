@@ -35,7 +35,7 @@ module.exports = new Command()
       byTag[tag].sort(descendingBy("out"));
       counted.push({
         tag,
-        count: byTag[tag].length
+        count: byTag[tag].length,
       });
     }
 
@@ -46,19 +46,19 @@ module.exports = new Command()
         {
           align: "left",
           leftPadding: 1,
-          rightPadding: 1
+          rightPadding: 1,
+        },
+        {
+          align: "right",
+          leftPadding: 1,
+          rightPadding: 1,
         },
         {
           align: "left",
           leftPadding: 1,
-          rightPadding: 1
+          rightPadding: 1,
         },
-        {
-          align: "left",
-          leftPadding: 1,
-          rightPadding: 1
-        }
-      ]
+      ],
     });
 
     console.log();
@@ -67,8 +67,8 @@ module.exports = new Command()
 
       table.push([
         chalk.magenta(`#${item.tag}`),
-        `${item.count} punch${item.count == 1 ? "" : "es"}`,
-        `last used ${formatDistance(lastSeen.out, new Date())} ago`
+        `${item.count} punch${item.count == 1 ? "  " : "es"}`,
+        `last used ${formatDistance(lastSeen.out, new Date())} ago`,
       ]);
     }
 

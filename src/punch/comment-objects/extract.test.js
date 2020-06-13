@@ -87,4 +87,28 @@ describe("extract", () => {
       ],
     });
   });
+
+  // Allowed tag characters: [a-zA-Z0-9-+_]
+  describe("terminating at special characters", () => {
+    it("ends the tag at a comma", () => {
+      const { tags } = extract("Test comment with #test, wow!");
+
+      expect(tags.length).toBe(1);
+      expect(tags[0].string).toBe("test");
+    });
+
+    it("ends the tag at a semicolon", () => {
+      const { tags } = extract("Test comment with #test; wow!");
+
+      expect(tags.length).toBe(1);
+      expect(tags[0].string).toBe("test");
+    });
+
+    it("ends the tag at a colon", () => {
+      const { tags } = extract("Test comment with #test: wow!");
+
+      expect(tags.length).toBe(1);
+      expect(tags[0].string).toBe("test");
+    });
+  });
 });

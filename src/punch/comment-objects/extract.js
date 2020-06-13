@@ -1,3 +1,7 @@
+// Tags are allowed to have these characters in their names.
+// Anything else will terminate the tag.
+const tagNameRegex = /[a-zA-Z0-9-+_]/;
+
 module.exports = function (comment) {
   const objects = [];
   const tags = [];
@@ -95,7 +99,11 @@ module.exports = function (comment) {
               inParams = true;
               break;
             default:
-              tagName += comment[i];
+              if (tagNameRegex.test(comment[i])) {
+                tagName += comment[i];
+              } else {
+                break loop;
+              }
               break;
           }
         }
