@@ -14,6 +14,7 @@ const onChar = "▅";
 const offChar = "▂";
 const lineLength = 48;
 
+// TODO Add some kind of visual indicator of a punch that continues to next day or from previous.
 module.exports = function ({ punches, date, labelPadding, config }) {
   let topRow = config.display.use24HourTime
     ? "|0    |3    |6    |9    |12   |15   |18   |21   "
@@ -29,10 +30,10 @@ module.exports = function ({ punches, date, labelPadding, config }) {
 
   // Prepare initial empty lines and metadata.
   for (const project of summaries) {
-    const color = config.projects[project.alias].color || "yellow";
-    const [workdayStart, workdayEnd] = config.projects[
-      project.alias
-    ].businessHours.map((x) => x * (lineLength / 24));
+    const projectInfo = config.projects[project.alias];
+    const color = (projectInfo && projectInfo.color) || "yellow";
+    const [workdayStart, workdayEnd] = (projectInfo &&
+      projectInfo.businessHours.map((x) => x * (lineLength / 24))) || [-1, -1];
     const colorize = makeColorizer({ color });
 
     let line = [];
