@@ -5,6 +5,7 @@ const formatDuration = require("./duration");
 const wordWrap = require("@fardog/wordwrap")(0, 80, {
   lengthFn: require("../utils/print-length.js"),
 });
+const makeColorizer = require("../utils/make-project-colorizer");
 
 /**
  *
@@ -99,10 +100,14 @@ module.exports = class PunchFormatter {
 
     const project = config.projects[punch.project];
     const projectName = project ? project.name : punch.project;
-    let time;
+    const colorize = makeColorizer(project);
+
     const hours =
       punch.durationWithinInterval({ start: dateStart, end: dateEnd }) /
       3600000;
+
+    let time;
+
     if (hours < 1) {
       time = `${~~(hours * 60)}m`;
     } else {
@@ -132,7 +137,7 @@ module.exports = class PunchFormatter {
 
     str += timeSpan;
     str += chalk.blue(time.padStart(6));
-    str += chalk.yellow(` [${projectName}]`);
+    str += colorize.bold(` [${projectName}]`);
     if (punch.rate) {
       str += chalk.grey(` ($${punch.pay().toFixed(2)})`);
     }

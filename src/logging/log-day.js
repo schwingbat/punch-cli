@@ -10,13 +10,13 @@
     ...
 */
 
-module.exports = function({
+module.exports = function ({
   config,
   punches,
   date,
   summary,
   project,
-  interval
+  interval,
 }) {
   const { ascendingBy } = require("../utils/sort-factories");
   const { dayPunches, summaryTable, daySummaryHeader } = require("./printing");
@@ -42,7 +42,7 @@ module.exports = function({
   }
 
   punches = punches
-    .filter(punch => !project || punch.project !== project)
+    .filter((punch) => !project || punch.project !== project)
     .sort(ascendingBy("in"));
 
   console.log(
@@ -51,21 +51,20 @@ module.exports = function({
   console.log("  " + dayPunches(punches, date, config).replace(/\n/g, "\n  "));
 
   if (config.display.showDayGraphics) {
-    console.log(
+    process.stdout.write(
       dayGraphic({
         punches,
         date,
-        config
+        config,
       })
     );
+  } else {
+    const start = new Date(date);
+    const end = new Date(date);
+
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+
+    console.log(summaryTable(summary, { start, end }) + "\n");
   }
-
-  const start = new Date(date);
-  const end = new Date(date);
-
-  start.setHours(0, 0, 0, 0);
-  end.setHours(23, 59, 59, 999);
-
-  console.log(summaryTable(summary, { start, end }));
-  console.log();
 };

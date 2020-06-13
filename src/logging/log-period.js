@@ -2,7 +2,7 @@
  * Log an arbitrary period of time between two dates.
  */
 
-module.exports = function({ config, punches, summary }) {
+module.exports = function ({ config, punches, summary }) {
   const formatCurrency = require("../format/currency");
   const formatDuration = require("../format/duration");
   const groupByDay = require("./group-by-day");
@@ -29,7 +29,7 @@ module.exports = function({ config, punches, summary }) {
   let latest;
 
   console.log();
-  days.forEach(day => {
+  days.forEach((day) => {
     // console.log(day)
     let start = new Date(day.date);
     let end = new Date(day.date);
@@ -61,9 +61,9 @@ module.exports = function({ config, punches, summary }) {
               (sum, p) => p.payWithinInterval({ start, end }) + sum,
               0
             )
-          )
+          ),
         ],
-        punches: day.punches
+        punches: day.punches,
       })
     );
 
@@ -73,17 +73,15 @@ module.exports = function({ config, punches, summary }) {
           punches: day.punches,
           date: day.date,
           labelPadding: longestProjectName + 3,
-          config
+          config,
         })
       );
-
-      console.log();
     }
   });
 
   console.log(summaryTable(summary, { start: earliest, end: latest }) + "\n");
 
   return {
-    longestProjectName
+    longestProjectName,
   };
 };

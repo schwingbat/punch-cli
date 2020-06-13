@@ -48,6 +48,21 @@ exports.load = (configPath = null) => {
 
   config.projects = projects;
 
+  // Load business hours range. Used for highlighting graphics.
+  for (const alias in projects) {
+    const project = projects[alias];
+
+    if (Array.isArray(project.businessHours)) {
+      if (project.businessHours.length !== 2) {
+        throw new Error(
+          `[config parse][${alias}] businessHours must be an array with start and end hour, e.g. [8, 17]`
+        );
+      }
+    } else {
+      project.businessHours = [-1, -1];
+    }
+  }
+
   // Set dynamic options.
   config.punchPath = punchPath;
   config.configPath = configPath;

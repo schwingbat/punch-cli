@@ -1,48 +1,7 @@
-const { descendingBy } = require("../utils/sort-factories");
 const isSameDay = require("date-fns/isSameDay");
 const addDays = require("date-fns/addDays");
 
-/**
- * Summarize punch stats per project.
- *
- * @param {*} config
- * @param {*} punches
- * @param {*} interval
- */
-function summarize(config, punches, interval) {
-  const projects = {};
-
-  for (let i = 0; i < punches.length; i++) {
-    const punch = punches[i];
-    const name = punch.project;
-    const project = config.projects[name];
-
-    if (!projects[name]) {
-      projects[name] = {
-        name: project ? project.name : name,
-        pay: 0,
-        time: 0,
-        punches: []
-      };
-    }
-
-    projects[name].pay += punch.payWithinInterval(interval);
-    projects[name].time += punch.durationWithinInterval(interval);
-    projects[name].punches.push(punch);
-  }
-
-  const projectArray = [];
-
-  for (const alias in projects) {
-    projectArray.push({
-      alias,
-      isPaid: !!(config.projects[alias] && config.projects[alias].hourlyRate),
-      ...projects[alias]
-    });
-  }
-
-  return projectArray.sort(descendingBy("time"));
-}
+const summarize = require("./summarize");
 
 module.exports = function Logger(config, Punch) {
   const messageFor = require("../utils/message-for");
@@ -67,7 +26,7 @@ module.exports = function Logger(config, Punch) {
         return console.log(messageFor("future-punch-log"));
       }
 
-      punches = await Punch.select(p => {
+      punches = await Punch.select((p) => {
         // Reject if start date is out of the interval's range
         if (!((p.out || now) >= interval.start && p.in <= interval.end)) {
           return false;
@@ -105,7 +64,7 @@ module.exports = function Logger(config, Punch) {
         date: interval.start,
         project,
         summary: summarize(config, punches, interval),
-        interval
+        interval,
       };
 
       switch (interval.unit) {
@@ -122,7 +81,7 @@ module.exports = function Logger(config, Punch) {
         case "week":
           const { longestProjectName } = printPeriod(logData);
           const hmap = heatmap.week(punches, config, {
-            labelPadding: longestProjectName + 3
+            labelPadding: longestProjectName + 3,
           });
           console.log(hmap + "\n");
           break;
@@ -135,6 +94,6 @@ module.exports = function Logger(config, Punch) {
           break;
       }
     },
-    _summarize: summarize
+    _summarize: summarize,
   };
 };
