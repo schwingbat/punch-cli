@@ -111,12 +111,25 @@ module.exports = function (string, opts = {}) {
         const parsed = chrono.parse(string)[0];
 
         if (parsed) {
-          if (parsed.start && parsed.end) {
-            start = startOfDay(dateFromChrono(parsed.start));
-            end = endOfDay(dateFromChrono(parsed.end));
-          } else if (parsed.start && !parsed.end) {
-            start = startOfDay(dateFromChrono(parsed.start));
-            end = endOfDay(dateFromChrono(parsed.start));
+          const { knownValues } = parsed.start;
+
+          if (knownValues.year) unit = "year";
+          if (knownValues.month) unit = "month";
+          if (knownValues.day) unit = "day";
+
+          switch (unit) {
+            case "year":
+              start = startOfYear(dateFromChrono(parsed.start));
+              end = endOfYear(dateFromChrono(parsed.end || parsed.start));
+              break;
+            case "month":
+              start = startOfMonth(dateFromChrono(parsed.start));
+              end = endOfMonth(dateFromChrono(parsed.end || parsed.start));
+              break;
+            default:
+              start = startOfDay(dateFromChrono(parsed.start));
+              end = endOfDay(dateFromChrono(parsed.end || parsed.start));
+              break;
           }
 
           const hours = differenceInHours(end, start);
