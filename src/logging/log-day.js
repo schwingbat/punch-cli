@@ -65,6 +65,6 @@ module.exports = function ({
     start.setHours(0, 0, 0, 0);
     end.setHours(23, 59, 59, 999);
 
-    console.log(summaryTable(summary, { start, end }) + "\n");
+    console.log(summaryTable(summary, config, { start, end }) + "\n");
   }
 };

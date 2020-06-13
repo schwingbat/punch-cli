@@ -137,7 +137,7 @@ module.exports = class PunchFormatter {
 
     str += timeSpan;
     str += chalk.blue(time.padStart(6));
-    str += colorize.bold(` [${projectName}]`);
+    str += chalk.grey(" [") + colorize.bold(projectName) + chalk.grey("]");
     if (punch.rate) {
       str += chalk.grey(` ($${punch.pay().toFixed(2)})`);
     }

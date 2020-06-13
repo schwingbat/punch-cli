@@ -12,6 +12,7 @@ const wordWrap = require("@fardog/wordwrap")(0, 80, {
 });
 const realTime = require("../utils/real-time");
 const PunchFormatter = require("../format/punch");
+const makeColorizer = require("../utils/make-project-colorizer");
 
 function delimitedList(items, inners = " / ", outers) {
   let joined = items.filter((i) => i).join(chalk.grey(inners));
@@ -82,7 +83,7 @@ function projectHeader(text, stats) {
   }]
 }
 */
-function summaryTable(projects, opts = {}) {
+function summaryTable(projects, config, opts = {}) {
   let str = "";
 
   opts = Object.assign(
@@ -101,7 +102,7 @@ function summaryTable(projects, opts = {}) {
   const table = new Table({
     columnStyle: [
       {
-        align: "left",
+        align: "right",
         leftPadding: 0,
         rightPadding: 1,
       },
@@ -124,17 +125,18 @@ function summaryTable(projects, opts = {}) {
   });
 
   projects.forEach((project) => {
+    const colorize = makeColorizer(config.projects[project.alias]);
     total.time += project.time;
     total.pay += project.pay;
     total.punchCount += project.punches.length;
 
     table.push([
-      chalk.yellow(project.name),
+      colorize(project.name),
       formatDuration(project.time, { resolution: "m", padded: true }),
       project.isPaid ? formatCurrency(project.pay) : chalk.grey("---"),
       project.punches.length +
         " punch" +
-        (project.punches.length === 1 ? "" : "es"),
+        (project.punches.length === 1 ? "  " : "es"),
     ]);
   });
 

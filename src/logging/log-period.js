@@ -79,7 +79,9 @@ module.exports = function ({ config, punches, summary }) {
     }
   });
 
-  console.log(summaryTable(summary, { start: earliest, end: latest }) + "\n");
+  console.log(
+    summaryTable(summary, config, { start: earliest, end: latest }) + "\n"
+  );
 
   return {
     longestProjectName,

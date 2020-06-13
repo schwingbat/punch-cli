@@ -29,10 +29,10 @@ const monthNames = [
   "September",
   "October",
   "November",
-  "December"
+  "December",
 ];
 
-module.exports = function({ config, punches, date, summary }, summarizeFn) {
+module.exports = function ({ config, punches, date, summary }, summarizeFn) {
   const { summaryTable, monthSummaryHeader } = require("./printing");
   const { ascendingBy } = require("../utils/sort-factories");
   const formatCurrency = require("../format/currency");
@@ -42,7 +42,7 @@ module.exports = function({ config, punches, date, summary }, summarizeFn) {
 
   const months = {};
 
-  punches.forEach(punch => {
+  punches.forEach((punch) => {
     const key = punch.in.getMonth();
     if (!months[key]) {
       months[key] = [];
@@ -58,43 +58,49 @@ module.exports = function({ config, punches, date, summary }, summarizeFn) {
 
   console.log();
 
-  monthArray.sort(ascendingBy(m => Number(m[0]))).forEach(([key, punches]) => {
-    const month = new Date(date.getFullYear(), Number(key));
+  monthArray
+    .sort(ascendingBy((m) => Number(m[0])))
+    .forEach(([key, punches]) => {
+      const month = new Date(date.getFullYear(), Number(key));
 
-    const monthSummary = summarizeFn(config, punches, {
-      start: month,
-      end: endOfMonth(month)
+      const monthSummary = summarizeFn(config, punches, {
+        start: month,
+        end: endOfMonth(month),
+      });
+
+      const monthPay = monthSummary.reduce(
+        (sum, project) => sum + project.pay,
+        0
+      );
+      const monthTime = monthSummary.reduce(
+        (sum, project) => sum + project.time,
+        0
+      );
+      const monthPunches = monthSummary.reduce(
+        (sum, project) => sum + project.punches.length,
+        0
+      );
+
+      console.log(
+        monthSummaryHeader({
+          date: month,
+          stats: [
+            formatDuration(monthTime),
+            formatCurrency(monthPay),
+            monthPunches + " punch" + (monthPunches === 1 ? "" : "es"),
+          ],
+        })
+      );
+      console.log(
+        "  " +
+          summaryTable(monthSummary, config, { total: false }).replace(
+            /\n/g,
+            "\n  "
+          )
+      );
     });
-
-    const monthPay = monthSummary.reduce(
-      (sum, project) => sum + project.pay,
-      0
-    );
-    const monthTime = monthSummary.reduce(
-      (sum, project) => sum + project.time,
-      0
-    );
-    const monthPunches = monthSummary.reduce(
-      (sum, project) => sum + project.punches.length,
-      0
-    );
-
-    console.log(
-      monthSummaryHeader({
-        date: month,
-        stats: [
-          formatDuration(monthTime),
-          formatCurrency(monthPay),
-          monthPunches + " punch" + (monthPunches === 1 ? "" : "es")
-        ]
-      })
-    );
-    console.log(
-      "  " + summaryTable(monthSummary, { total: false }).replace(/\n/g, "\n  ")
-    );
-  });
 
   // console.log(months)
 
-  console.log(summaryTable(summary) + "\n");
+  console.log(summaryTable(summary, config) + "\n");
 };

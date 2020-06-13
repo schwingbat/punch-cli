@@ -19,7 +19,7 @@ module.exports = function ({ punches, date, labelPadding, config }) {
     ? "|0    |3    |6    |9    |12   |15   |18   |21   "
     : "|12a  |3a   |6a   |9a   |12p  |3p   |6p   |9p   ";
 
-  topRow = topRow.replace(/\|/g, chalk.grey("|"));
+  topRow = topRow.replace(/\|/g, chalk.grey("▏"));
 
   let start = startOfDay(date);
   let end = endOfDay(start);
@@ -136,7 +136,7 @@ module.exports = function ({ punches, date, labelPadding, config }) {
 
   for (const project of summaries) {
     const colorize = makeColorizer(project);
-    const label = colorize.bold(`${project.name}`);
+    const label = colorize.bold(project.name);
     const stats = chalk.bold(
       padStartRaw(tableLines.shift().trim(), lineLength - project.name.length)
     );

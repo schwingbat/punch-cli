@@ -75,15 +75,15 @@ module.exports = function Logger(config, Punch) {
         case "month":
           printPeriod(logData);
           // TODO: Print month heatmap.
-          // const hmap = heatmap.month(interval.start, punches, config)
-          // console.log(hmap + '\n')
+          // console.log(heatmap.month(interval.start, punches, config) + "\n");
           break;
         case "week":
           const { longestProjectName } = printPeriod(logData);
-          const hmap = heatmap.week(punches, config, {
-            labelPadding: longestProjectName + 3,
-          });
-          console.log(hmap + "\n");
+          console.log(
+            heatmap.week(punches, config, {
+              labelPadding: longestProjectName + 3,
+            }) + "\n"
+          );
           break;
         case "day":
           await printDay(logData);
@@ -94,6 +94,5 @@ module.exports = function Logger(config, Punch) {
           break;
       }
     },
-    _summarize: summarize,
   };
 };
