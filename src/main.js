@@ -155,6 +155,10 @@ program
     description: "export punch data to other destinations",
     path: "./commands/data_export",
   })
+  .command("data:migrate", {
+    description: "migrate from one storage backend to another",
+    path: "./commands/data_migrate",
+  })
 
   // ----- Server ----- //
 

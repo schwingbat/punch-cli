@@ -54,12 +54,12 @@ module.exports = function (config, Punch) {
   function insertComment(data, punchID) {
     db.prepare(
       "INSERT INTO comments (id, punchID, comment, createdAt) VALUES (?, ?, ?, ?)"
-    ).run(data.id, punchID, data.raw, data.timestamp.getTime());
+    ).run(data.id, punchID, data.comment, data.timestamp.getTime());
   }
 
   function updateComment(data, punchID) {
     db.prepare("UPDATE comments SET comment=?, createdAt=? WHERE id = ?").run(
-      data.raw,
+      data.comment,
       data.timestamp.getTime(),
       data.id
     );
@@ -119,7 +119,6 @@ module.exports = function (config, Punch) {
 
   return {
     name: "sqlite",
-    db: db,
 
     async save(punch) {
       if (db.prepare("SELECT id FROM punches WHERE id = ?").get(punch.id)) {
