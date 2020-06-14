@@ -22,7 +22,7 @@
     "wordWrapWidth": 65,
     "showPunchIDs": false,
     "showCommentIndices": false,
-    "showDayGraphics": false,
+    "showDayGraphics": true,
     "commentRelativeTimestamps": {
       "enabled": true,
       "fromPreviousComment": true
