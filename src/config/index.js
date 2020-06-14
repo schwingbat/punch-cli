@@ -60,7 +60,7 @@ exports.load = (configPath = null) => {
       }
     } else {
       // Won't cause errors from being null, but won't render either.
-      project.businessHours = [-1, -1];
+      project.businessHours = [9, 17];
     }
   }
 
