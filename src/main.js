@@ -128,6 +128,10 @@ program
 
   // ----- Managing Projects ----- //
 
+  .command("project", {
+    description: "view a detailed project summary",
+    path: "./commands/project",
+  })
   .command("project:list", {
     description: "view a summary of projects",
     path: "./commands/project_list",

@@ -263,10 +263,18 @@ module.exports = function (config) {
     durationWithinInterval(interval) {
       // Get the total amount of time that this punch overlaps
       // with the dates in the interval.
-      let start = Math.max(this.in, interval.start);
-      let end = Math.min(this.out || Date.now(), interval.end);
 
-      return end - start;
+      const inAt = this.in;
+      const outAt = this.out || Date.now();
+
+      if (outAt >= interval.start && inAt <= interval.end) {
+        let start = Math.max(inAt, interval.start);
+        let end = Math.min(outAt, interval.end);
+
+        return end - start;
+      } else {
+        return 0;
+      }
     }
 
     payWithinInterval(interval) {

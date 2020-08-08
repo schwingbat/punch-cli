@@ -8,6 +8,23 @@ const deref = require("./deref-projects");
 
 let current = null;
 
+const daysMap = {
+  sun: 0,
+  sunday: 0,
+  mon: 1,
+  monday: 0,
+  tue: 2,
+  tuesday: 3,
+  wed: 3,
+  wednesday: 3,
+  thu: 4,
+  thursday: 4,
+  fri: 5,
+  friday: 5,
+  sat: 6,
+  saturday: 6,
+};
+
 /**
  * Returns default config merged with user config.
  *
@@ -62,6 +79,14 @@ exports.load = (configPath = null) => {
       // Won't cause errors from being null, but won't render either.
       project.businessHours = [9, 17];
     }
+
+    if (project.businessDays == null) {
+      project.businessDays = [0, 1, 2, 3, 4, 5, 6];
+    }
+
+    project.businessDays = project.businessDays
+      .map((d) => (typeof d === "string" ? daysMap[d] : d))
+      .sort();
   }
 
   // Set dynamic options.
