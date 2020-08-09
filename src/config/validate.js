@@ -370,7 +370,7 @@ function validateProjects(projects, clients) {
         case "color":
           if (type !== "string") {
             errors.push(
-              makeError(`'${key}' must be a string but is ${a(type)}`, prefix)
+              makeError(`'${key}' must be a string but is ${a(type)}.`, prefix)
             );
           } else {
             if (!is.projectColor(value[key])) {
@@ -390,7 +390,7 @@ function validateProjects(projects, clients) {
             if (!(value[key] in clients)) {
               errors.push(
                 makeError(
-                  `'${key}' refers to a client that is not in the 'clients' section: ${value[key]}.`,
+                  `'${key}' refers to a client that is not in the 'clients' section: '${value[key]}'.`,
                   prefix
                 )
               );
@@ -402,7 +402,7 @@ function validateProjects(projects, clients) {
           } else {
             errors.push(
               makeError(
-                `'${key}' must be a string or object but is ${a(type)}`,
+                `'${key}' must be a string or object but is ${a(type)}.`,
                 prefix
               )
             );
@@ -412,13 +412,13 @@ function validateProjects(projects, clients) {
         case "businessHours":
           if (type !== "array") {
             errors.push(
-              makeError(`'${key}' must be an array but is ${a(type)}`, prefix)
+              makeError(`'${key}' must be an array but is ${a(type)}.`, prefix)
             );
           } else {
             if (value[key].length !== 2) {
               errors.push(
                 makeError(
-                  `'${key}' must have a length of 2 but has a length of ${value[key].length}`,
+                  `'${key}' must have a length of 2 but has a length of ${value[key].length}.`,
                   prefix
                 )
               );
@@ -450,7 +450,7 @@ function validateProjects(projects, clients) {
         case "businessDays":
           if (type !== "array") {
             errors.push(
-              makeError(`'${key}' must be an array but is ${a(type)}`, prefix)
+              makeError(`'${key}' must be an array but is ${a(type)}.`, prefix)
             );
           } else {
             const nums = [0, 1, 2, 3, 4, 5, 6];
@@ -537,8 +537,200 @@ function validateProjects(projects, clients) {
   return errors;
 }
 
+function validateSyncService(service, prefix) {
+  const errors = [];
+
+  errors.push(...validateRequiredKeys(["type"], service, prefix));
+
+  if (!is.string(service.type)) {
+  }
+
+  if (errors.length === 0) {
+    const serviceType = service.type.toLowerCase();
+
+    switch (serviceType) {
+      case "s3":
+        for (const key in service) {
+          const type = is.what(service[key]);
+
+          switch (key) {
+            // Standard fields
+            case "enabled":
+              if (type !== "boolean") {
+                errors.push(
+                  makeError(
+                    `'${key}' must be a boolean but is ${a(type)}.`,
+                    prefix
+                  )
+                );
+              }
+              break;
+            case "name":
+              if (type !== "string") {
+                errors.push(
+                  makeError(
+                    `'${key}' must be a string but is ${a(type)}.`,
+                    prefix
+                  )
+                );
+              }
+              break;
+            case "type":
+              break;
+
+            // S3 fields
+            case "bucket":
+              if (type !== "string") {
+                errors.push(
+                  makeError(
+                    `'${key}' must be a string but is ${a(type)}.`,
+                    prefix
+                  )
+                );
+              }
+              break;
+            case "region":
+              if (type !== "string") {
+                errors.push(
+                  makeError(
+                    `'${key}' must be a string but is ${a(type)}.`,
+                    prefix
+                  )
+                );
+              }
+              break;
+            case "credentials":
+              if (type !== "string") {
+                errors.push(
+                  makeError(
+                    `'${key}' must be a string but is ${a(type)}.`,
+                    prefix
+                  )
+                );
+              }
+              break;
+
+            default:
+              errors.push(
+                makeWarning(
+                  `'${key}' is not a valid key when 'type' is '${service.type}'.`,
+                  prefix
+                )
+              );
+              break;
+          }
+        }
+        break;
+
+      case "punch-remote":
+        for (const key in service) {
+          const type = is.what(service[key]);
+
+          switch (key) {
+            // Standard fields
+            case "enabled":
+              if (type !== "boolean") {
+                errors.push(
+                  makeError(
+                    `'${key}' must be a boolean but is ${a(type)}.`,
+                    prefix
+                  )
+                );
+              }
+              break;
+            case "name":
+              if (type !== "string") {
+                errors.push(
+                  makeError(
+                    `'${key}' must be a string but is ${a(type)}.`,
+                    prefix
+                  )
+                );
+              }
+              break;
+            case "type":
+              break;
+
+            // punch-remote fields
+            case "url":
+              if (type !== "string") {
+                errors.push(
+                  makeError(
+                    `'${key}' must be a string but is ${a(type)}.`,
+                    prefix
+                  )
+                );
+              }
+              break;
+            case "credentials":
+              if (type !== "string") {
+                errors.push(
+                  makeError(
+                    `'${key}' must be a string but is ${a(type)}.`,
+                    prefix
+                  )
+                );
+              }
+              break;
+
+            default:
+              errors.push(
+                makeWarning(
+                  `'${key}' is not a valid key when 'type' is '${service.type}'.`,
+                  prefix
+                )
+              );
+              break;
+          }
+        }
+        break;
+
+      default:
+        errors.push(
+          `'type' must be one of (s3, punch-remote) but is '${serviceType}'.`,
+          prefix
+        );
+        break;
+    }
+  }
+
+  return errors;
+}
+
 function validateSync(sync) {
   const errors = [];
+
+  for (const key in sync) {
+    const prefix = `sync`;
+    const type = is.what(sync[key]);
+
+    switch (key) {
+      case "autoSync":
+        if (type !== "boolean") {
+          errors.push(
+            makeError(`'${key}' must be a boolean but is ${a(type)}.`, prefix)
+          );
+        }
+        break;
+      case "services":
+        if (type !== "array") {
+          errors.push(
+            makeError(`'${key}' must be an array but is ${a(type)}.`, prefix)
+          );
+        } else {
+          for (let i = 0; i < sync[key].length; i++) {
+            const p = `${prefix}.${key}[${i}]`;
+            const v = sync[key][i];
+
+            errors.push(...validateSyncService(v, p));
+          }
+        }
+        break;
+      default:
+        errors.push(makeWarning(`'${key}' is not a valid key.`, prefix));
+        break;
+    }
+  }
 
   return errors;
 }
@@ -546,11 +738,96 @@ function validateSync(sync) {
 function validateInvoice(invoice) {
   const errors = [];
 
+  for (const key in invoice) {
+    const prefix = `invoice`;
+    const type = is.what(invoice[key]);
+
+    switch (key) {
+      case "dateFormat":
+        if (type !== "string") {
+          errors.push(
+            makeError(`'${key}' must be a string but is ${a(type)}.`, prefix)
+          );
+        }
+        break;
+      case "timeFormat":
+        if (type !== "string") {
+          errors.push(
+            makeError(`'${key}' must be a string but is ${a(type)}.`, prefix)
+          );
+        }
+        break;
+      default:
+        errors.push(makeWarning(`'${key}' is not a valid key.`, prefix));
+        break;
+    }
+  }
+
   return errors;
 }
 
 function validateServer(server) {
   const errors = [];
+
+  for (const key in server) {
+    const prefix = `server`;
+    const type = is.what(server[key]);
+
+    switch (key) {
+      case "auth":
+        if (type !== "object") {
+          errors.push(
+            makeError(`'${key}' must be an object but is ${a(type)}.`, prefix)
+          );
+        } else {
+          for (const k in server[key]) {
+            const p = `${prefix}.${key}`;
+            const v = server[key][k];
+            const t = is.what(v);
+
+            switch (k) {
+              case "authTokens":
+                if (t !== "array") {
+                  errors.push(
+                    makeError(`'${k}' must be an array but is ${a(t)}.`, p)
+                  );
+                } else {
+                  for (let ti = 0; ti < v.length; ti++) {
+                    const token = v[ti];
+
+                    if (!is.string(token)) {
+                      errors.push(
+                        makeError(
+                          `'${k}[${ti}]' must be a string but is ${a(
+                            is.what(token)
+                          )}.`,
+                          p
+                        )
+                      );
+                    }
+                  }
+                }
+                break;
+              case "passwordHash":
+                if (t !== "string") {
+                  errors.push(
+                    makeError(`'${k}' must be a string but is ${a(t)}.`),
+                    p
+                  );
+                }
+                break;
+              default:
+                errors.push(makeWarning(`'${k}' is not a valid key.`, p));
+                break;
+            }
+          }
+        }
+        break;
+      default:
+        errors.push(makeWarning(`'${key}' is not a valid key.`, prefix));
+        break;
+    }
+  }
 
   return errors;
 }
@@ -558,15 +835,135 @@ function validateServer(server) {
 function validateDisplay(display) {
   const errors = [];
 
+  for (const key in display) {
+    const prefix = `display`;
+    const type = is.what(display[key]);
+
+    switch (key) {
+      case "commentRelativeTimestamps":
+        if (type !== "object") {
+          errors.push(
+            makeError(`'${key}' must be an object but is ${a(type)}.`, prefix)
+          );
+        } else {
+          for (const k in display[key]) {
+            const p = `${prefix}.${key}`;
+            const v = display[key][k];
+            const t = is.what(v);
+
+            switch (k) {
+              case "enabled":
+                if (t !== "boolean") {
+                  errors.push(
+                    makeError(`'${k}' must be a boolean but is ${a(t)}.`, p)
+                  );
+                }
+                break;
+              case "fromPreviousComment":
+                if (t !== "boolean") {
+                  errors.push(
+                    makeError(`'${k}' must be a boolean but is ${a(t)}.`, p)
+                  );
+                }
+                break;
+              default:
+                errors.push(makeWarning(`'${k}' is not a valid key.`, p));
+                break;
+            }
+          }
+        }
+        break;
+      case "dateFormat":
+        if (type !== "string") {
+          errors.push(
+            makeError(`'${key}' must be a string but is ${a(type)}.`, prefix)
+          );
+        }
+        break;
+      case "timeFormat":
+        if (type !== "string") {
+          errors.push(
+            makeError(`'${key}' must be a string but is ${a(type)}.`, prefix)
+          );
+        }
+        break;
+      case "timeZone":
+        if (type !== "string") {
+          errors.push(
+            makeError(`'${key}' must be a string but is ${a(type)}.`, prefix)
+          );
+        }
+        break;
+      case "showCommentIndices":
+        if (type !== "boolean") {
+          errors.push(
+            makeError(`'${key}' must be a boolean but is ${a(type)}.`, prefix)
+          );
+        }
+        break;
+      case "showDayGraphics":
+        if (type !== "boolean") {
+          errors.push(
+            makeError(`'${key}' must be a boolean but is ${a(type)}.`, prefix)
+          );
+        }
+        break;
+      case "showPunchIDs":
+        if (type !== "boolean") {
+          errors.push(
+            makeError(`'${key}' must be a boolean but is ${a(type)}.`, prefix)
+          );
+        }
+        break;
+      case "textColors":
+        if (type !== "boolean") {
+          errors.push(
+            makeError(`'${key}' must be a boolean but is ${a(type)}.`, prefix)
+          );
+        }
+        break;
+      case "use24HourTime":
+        if (type !== "boolean") {
+          errors.push(
+            makeError(`'${key}' must be a boolean but is ${a(type)}.`, prefix)
+          );
+        }
+        break;
+      case "wordWrapWidth":
+        if (type !== "number") {
+          errors.push(
+            makeError(`'${key}' must be a number but is ${a(type)}.`, prefix)
+          );
+        } else {
+          if (display[key] % 1 !== 0) {
+            errors.push(
+              makeError(
+                `'${key}' must be an integer but is not evenly divisible by 1.`,
+                prefix
+              )
+            );
+          }
+        }
+        break;
+      default:
+        errors.push(makeWarning(`'${key}' is not a valid key.`, prefix));
+        break;
+    }
+  }
+
   return errors;
 }
 
 function validateStorageType(storageType) {
   const storageTypes = ["ledger", "sqlite"];
 
+  const errors = [];
+
   if (typeof storageType !== "string" || !storageTypes.includes(storageType)) {
-    return [
-      makeError(`'storageType' must be one of: ${storageTypes.join(", ")}`),
-    ];
+    return errors.push(
+      makeError(`'storageType' must be one of: ${storageTypes.join(", ")}`)
+    );
   }
+
+  return errors;
 }

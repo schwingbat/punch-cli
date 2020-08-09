@@ -5,6 +5,7 @@ const os = require("os");
 const merge = require("mergerino");
 const chalk = require("chalk");
 const deref = require("./deref-projects");
+const validate = require("./validate");
 
 let current = null;
 
@@ -49,6 +50,32 @@ exports.load = (configPath = null) => {
       chalk.yellow("WARNING") +
         " No user config file found. Using default configuration."
     );
+  }
+
+  const { valid, ...validation } = validate(userConfig);
+
+  // Show errors if config is invalid.
+  if (!valid) {
+    const chalk = require("chalk");
+    let str = "";
+
+    for (const e of validation.errors) {
+      switch (e.type) {
+        case "error":
+          str += "🛑 " + chalk.red(e.message) + "\n";
+          break;
+        case "warning":
+          str += "⚠️  " + chalk.yellow(e.message) + "\n";
+          break;
+        default:
+          str += e.message + "\n";
+          break;
+      }
+    }
+
+    console.log("\n" + str);
+
+    throw new Error("Config file has errors.");
   }
 
   const defaults = require("./defaults.json");

@@ -32,33 +32,29 @@ module.exports = new Command()
 
       let str = "";
 
-      for (const error of errors) {
-        let message = "";
-
-        switch (error.type) {
+      for (const e of errors) {
+        switch (e.type) {
           case "error":
-            message += chalk.red(config.symbols.error + "  " + error.message);
+            str += "🛑 " + chalk.red(e.message) + "\n";
             break;
           case "warning":
-            message += chalk.yellow(
-              config.symbols.warning + "  " + error.message
-            );
+            str += "⚠️  " + chalk.yellow(e.message) + "\n";
             break;
           default:
-            message += chalk.gray("?") + "  " + error.message;
+            str += e.message + "\n";
             break;
         }
+      }
 
-        str += message + "\n";
+      str += "\n";
+
+      if (valid) {
+        str += chalk.green("✓") + " Config file is valid.";
+      } else {
+        str += chalk.red("✕") + " Config file has errors.";
       }
 
       console.log(str);
-
-      if (valid) {
-        console.log(chalk.green(config.symbols.success + "  Config is valid."));
-      } else {
-        console.log(chalk.red(config.symbols.error + "  Config has errors."));
-      }
     } else {
       // If not validating, we're editing the config file.
       const editor =
