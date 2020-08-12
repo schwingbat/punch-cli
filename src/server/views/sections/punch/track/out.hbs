@@ -1,16 +1,22 @@
-<div class="punch-out page">
-  <div class="page__nav-breadcrumbs">
-    <div class="nav-breadcrumbs">
-      <a href="/menu">Menu</a>
-      <div class="divider"></div>
-      <a href="/punch/{{id}}">Punch</a>
-      <div class="divider"></div>
-      <span>Out</span>
-    </div>
-  </div>
+{{> ui/nav-tabs }}
 
+{{!-- <div class="main__nav-breadcrumbs">
+  <div class="nav-breadcrumbs">
+    <a href="/menu">Menu</a>
+    <div class="divider"></div>
+    <a href="/punch/{{id}}">Punch</a>
+    <div class="divider"></div>
+    <span>Out</span>
+  </div>
+</div> --}}
+
+<div class="punch-out page">
   <div class="container">
     <form method="post">
+      <header>
+        <h2>Punch out of<br><strong style="color: {{projectColor project}}">{{project.name}}</strong></h2>
+      </header>
+
       <div class="subsection">
         <header>
           <label for="timestamp">Timestamp</label>
@@ -25,13 +31,13 @@
         <header>
           <label for="comment">Comment (optional)</label>
         </header>
-        <textarea class="text-area punch-out__comment" name="comment"></textarea>
+        <textarea autofocus class="text-area punch-out__comment" name="comment"></textarea>
       </div>
 
       <button class="button button--pill">
         <svg class="button__icon">
           <title>Punch out</title>
-          <use xlink:href="/icons/ikonate.svg#stopwatch"></use>
+          <use xlink:href="/icons/ikonate.svg#stop"></use>
         </svg>
         <span>Punch Out</span>
       </button>

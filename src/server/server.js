@@ -37,7 +37,7 @@ exports.start = function start({ port, props, autoOpen = true }) {
 
         if (result == true) {
           return done(null, {
-            id: "local"
+            id: "local",
           });
         }
 
@@ -52,7 +52,7 @@ exports.start = function start({ port, props, autoOpen = true }) {
     session({
       secret: "topsecret",
       resave: false,
-      saveUninitialized: false
+      saveUninitialized: false,
     })
   );
   server.use(flash());
@@ -64,7 +64,7 @@ exports.start = function start({ port, props, autoOpen = true }) {
     "hbs",
     exphbs({
       extname: ".hbs",
-      helpers: initHelpers(props)
+      helpers: initHelpers(props),
     })
   );
   server.set("view engine", "hbs");
@@ -99,7 +99,7 @@ exports.start = function start({ port, props, autoOpen = true }) {
   server.use(
     "/api",
     withToken({
-      tokens: props.config.server.auth.authTokens
+      tokens: props.config.server.auth.authTokens,
     }),
     require("./routes/api")
   );

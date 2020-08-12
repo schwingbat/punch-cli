@@ -1,14 +1,16 @@
-<div class="comment-edit page">
-  <div class="page__nav-breadcrumbs">
-    <div class="nav-breadcrumbs">
-      <a href="/menu">Menu</a>
-      <div class="divider"></div>
-      <a href="/punch/{{punchId}}">Punch</a>
-      <div class="divider"></div>
-      <span>Edit Comment</span>
-    </div>
-  </div>
+{{> ui/nav-tabs }}
 
+{{!-- <div class="main__nav-breadcrumbs">
+  <div class="nav-breadcrumbs">
+    <a href="/menu">Menu</a>
+    <div class="divider"></div>
+    <a href="/punch/{{punchId}}">Punch</a>
+    <div class="divider"></div>
+    <span>Edit Comment</span>
+  </div>
+</div> --}}
+
+<div class="comment-edit page">
   <div class="container">
     <form method="post" action="/punch/{{punchId}}/comment/{{commentId}}/edit">
       <textarea class="text-area" name="comment">{{{comment}}}</textarea>

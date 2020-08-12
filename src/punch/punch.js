@@ -345,8 +345,8 @@ module.exports = function (config) {
     return storage.current(project);
   };
 
-  Punch.latest = async function () {
-    return storage.latest();
+  Punch.latest = async function (project) {
+    return storage.latest(project);
   };
 
   Punch.select = async function (fn) {

@@ -1,12 +1,14 @@
-<div class="projects-index page">
-  <div class="page__nav-breadcrumbs">
-    <div class="nav-breadcrumbs">
-      <a href="/menu">Menu</a>
-      <div class="divider"></div>
-      <span>Projects</span>
-    </div>
-  </div>
+{{> ui/nav-tabs selected="projects" }}
 
+{{!-- <div class="main__nav-breadcrumbs">
+  <div class="nav-breadcrumbs">
+    <a href="/menu">Menu</a>
+    <div class="divider"></div>
+    <span>Projects</span>
+  </div>
+</div> --}}
+
+<div class="projects-index page">
   <ul class="projects-index__list unstyled">
     {{#each projects}}
       <li>{{> project-card project=. }}</li>

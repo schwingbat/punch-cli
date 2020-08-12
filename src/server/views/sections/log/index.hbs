@@ -1,12 +1,14 @@
-<div class="log page">
-  <div class="page__nav-breadcrumbs">
-    <div class="nav-breadcrumbs">
-      <a href="/menu">Menu</a>
-      <div class="divider"></div>
-      <a href="/log">Log</a>
-    </div>
-  </div>
+{{> ui/nav-tabs selected="log" }}
 
+{{!-- <div class="main__nav-breadcrumbs">
+  <div class="nav-breadcrumbs">
+    <a href="/menu">Menu</a>
+    <div class="divider"></div>
+    <a href="/log">Log</a>
+  </div>
+</div> --}}
+
+<div class="log page">
   <div class="container">
     <div class="log__page-selector">
       {{> log/page-selector pagination }}

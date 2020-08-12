@@ -12,7 +12,7 @@
           </div>
           {{/if}}
           {{#if ../showDate}}
-          <div class="punch-list__date color-{{ifNotDefined (projectDetails project "color") "gray"}}">
+          <div class="punch-list__date">
             {{formatDate in}}
           </div>
           {{/if}}
@@ -22,21 +22,21 @@
             </div>
             <div class="punch-list__summary__stats">
               {{formatDurationDates in out}}
-
             </div>
           </div>
           {{#if comments}}
-          <ul class="punch-list__comments unstyled">
+          <ul class="punch-list__comments unstyled" style="--project-accent: {{projectColor project}}">
             {{#each comments}}
               <li>
-                <div class="punch-list__comment-timestamp">
-                  <div class="punch-list__timestamp-group">
-                    <div class="punch-list__comment-dot fill-{{ifNotDefined (projectDetails ../project "color") "gray"}}"></div>
-                    <span class="color-gray">{{dateDiffOffset ../in timestamp}}</span>
-                  </div>
-                </div>
                 <div class="punch-list__comment">
                   {{comment}}
+                </div>
+                <div class="punch-list__comment-timestamp">
+                  <svg class="punch-list__time-icon" >
+                    <title>Comment timestamp</title>
+                    <use xlink:href="/icons/ikonate.svg#time">
+                  </svg>
+                  <span>{{formatTime (min timestamp ../out)}} ({{dateDiffOffset ../in (min timestamp ../out)}})</span>
                 </div>
               </li>
             {{/each}}

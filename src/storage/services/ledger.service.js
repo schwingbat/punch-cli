@@ -106,10 +106,14 @@ module.exports = function (config, Punch, events) {
     // Returns the most recent punch
     // Optionally filters by project
     async latest(project) {
-      return punches
-        .map((p) => p)
-        .sort(descendingBy("in"))
-        .find((p) => !p.deleted && (!project || p.project === project));
+      for (let i = punches.length - 1; i >= 0; i--) {
+        const p = punches[i];
+        if (!p.deleted && (!project || p.project === project)) {
+          return p;
+        }
+      }
+
+      return null;
     },
 
     async select(fn) {

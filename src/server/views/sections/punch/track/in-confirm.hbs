@@ -1,0 +1,32 @@
+{{> ui/nav-tabs selected="punch-in" }}
+
+<div class="punch-in-confirm page">
+  <div class="container">
+    <form method="post">
+      <header>
+        <h2>Punch in on<br><strong style="color: {{projectColor project}}">{{project.name}}</strong></h2>
+      </header>
+
+      <div class="subsection">
+        {{#if activePunch}}
+          ALREADY PUNCHED IN
+        {{else}}
+          <div class="punch-in-confirm__datetime-picker">
+            <label for="use-now">Use current time</label>
+            <input name="use-now" class="punch-in-confirm__use-now checkbox" type="checkbox" checked>
+            
+            <input class="punch-in-confirm__datetime-input" type="datetime-local">
+          </div>
+
+          <button class="button -pill">
+            <svg class="button__icon">
+              <title>Punch in</title>
+              <use xlink:href="/icons/ikonate.svg#play"></use>
+            </svg>
+            <span>Punch In</span>
+          </button>
+        {{/if}}
+      </div>
+    </form>
+  </div>
+</div>

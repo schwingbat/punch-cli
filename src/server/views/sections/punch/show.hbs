@@ -1,16 +1,10 @@
-<div class="punch-show page">
-  <div class="page__nav-breadcrumbs">
-    <div class="nav-breadcrumbs">
-      <a href="/menu">Menu</a>
-      <div class="divider"></div>
-      <span>Punch</span>
-    </div>
-  </div>
+{{> ui/nav-tabs }}
 
+<div class="punch-show page" style="--project-accent: {{projectColor project}}">
   <div class="container">
     <section>
       <header>
-        <h1>Punch for {{project.name}}</h1>
+        <h1>Punch Details</h1>
       </header>
 
       <div class="detailsTable">
@@ -32,7 +26,7 @@
             <span>Start</span>
           </div>
           <div class="detailsTable__itemContent">
-            <span>{{formatDateTime punch.in}}</span>
+            <span>{{formatTime punch.in}} &mdash; {{formatDate punch.in}}</span>
           </div>
         </div> <!-- /start -->
 
@@ -45,7 +39,7 @@
               {{#if isActive}}
                 <span class="punch-show__label--faded">---</span>
               {{else}}
-                {{formatDateTime punch.out}}
+                {{formatTime punch.out}} &mdash; {{formatDate punch.out}}
               {{/if}}
             </span>
           </div>
@@ -88,6 +82,7 @@
                 {{else}}
                   {{formatCurrency earnings}}
                 {{/if}}
+                {{!-- &mdash; {{formatCurrency punch.rate}} / hour --}}
               {{else}}
                 <span class="punch-show__label--faded">---</span>
               {{/if}}
@@ -122,15 +117,19 @@
           {{#each comments}}
           <li class="punch-show__comment">
             <div class="punch-show__comment-timestamp">
-              <div class="punch-show__comment-dot fill-{{ifNotDefined (projectDetails ../project "color") "gray"}}"></div>
-              <span class="color-gray">{{dateDiffOffset ../in timestamp}}</span>
+              <svg class="punch-show__time-icon">
+                <title>Comment timestamp</title>
+                <use xlink:href="/icons/ikonate.svg#time">
+              </svg>
+
+              <span>{{formatTime (min timestamp ../out)}} ({{dateDiffOffset ../in (min timestamp ../out)}})</span>
             </div>
             <div class="punch-show__comment-text">
-              {{comment}}
+              <span>{{comment}}</span>
             </div>
             <div class="punch-show__comment-actions">
               <a
-                class="button -small -pill"
+                class="button -tiny -pill"
                 href="/punch/{{@root.punch.id}}/comment/{{id}}/edit">
                 <svg class="button__icon">
                   <title>Edit icon</title>
@@ -141,7 +140,7 @@
                 </span>
               </a>
               <a
-                class="button -small -pill"
+                class="button -tiny -danger -pill"
                 href="/punch/{{@root.punch.id}}/comment/{{id}}/delete">
                 <svg class="button__icon">
                   <title>Delete icon</title>
@@ -159,17 +158,20 @@
         {{/if}}
       </ul>
 
-      <a
-        class="button button--pill"
-        href="/punch/{{@root.punch.id}}/comment/new?r=/punch/{{@root.punch.id}}">
-        <svg class="button__icon">
-          <title>Add comment</title>
-          <use xlink:href="/icons/ikonate.svg#chat">
-        </svg>
-        <span>
-          Add Comment
-        </span>
-      </a>
+      <div class="punch-show__add-comment-button">
+        <a
+          class="button button--pill"
+          href="/punch/{{@root.punch.id}}/comment/new?r=/punch/{{@root.punch.id}}">
+          <svg class="button__icon">
+            <title>Add comment</title>
+            <use xlink:href="/icons/ikonate.svg#chat">
+          </svg>
+          <span>
+            Add Comment
+          </span>
+        </a>
+      </div>
+      
       {{/with}}
     </section>
   </div>

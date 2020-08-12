@@ -1,0 +1,46 @@
+<nav class="nav-tabs">
+  <ul class="unstyled">
+    <li class="nav-tabs__punch-in">
+      {{> ui/nav-tab-item selected=(areEqual "punch-in" selected)
+                          title="Punch In"
+                          href="/punch/in"
+                          icon="play" }}
+    </li>
+    <li>
+      {{> ui/nav-tab-item selected=(areEqual "dashboard" selected)
+                          title="Dashboard"
+                          href="/dashboard"
+                          icon="explore" }}
+    </li>
+    <li>
+      {{> ui/nav-tab-item selected=(areEqual "projects" selected)
+                          title="Projects"
+                          href="/projects"
+                          icon="notebook" }}
+    </li>
+    <li>
+      {{> ui/nav-tab-item selected=(areEqual "clients" selected)
+                          title="Clients"
+                          href="/clients"
+                          icon="person" }}
+    </li>
+    <li>
+      {{> ui/nav-tab-item selected=(areEqual "log" selected)
+                          title="Log"
+                          href="/log"
+                          icon="history" }}
+    </li>
+    <li>
+      {{> ui/nav-tab-item selected=(areEqual "invoices" selected)
+                          title="Invoices"
+                          href="/invoices"
+                          icon="dolar" }}
+    </li>
+    <li>
+      {{> ui/nav-tab-item selected=(areEqual "config" selected)
+                          title="Config"
+                          href="/config"
+                          icon="settings" }}
+    </li>
+  </ul>
+</nav>

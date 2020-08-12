@@ -1,39 +1,70 @@
-<div class="punch-in page">
-  <div class="page__nav-breadcrumbs">
-    <div class="nav-breadcrumbs">
-      <a href="/menu">Menu</a>
-      <div class="divider"></div>
-      <span>Punch In</span>
-    </div>
-  </div>
+{{> ui/nav-tabs selected="punch-in" }}
 
+<div class="punch-in page">
   <div class="container">
     <form method="post">
       <div class="subsection">
         <header>
-          <span>Project</span>
+          <span>Most Recent</span>
         </header>
 
-        <div class="dropdown">
-          <select name="project">
-            {{#each projects}}
-              <option value="{{alias}}">{{name}}</option>
-            {{/each}}
-          </select>
-          <svg class="dropdown__icon">
-            <title>Dropdown indicator</title>
-            <use xlink:href="/icons/ikonate.svg#sorting">
-          </svg>
-        </div>
+        <ul class="punch-in__projects-list punch-in__recent-projects unstyled">
+          {{#each recentProjects}}
+            <li style="--project-accent: {{projectColor .}}">
+              {{#if isActive}}
+                <a href="/punch/in/{{alias}}" class="-disabled">{{name}}</a>
+                <span class="punch-in__active-badge">Punched In</span>
+              {{else}}
+                <a href="/punch/in/{{alias}}">{{name}}</a>
+              {{/if}}
+            </li>
+          {{/each}}
+        </ul>
       </div>
 
-      <button class="button button--pill">
-        <svg class="button__icon">
-          <title>Punch in</title>
-          <use xlink:href="/icons/ikonate.svg#plus"></use>
-        </svg>
-        <span>Punch In</span>
-      </button>
+      <div class="subsection">
+        <header>
+          <span>
+            Active Projects
+          </span>
+        </header>
+
+        <ul class="punch-in__projects-list punch-in__all-projects unstyled">
+          {{#each activeProjects}}
+            <li style="--project-accent: {{projectColor .}}">
+              {{#if isActive}}
+                <a href="/punch/in/{{alias}}" class="-disabled">{{name}}</a>
+                <span class="punch-in__active-badge">Punched In</span>
+              {{else}}
+                <a href="/punch/in/{{alias}}">{{name}}</a>
+              {{/if}}
+            </li>
+          {{/each}}
+        </ul>
+      </div>
+
+      {{#if inactiveProjects}}
+        <div class="subsection">
+          <details>
+            <summary>Old Projects</summary>
+            <p>Projects that haven't been worked on in over six months will appear in this section.</p>
+
+            <ul class="punch-in__projects-list punch-in__all-projects unstyled">
+              {{#each inactiveProjects}}
+                <li style="--project-accent: {{projectColor .}}">
+                  {{#if isActive}}
+                    <a href="/punch/in/{{alias}}" class="-disabled">{{name}}</a>
+                    <span class="punch-in__active-badge">Punched In</span>
+                  {{else}}
+                    <a href="/punch/in/{{alias}}">{{name}}</a>
+                  {{/if}}
+                </li>
+              {{/each}}
+            </ul>
+          </details>
+          
+        </div>
+      {{/if}}
     </form>
   </div>
 </div>

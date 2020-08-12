@@ -7,7 +7,7 @@
   <ul class="projects-summary__projects unstyled">
     {{#each projects}}
       <li>
-        <span class="projects-summary__project-name color-{{color}}" style="color: {{color}}">
+        <span class="projects-summary__project-name" style="color: {{projectColor .}}">
           {{name}}
         </span>
         <span class="projects-summary__project-stats">
