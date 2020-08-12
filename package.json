@@ -48,6 +48,7 @@
     "passport": "^0.4.1",
     "passport-local": "^1.0.0",
     "readline-sync": "^1.4.10",
+    "session-file-store": "^1.4.0",
     "terminal-link": "^2.1.1",
     "time-require": "^0.1.2",
     "uuid": "^8.3.0"

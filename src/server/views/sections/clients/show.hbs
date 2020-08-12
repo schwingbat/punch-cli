@@ -1,15 +1,5 @@
 {{> ui/nav-tabs selected="clients" }}
 
-{{!-- <div class="main__nav-breadcrumbs">
-  <div class="nav-breadcrumbs">
-    <a href="/menu">Menu</a>
-    <div class="divider"></div>
-    <a href="/clients">Clients</a>
-    <div class="divider"></div>
-    <span>{{client.name}}</span>
-  </div>
-</div> --}}
-
 <div class="clients-show page">
   <div class="container">
     <section>
@@ -23,7 +13,11 @@
             <span>Last Active</span>
           </div>
           <div class="detailsTable__itemContent">
-            ???
+            {{#if (areEqual lastActiveLabel null)}}
+              <strong class="color-green">NOW</strong>
+            {{else}}
+              <span>{{lastActiveLabel}}</span>
+            {{/if}}
           </div>
         </div>
 
@@ -32,7 +26,7 @@
             <span>Hours Worked</span>
           </div>
           <div class="detailsTable__itemContent">
-            ???
+            {{formatDurationMs totalDuration}}
           </div>
         </div>
 
@@ -41,7 +35,7 @@
             <span>Total Earned</span>
           </div>
           <div class="detailsTable__itemContent">
-            ???
+            {{formatCurrency totalPay}}
           </div>
         </div>
       </div>
@@ -53,9 +47,11 @@
           <header>
             <h2>Active Punches</h2>
           </header>
+          <ul class="unstyled">
           {{#each punches}}
-            <li>{{> activePunch . }}</li>
+            <li>{{> active-punch . }}</li>
           {{/each}}
+          </ul>
         </section>
       {{/if}}
     {{/with}}
@@ -66,21 +62,8 @@
       </header>
       <ul class="clients-show__projects unstyled">
         {{#each projects}}
-          <li>{{> project-card project=. }}</li>
+          <li>{{> project-link . }}</li>
         {{/each}}
-      </ul>
-    </section>
-
-    <section>
-      <header>
-        <h2>Notes</h2>
-      </header>
-      <h3>Stuff That Goes On This Page</h3>
-      <ul>
-        <li>Currently active sessions on projects for this client</li>
-        <li>List of projects for this client (with links to project pages)</li>
-        <li>Work summary for combined projects for the client</li>
-        <li>Client edit button</li>
       </ul>
     </section>
   </div>

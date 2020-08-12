@@ -1,13 +1,13 @@
 <ul class="punch-list unstyled">
   {{#each punches}}
-    <li>
+    <li style="--project-accent: {{projectColor project}}">
       <a href="/punch/{{id}}">
         {{#if (ifNotDefined ../showColorBar true)}}
-        <div class="punch-list__color-bar fill-{{ifNotDefined (projectDetails project "color") "gray"}}"></div>
+        <div class="punch-list__color-bar"></div>
         {{/if}}
         <div class="punch-list__details">
           {{#if (ifNotDefined ../showProject true)}}
-          <div class="punch-list__title color-{{ifNotDefined (projectDetails project "color") "gray"}}">
+          <div class="punch-list__title">
             {{projectDetails project "name"}}
           </div>
           {{/if}}

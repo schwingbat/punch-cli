@@ -1,26 +1,17 @@
 {{> ui/nav-tabs selected="clients" }}
 
-{{!-- <div class="main__nav-breadcrumbs">
-  <div class="nav-breadcrumbs">
-    <a href="/menu">Menu</a>
-    <div class="divider"></div>
-    <span>Clients</span>
-  </div>
-</div> --}}
-
 <div class="clients-index page">
-  <ul class="clients-index__list unstyled">
-    {{#each clients}}
-      <li>{{> client-card client=. }}</li>
-    {{/each}}
-  </ul>
+  <div class="container">
+    <section>
+      <header>
+        <h2>Clients</h2>
+      </header>
 
-  <h2>Notes</h2>
-
-  <h3>What goes on this page</h3>
-  <ul>
-    <li>List of all clients (clients with active projects marked or at top)</li>
-    <li>A way to add a new client</li>
-  </ul>
+      <ul class="clients-index__list unstyled">
+        {{#each clients}}
+          <li>{{> client-link . }}</li>
+        {{/each}}
+      </ul>
+    </section>
+  </div>
 </div>
-

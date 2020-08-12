@@ -1,26 +1,18 @@
 {{> ui/nav-tabs selected="projects" }}
 
-{{!-- <div class="main__nav-breadcrumbs">
-  <div class="nav-breadcrumbs">
-    <a href="/menu">Menu</a>
-    <div class="divider"></div>
-    <span>Projects</span>
-  </div>
-</div> --}}
-
 <div class="projects-index page">
-  <ul class="projects-index__list unstyled">
-    {{#each projects}}
-      <li>{{> project-card project=. }}</li>
-    {{/each}}
-  </ul>
+  <div class="container">
+    <section>
+      <header>
+        <h2>Projects</h2>
+      </header>
 
-  <h2>Notes</h2>
-
-  <h3>What goes on this page</h3>
-  <ul>
-    <li>List of all projects (active projects marked or at top)</li>
-    <li>A way to add a new project</li>
-  </ul>
+      <ul class="projects-index__list unstyled">
+        {{#each projects}}
+          <li>{{> project-link . }}</li>
+        {{/each}}
+      </ul>
+    </section>
+  </div>
 </div>
 

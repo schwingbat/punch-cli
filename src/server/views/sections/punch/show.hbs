@@ -13,11 +13,7 @@
             <span>Project</span>
           </div>
           <div class="detailsTable__itemContent">
-            <a
-              href="/projects/{{project.alias}}"
-              class="color-{{ifNotDefined project.color "gray"}}">
-              {{project.name}}
-            </a>
+            {{> project-link project }}
           </div>
         </div> <!-- /project -->
 

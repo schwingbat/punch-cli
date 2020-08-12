@@ -1,10 +1,15 @@
 <nav class="nav-tabs">
   <ul class="unstyled">
     <li class="nav-tabs__punch-in">
-      {{> ui/nav-tab-item selected=(areEqual "punch-in" selected)
-                          title="Punch In"
-                          href="/punch/in"
-                          icon="play" }}
+      <a href="/punch/in" class="nav-punch-in">
+        <svg class="nav-punch-in__icon">
+          <title>Punch in</title>
+          <use xlink:href="/icons/ikonate.svg#play">
+        </svg>
+        <span>
+          Punch In
+        </span>
+      </a>
     </li>
     <li>
       {{> ui/nav-tab-item selected=(areEqual "dashboard" selected)
@@ -30,7 +35,7 @@
                           href="/log"
                           icon="history" }}
     </li>
-    <li>
+    {{!-- <li>
       {{> ui/nav-tab-item selected=(areEqual "invoices" selected)
                           title="Invoices"
                           href="/invoices"
@@ -41,6 +46,6 @@
                           title="Config"
                           href="/config"
                           icon="settings" }}
-    </li>
+    </li> --}}
   </ul>
 </nav>

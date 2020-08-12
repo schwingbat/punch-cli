@@ -74,12 +74,16 @@ body {
   --text-color: #000;
   --border-color: #d3d6d9;
 
-  --navbar-color: #242424;
-  --navbar-text-inactive-color: #eee;
-  --navbar-icon-inactive-color: #eee;
-  --navbar-text-active-color: #fff;
-  --navbar-icon-active-color: #fff;
+  --navbar-color: var(--background-color);
+  --navbar-text-inactive-color: #555;
+  --navbar-icon-inactive-color: #555;
+  --navbar-text-active-color: #000;
+  --navbar-icon-active-color: #000;
   --navbar-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+
+  --navbar-punch-in-button-color: var(--color-blue);
+  --navbar-punch-in-button-text-color: #fff;
+  --navbar-punch-in-button-icon-color: #fff;
 
   --button-color: #444e5a;
   --button-color--danger: var(--color-red);
@@ -124,6 +128,10 @@ body {
     --navbar-text-active-color: #fff;
     --navbar-icon-active-color: #fff;
     --navbar-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+
+    --navbar-punch-in-button-color: var(--color-blue);
+    --navbar-punch-in-button-text-color: #fff;
+    --navbar-punch-in-button-icon-color: #fff;
 
     --button-color: #37516b;
     --button-color--danger: var(--color-red);
@@ -258,6 +266,14 @@ ol.unstyled {
 ||               Layout               ||
 \*====================================*/
 
+.turbolinks-progress-bar {
+  position: fixed;
+  top: 0;
+  height: 3px;
+  z-index: 10000;
+  background-color: #f4bb78;
+}
+
 /* ----- Layout ----- */
 
 .layout {
@@ -282,6 +298,8 @@ ol.unstyled {
 
   overflow-y: hidden;
   background-color: var(--navbar-color);
+
+  border-bottom: 1px solid var(--border-color);
 }
 
 .nav-tabs > ul {
@@ -292,16 +310,11 @@ ol.unstyled {
   overflow-x: scroll;
 }
 
-.nav-tabs__punch-in {
-  background-color: var(--color-magenta);
-}
-
 .nav-tab-item {
   opacity: 0.5;
   text-decoration: none;
   color: var(--navbar-text-inactive-color);
   padding: 0.5em 0.75em;
-  /* display: block; */
 
   font-weight: bold;
 
@@ -314,14 +327,6 @@ ol.unstyled {
   border-bottom: 2px solid transparent;
 
   white-space: nowrap;
-
-  /* flex: 1 1 100%; */
-
-  /* font-size: 0.9em;
-  flex-flow: column nowrap;
-  justify-content: center;
-  height: 54px;
-  padding-right: 0.75em; */
 }
 
 .nav-tab-item__icon {
@@ -355,13 +360,59 @@ ol.unstyled {
   stroke: var(--navbar-icon-active-color);
 }
 
+/*----- Punch In Button -----*/
+
+/*.nav-tabs__punch-in {
+  height: 42px;
+  display: flex;
+  align-items: center;
+}*/
+
+.nav-punch-in {
+  /* border-radius: 6px;
+  padding: 0.2em 0.4em;
+  margin-left: 0.4em;
+  padding-right: 0.7em;*/
+
+  padding: 0.5em 0.75em;
+  padding-right: 1.1em;
+
+  text-decoration: none;
+  color: var(--navbar-text-inactive-color);
+
+  font-weight: bold;
+
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+
+  white-space: nowrap;
+
+  background-color: var(--navbar-punch-in-button-color);
+  color: var(--navbar-punch-in-button-text-color);
+}
+
+.nav-punch-in__icon {
+  width: 1.4em;
+  height: 1.4em;
+  fill: none;
+  stroke: var(--navbar-punch-in-button-icon-color);
+  margin-right: 0.3em;
+  stroke-width: 2;
+}
+
 @media (min-width: 800px) {
   .nav-tabs {
-    border-bottom: 1px solid var(--border-color);
+    /*border-bottom: 1px solid var(--border-color);*/
   }
 
   .nav-tabs > ul {
-    justify-content: center;
+    margin: 0 auto;
+    max-width: 900px;
+    justify-content: flex-start;
     overflow: hidden;
   }
 }
@@ -378,10 +429,22 @@ ol.unstyled {
 
 .page > .container {
   margin: 0 auto;
-  box-shadow: var(--container-shadow);
+  /*box-shadow: var(--container-shadow);*/
   border-radius: calc(16px * var(--roundness));
   padding: var(--container-padding);
   background-color: var(--content-background-color);
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.page > .container:not(:last-of-type) {
+  margin-bottom: 1em;
+}
+
+@media (min-width: 900px) {
+  .page > .container {
+    border: 1px solid var(--border-color);
+  }
 }
 
 /* ----- Section ----- */
@@ -392,7 +455,7 @@ ol.unstyled {
 
 .page section > header {
   border-bottom: 1px solid var(--border-color);
-  margin-bottom: 1.4em;
+  margin-bottom: 1.2em;
 }
 
 .page section > header h1 {
@@ -707,6 +770,16 @@ ol.unstyled {
   margin-bottom: 0.15em;
 }
 
+/* ----- Project Link ----- */
+
+.project-link {
+  display: inline-flex;
+  align-items: center;
+  color: var(--project-accent);
+  text-decoration: none;
+  border-bottom: 2px dotted var(--project-accent);
+}
+
 /* ----- Project Card ----- */
 
 .project-card {
@@ -721,6 +794,16 @@ ol.unstyled {
 .project-card__title {
   font-weight: bold;
   font-size: 1.2em;
+}
+
+/* ----- Client Link ----- */
+
+.client-link {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-blue);
+  text-decoration: none;
+  border-bottom: 2px solid var(--color-blue);
 }
 
 /* ----- Client Card ----- */
@@ -783,7 +866,33 @@ ol.unstyled {
 .punch-list__color-bar {
   width: 5px;
   margin-right: 0.9em;
+  position: relative;
+  background-color: var(--project-accent);
+
+  --bracket-size: 11px;
 }
+
+/*.punch-list__color-bar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-top: var(--bracket-size) solid var(--project-accent);
+  border-right: var(--bracket-size) solid transparent;
+}*/
+/*
+.punch-list__color-bar::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-bottom: var(--bracket-size) solid var(--project-accent);
+  border-right: var(--bracket-size) solid transparent;
+}*/
 
 .punch-list__details {
   display: flex;
@@ -797,6 +906,7 @@ ol.unstyled {
   font-weight: bold;
   /* margin-top: 0.5em; */
   margin-bottom: 0.25em;
+  color: var(--project-accent);
 }
 
 .punch-list__summary {
@@ -1281,6 +1391,10 @@ ol.unstyled {
   margin-bottom: 0.5em;
 }
 
+.project-show__recent-actions {
+  margin-top: 1.2em;
+}
+
 /*====================================*\
 ||               Clients              ||
 \*====================================*/
@@ -1432,7 +1546,7 @@ ol.unstyled {
 }
 
 /*====================================*\
-||             Punch In              ||
+||             Punch In               ||
 \*====================================*/
 
 .punch-in__projects-list {

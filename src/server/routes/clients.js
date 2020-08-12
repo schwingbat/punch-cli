@@ -1,4 +1,5 @@
 const route = require("express").Router();
+const formatDistanceToNow = require("date-fns/formatDistanceToNow");
 
 route.get("/", function(req, res) {
   const { props } = req;
@@ -25,6 +26,8 @@ route.get("/:name", async function(req, res) {
   const { name } = req.params;
 
   const { config, Punch } = props;
+
+  const now = new Date();
 
   const keys = Object.keys(clients).map(s => s.toLowerCase());
 
@@ -61,12 +64,53 @@ route.get("/:name", async function(req, res) {
       })
     };
 
+    const latestPunches = await Promise.all(clientProjects.map(p => Punch.latest(p.alias)));
+
+    latestPunches.sort((a, b) => {
+      const left = a.out || now;
+      const right = b.out || now;
+
+      if (left > right) {
+        return -1;
+      } else if (left < right) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
+
+    let lastActiveLabel = "Never";
+
+    if (current.any) {
+      lastActiveLabel = "Now";
+    } else if (latestPunches.length > 0) {
+      const mostRecent = latestPunches[0];
+      const project = config.projects[mostRecent.project];
+
+      lastActiveLabel = formatDistanceToNow(mostRecent.out, {
+        addSuffix: true
+      }) + ` (${project.name})`;
+    }
+
+    let totalDuration = 0;
+    let totalPay = 0;
+
+    const projectAliases = clientProjects.map(p => p.alias);
+    const clientPunches = await Punch.filter(p => projectAliases.includes(p.project));
+    clientPunches.forEach(punch => {
+      totalDuration += punch.duration();
+      totalPay += punch.pay();
+    });
+
     res.render("sections/clients/show", {
       client: {
         name: req.params.name,
         ...client
       },
       current,
+      lastActiveLabel,
+      totalDuration,
+      totalPay,
       projects: clientProjects,
       props
     });

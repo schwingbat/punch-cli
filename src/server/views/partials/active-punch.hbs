@@ -1,7 +1,7 @@
 <a class="active-punch" href="/punch/{{id}}">
   <div class="active-punch__details">
     <span class="active-punch__title" style="color: {{projectColor project}}">
-      {{project.name}}
+      {{projectDetails project "name"}}
     </span>
     <div class="active-punch__details">
       {{formatTime in}} to {{#if out}}{{formatTime out}}{{else}}now{{/if}}

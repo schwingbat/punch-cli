@@ -4,11 +4,7 @@ module.exports = ({ config }) =>
   function (value, field) {
     let project;
 
-    if (
-      typeof value === "object" &&
-      typeof value.name === "string" &&
-      value.client != null
-    ) {
+    if (typeof value === "object" && typeof value.name === "string") {
       project = value;
     } else {
       project = config.projects[value];

@@ -1,15 +1,5 @@
 {{> ui/nav-tabs selected="projects" }}
 
-{{!-- <div class="main__nav-breadcrumbs">
-  <div class="nav-breadcrumbs">
-    <a href="/menu">Menu</a>
-    <div class="divider"></div>
-    <a href="/projects">Projects</a>
-    <div class="divider"></div>
-    <span>{{project.name}}</span>
-  </div>
-</div> --}}
-
 <div class="project-show page">
   <div class="container">
     {{#with project}}
@@ -25,7 +15,7 @@
             <span>Client</span>
           </div>
           <div class="detailsTable__itemContent">
-            {{> client-card client=client }}
+            {{> client-link client }}
           </div>
         </div>
         {{/if}}
@@ -41,6 +31,15 @@
 
         <div class="detailsTable__item">
           <div class="detailsTable__itemLabel">
+            <span>Total Hours</span>
+          </div>
+          <div class="detailsTable__itemContent">
+            {{formatDurationMs ../totalDuration}}
+          </div>
+        </div>
+
+        <div class="detailsTable__item">
+          <div class="detailsTable__itemLabel">
             <span>Hourly Rate</span>
           </div>
           <div class="detailsTable__itemContent">
@@ -51,15 +50,35 @@
             {{/if}}
           </div>
         </div>
+
+        <div class="detailsTable__item">
+          <div class="detailsTable__itemLabel">
+            <span>Total Earned</span>
+          </div>
+          <div class="detailsTable__itemContent">
+            {{#if hourlyRate}}
+              {{formatCurrency ../totalPay}}
+            {{else}}
+              ---
+            {{/if}}
+          </div>
+        </div>
       </div>
     </section>
     {{/with}}
-    
+  </div>
 
-    {{#if currentPunch}}
-      {{#with currentPunch}}
-        <div>Active Now - working since {{formatDateTime in}} <a href="/punch/out/{{id}}">Punch Out</a></div>
-      {{/with}}
+  <div class="container">
+      {{#if currentPunch}}
+      <section>
+        <header>
+          <h2>Active Punches</h2>
+        </header>
+        <div class="project-show__current-punch">
+          <div>{{> active-punch currentPunch }}</div>
+          {{!-- Active Now - working since {{formatDateTime in}} <a href="/punch/out/{{id}}">Punch Out</a> --}}
+        </div>
+      </section>
     {{/if}}
 
     <section>
@@ -70,22 +89,23 @@
       {{> punch-list punches=recentPunches
                      showDate=true
                      showProject=false
-                     showColorBar=false }}
-    </section>
+                     showColorBar=true }}
 
-    <section>
+      <div class="project-show__recent-actions">
+        <a href="/log?project={{project.alias}}">See more</a>
+      </div>
+    </section>
+  </div>
+
+  <div class="container">
+        <section>
       <header>
         <h2>Notes</h2>
       </header>
 
       <h3>Stuff That Goes On This Page</h3>
       <ul>
-        <li>Currently active session for this project, if punched in</li>
-        <li>Three most recent punches</li>
         <li>Work summary (today, this week, this month)</li>
-        <li>Place to generate an invoice</li>
-        <li>Client info with link to client page</li>
-        <li>Project edit button</li>
       </ul>
     </section>
   </div>

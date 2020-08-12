@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const express = require("express");
 const session = require("express-session");
+const FileStore = require("session-file-store")(session);
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const bodyParser = require("body-parser");
@@ -53,6 +54,9 @@ exports.start = function start({ port, props, autoOpen = true }) {
       secret: "topsecret",
       resave: false,
       saveUninitialized: false,
+      store: new FileStore({
+        path: path.join(props.config.punchPath, "server", "sessions")
+      })
     })
   );
   server.use(flash());
