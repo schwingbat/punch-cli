@@ -777,6 +777,53 @@ main {
   font-size: 1.2em;
 }
 
+/* ----- Tag Link ----- */
+
+.tag-link,
+.tag-param-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  line-height: 1.1em;
+
+  color: var(--color-yellow);
+  border-bottom: 2px solid var(--color-yellow);
+}
+
+.tag-link:hover,
+.tag-param-link:hover {
+  background-color: var(--color-yellow);
+  color: #000;
+}
+
+.tag-param-link:before {
+  content: "[";
+}
+
+.tag-param-link:after {
+  content: "]";
+}
+
+/* ----- Tag Label ----- */
+
+.tag-label,
+.tag-param-label {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  line-height: 1.1em;
+
+  color: var(--color-yellow);
+}
+
+.tag-param-label:before {
+  content: "[";
+}
+
+.tag-param-label:after {
+  content: "]";
+}
+
 /* ----- Client Link ----- */
 
 .client-link {
@@ -1386,14 +1433,39 @@ main {
 ||                Log                 ||
 \*====================================*/
 
+.log__toolbar {
+  position: sticky;
+  top: 42px;
+  height: 36px;
+  background-color: var(--content-background-color);
+
+  z-index: 100;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 var(--container-padding);
+}
+
+.log__toolbar-item:not(:last-child) {
+  margin-right: 0.5em;
+}
+
 .log__page-selector {
   background-color: var(--content-background-color);
   padding: 0.5em 0;
   margin-bottom: 1em;
   position: sticky;
-  top: 0;
+  top: 78px;
   left: 0;
   right: 0;
+
+  z-index: 101;
+}
+
+.log-tags__tag-list > li {
+  line-height: 26px;
 }
 
 /*====================================*\

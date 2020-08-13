@@ -29,7 +29,7 @@
             {{#each comments}}
               <li>
                 <div class="punch-list__comment">
-                  {{comment}}
+                  {{formatTags .}}
                 </div>
                 <div class="punch-list__comment-timestamp">
                   {{> icons/time class="punch-list__time-icon" title="Comment timestamp" }}

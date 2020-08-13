@@ -41,7 +41,11 @@ route.get("/", async function (req, res) {
   punches.sort(descendingBy("in"));
 
   const slice = punches.slice((page - 1) * count, page * count);
-  const groups = groupByDate(slice, config.display.timeZone);
+  const groups = groupByDate(
+    slice,
+    config.display.timeZone,
+    config.display.dateFormat
+  );
 
   const totalPages = Math.ceil(punches.length / count);
 
@@ -50,7 +54,7 @@ route.get("/", async function (req, res) {
   let backUrl = page > 1 ? `/log?page=${page - 1}` : null;
   let nextUrl = page < totalPages ? `/log?page=${page + 1}` : null;
 
-  let query = encodeQuery(req.query);
+  let query = encodeQuery(req.query, ["count", "project", "tag"]);
 
   if (query !== "") {
     filtersUrl += "?" + query;
@@ -70,6 +74,7 @@ route.get("/", async function (req, res) {
     totalResults: punches.length,
     filtersUrl,
     tagsUrl,
+    hasFilters: Object.keys(req.query).length > 0,
     pagination: {
       currentPage: page,
       totalPages,
@@ -146,7 +151,7 @@ route.get("/tags", async (req, res) => {
 
 module.exports = route;
 
-function groupByDate(punches, timeZone) {
+function groupByDate(punches, timeZone, dateFormat = "ddd, MMM D, Y") {
   const groups = {};
 
   for (const punch of punches) {
@@ -165,7 +170,7 @@ function groupByDate(punches, timeZone) {
     const date = moment(groups[key][0].in).tz(timeZone);
 
     groupsArray.push({
-      title: date.format("ddd, MMM D, Y"),
+      title: date.format(dateFormat),
       punches: groups[key].sort(ascendingBy("in")),
     });
   }

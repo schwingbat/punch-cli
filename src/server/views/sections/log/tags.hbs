@@ -6,9 +6,9 @@
       <header>
         <h2>All Tags</h2>
       </header>
-      <ul class="log-tags__tag-list">
+      <ul class="log-tags__tag-list unstyled">
         {{#each tags}}
-          <li><a href="{{url}}">{{label}}</a></li>
+          <li><a class="tag-link" href="{{url}}">{{label}}</a></li>
         {{/each}}
       </ul>
     </section>

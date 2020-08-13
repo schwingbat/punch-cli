@@ -117,7 +117,7 @@
               <span>{{formatTime (min timestamp ../out)}} ({{dateDiffOffset ../in (min timestamp ../out)}})</span>
             </div>
             <div class="punch-show__comment-text">
-              <span>{{comment}}</span>
+              <span>{{linkifyTags .}}</span>
             </div>
             <div class="punch-show__comment-actions">
               <a

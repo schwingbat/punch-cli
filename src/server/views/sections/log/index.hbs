@@ -1,8 +1,20 @@
 {{> ui/nav-tabs selected="log" }}
 
 <div class="log page">
-  <a href="{{filtersUrl}}">Edit Filters</a>
-  <a href="{{tagsUrl}}">Tags</a>
+  <div class="log__toolbar">
+    <div>
+      <a class="log__toolbar-item" href="{{filtersUrl}}">Edit Filters</a>
+      <a class="log__toolbar-item" href="{{tagsUrl}}">Tags</a>
+    </div>
+
+    <div>
+    {{#if hasFilters}}
+      <a class="log__toolbar-item" href="/log">Clear Filters</a>
+    {{else}}
+      <span class="log__toolbar-item color-gray">No Filters</span>
+    {{/if}}
+    </div>
+  </div>
 
   <div class="container">
     {{#if (areEqual totalResults 1)}}
