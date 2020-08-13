@@ -2,50 +2,59 @@
   <ul class="unstyled">
     <li class="nav-tabs__punch-in">
       <a href="/punch/in" class="nav-punch-in">
-        <svg class="nav-punch-in__icon">
-          <title>Punch in</title>
-          <use xlink:href="/icons/ikonate.svg#play">
-        </svg>
+        {{> icons/play class="nav-punch-in__icon" title="Punch in" }}
         <span>
           Punch In
         </span>
       </a>
     </li>
     <li>
-      {{> ui/nav-tab-item selected=(areEqual "dashboard" selected)
-                          title="Dashboard"
-                          href="/dashboard"
-                          icon="explore" }}
+      <a href="/dashboard" class="nav-tab-item {{#if (areEqual "dashboard" selected)}}-selected{{/if}}">
+        {{> icons/explore class="nav-tab-item__icon" title="Dashboard" }}
+        <span>
+          Dashboard
+        </span>
+      </a>
     </li>
     <li>
-      {{> ui/nav-tab-item selected=(areEqual "projects" selected)
-                          title="Projects"
-                          href="/projects"
-                          icon="notebook" }}
+      <a href="/projects" class="nav-tab-item {{#if (areEqual "projects" selected)}}-selected{{/if}}">
+        {{> icons/notebook class="nav-tab-item__icon" title="Projects" }}
+        <span>
+          Projects
+        </span>
+      </a>
     </li>
     <li>
-      {{> ui/nav-tab-item selected=(areEqual "clients" selected)
-                          title="Clients"
-                          href="/clients"
-                          icon="person" }}
+      <a href="/clients" class="nav-tab-item {{#if (areEqual "clients" selected)}}-selected{{/if}}">
+        {{> icons/person class="nav-tab-item__icon" title="Clients" }}
+        <span>
+          Clients
+        </span>
+      </a>
     </li>
     <li>
-      {{> ui/nav-tab-item selected=(areEqual "log" selected)
-                          title="Log"
-                          href="/log"
-                          icon="history" }}
+      <a href="/log" class="nav-tab-item {{#if (areEqual "log" selected)}}-selected{{/if}}">
+        {{> icons/history class="nav-tab-item__icon" title="Punch log" }}
+        <span>
+          Log
+        </span>
+      </a>
     </li>
     {{!-- <li>
-      {{> ui/nav-tab-item selected=(areEqual "invoices" selected)
-                          title="Invoices"
-                          href="/invoices"
-                          icon="dolar" }}
+      <a href="/invoices" class="nav-tab-item {{#if (areEqual "invoices" selected)}}-selected{{/if}}">
+        {{> icons/dollar class="nav-tab-item__icon" title="Invoices" }}
+        <span>
+          Log
+        </span>
+      </a>
     </li>
     <li>
-      {{> ui/nav-tab-item selected=(areEqual "config" selected)
-                          title="Config"
-                          href="/config"
-                          icon="settings" }}
+      <a href="/config" class="nav-tab-item {{#if (areEqual "config" selected)}}-selected{{/if}}">
+        {{> icons/settings class="nav-tab-item__icon" title="Configuration" }}
+        <span>
+          Config
+        </span>
+      </a>
     </li> --}}
   </ul>
 </nav>

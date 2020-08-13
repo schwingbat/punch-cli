@@ -3,10 +3,7 @@
     class="page-selector__button"
     href="{{backUrl}}"
     {{#if backUrl}}{{else}}disabled{{/if}}>
-    <svg>
-      <title>Previous Page</title>
-      <use xlink:href="/icons/ikonate.svg#chevron-left"></use>
-    </svg>
+    {{> icons/chevron-left title="Previous page" }}
   </a>
 
   <div class="page-selector__info">
@@ -23,9 +20,6 @@
     class="page-selector__button"
     href="{{nextUrl}}"
     {{#if nextUrl}}{{else}}disabled{{/if}}>
-    <svg>
-      <title>Next Page</title>
-      <use xlink:href="/icons/ikonate.svg#chevron-right"></use>
-    </svg>
+    {{> icons/chevron-right title="Next page" }}
   </a>
 </div>

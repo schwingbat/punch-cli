@@ -14,13 +14,16 @@
   <div class="container">
     <form method="post" action="/punch/{{punchId}}/comment/{{commentId}}/edit">
       <textarea class="text-area" name="comment">{{{comment}}}</textarea>
+      
       <div>
         <input type="checkbox" name="keepTimestamp" checked>
         <label for="keepTimestamp">Keep original timestamp</label>
       </div>
       
-      {{> ui/button title="Save Comment"
-                    style="pill" }}
+      <button class="button -pill -wide">
+        {{> icons/chat-add class="button__icon" title="Save comment" }}
+        <span>Save Comment</span>
+      </button>
     </form>
   </div>
 </div>

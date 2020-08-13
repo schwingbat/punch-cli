@@ -2,8 +2,6 @@
   <span>
     {{title}}
   </span>
-  <svg class="menu-item__disclosure">
-    <title>To {{title}}</title>
-    <use xlink:href="/icons/ikonate.svg#chevron-right"></use>
-  </svg>
+
+  {{> icons/chevron-right class="menu-item__disclosure" title="To {{title}}" }}
 </a>

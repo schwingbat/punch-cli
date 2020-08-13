@@ -91,10 +91,7 @@
         <a
           class="button button--pill"
           href="/punch/out/{{punch.id}}?r=/punch/{{punch.id}}">
-          <svg class="button__icon">
-            <title>Punch out</title>
-            <use xlink:href="/icons/ikonate.svg#stopwatch">
-          </svg>
+          {{> icons/stop class="button__icon" title="Punch out" }}
           <span>
             Punch Out
           </span>
@@ -115,10 +112,7 @@
           {{#each comments}}
           <li class="punch-show__comment">
             <div class="punch-show__comment-timestamp">
-              <svg class="punch-show__time-icon">
-                <title>Comment timestamp</title>
-                <use xlink:href="/icons/ikonate.svg#time">
-              </svg>
+              {{> icons/time class="punch-show__time-icon" title="Comment timestamp" }}
 
               <span>{{formatTime (min timestamp ../out)}} ({{dateDiffOffset ../in (min timestamp ../out)}})</span>
             </div>
@@ -129,10 +123,7 @@
               <a
                 class="button -tiny -pill"
                 href="/punch/{{@root.punch.id}}/comment/{{id}}/edit">
-                <svg class="button__icon">
-                  <title>Edit icon</title>
-                  <use xlink:href="/icons/ikonate.svg#edit"></use>
-                </svg>
+                {{> icons/edit class="button__icon" title="Edit icon" }}
                 <span>
                   Edit
                 </span>
@@ -140,10 +131,7 @@
               <a
                 class="button -tiny -danger -pill"
                 href="/punch/{{@root.punch.id}}/comment/{{id}}/delete">
-                <svg class="button__icon">
-                  <title>Delete icon</title>
-                  <use xlink:href="/icons/ikonate.svg#bin"></use>
-                </svg>
+                {{> icons/bin class="button__icon" title="Delete icon" }}
                 <span>
                   Delete
                 </span>
@@ -160,10 +148,7 @@
         <a
           class="button button--pill"
           href="/punch/{{@root.punch.id}}/comment/new?r=/punch/{{@root.punch.id}}">
-          <svg class="button__icon">
-            <title>Add comment</title>
-            <use xlink:href="/icons/ikonate.svg#chat">
-          </svg>
+          {{> icons/chat-add class="button__icon" title="Add comment" }}
           <span>
             Add Comment
           </span>

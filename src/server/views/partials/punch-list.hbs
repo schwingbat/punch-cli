@@ -32,10 +32,7 @@
                   {{comment}}
                 </div>
                 <div class="punch-list__comment-timestamp">
-                  <svg class="punch-list__time-icon" >
-                    <title>Comment timestamp</title>
-                    <use xlink:href="/icons/ikonate.svg#time">
-                  </svg>
+                  {{> icons/time class="punch-list__time-icon" title="Comment timestamp" }}
                   <span>{{formatTime (min timestamp ../out)}} ({{dateDiffOffset ../in (min timestamp ../out)}})</span>
                 </div>
               </li>

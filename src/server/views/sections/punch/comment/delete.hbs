@@ -1,21 +1,14 @@
 {{> ui/nav-tabs }}
 
-{{!-- <div class="main__nav-breadcrumbs">
-  <div class="nav-breadcrumbs">
-    <a href="/menu">Menu</a>
-    <div class="divider"></div>
-    <a href="/punch/{{punchId}}">Punch</a>
-    <div class="divider"></div>
-    <span>Delete Comment</span>
-  </div>
-</div> --}}
-
 <div class="comment-delete page">
   <div class="container">
-    <p>Really delete comment?</p>
+    <p style="margin-bottom: 1em;">Really delete comment?</p>
 
     <form method="post">
-      {{> ui/button title="Yes, Delete" style="pill" }}
+      <button class="button -pill -wide">
+        {{> icons/chat-remove class="button__icon" title="Delete comment" }}
+        <span>Delete Comment</span>
+      </button>
     </form>
   </div>
 </div>
