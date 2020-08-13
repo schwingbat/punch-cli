@@ -68,19 +68,22 @@
     {{/with}}
   </div>
 
+  
+  {{#if currentPunch}}
   <div class="container">
-      {{#if currentPunch}}
-      <section>
-        <header>
-          <h2>Active Punches</h2>
-        </header>
-        <div class="project-show__current-punch">
-          <div>{{> active-punch currentPunch }}</div>
-          {{!-- Active Now - working since {{formatDateTime in}} <a href="/punch/out/{{id}}">Punch Out</a> --}}
-        </div>
-      </section>
-    {{/if}}
+    <section>
+      <header>
+        <h2>Active Punches</h2>
+      </header>
+      <div class="project-show__current-punch">
+        <div>{{> active-punch currentPunch }}</div>
+        {{!-- Active Now - working since {{formatDateTime in}} <a href="/punch/out/{{id}}">Punch Out</a> --}}
+      </div>
+    </section>
+  </div>
+  {{/if}}
 
+  <div class="container">
     <section>
       <header>
         <h2>Recent Work</h2>

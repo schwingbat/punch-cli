@@ -40,22 +40,26 @@
         </div>
       </div>
     </section>
+  </div>
 
-    {{#with current}}
-      {{#if any}}
-        <section>
-          <header>
-            <h2>Active Punches</h2>
-          </header>
-          <ul class="unstyled">
-          {{#each punches}}
-            <li>{{> active-punch . }}</li>
-          {{/each}}
-          </ul>
-        </section>
-      {{/if}}
-    {{/with}}
+  {{#with current}}
+  {{#if any}}
+    <div class="container">
+      <section>
+        <header>
+          <h2>Active Punches</h2>
+        </header>
+        <ul class="unstyled">
+        {{#each punches}}
+          <li>{{> active-punch . }}</li>
+        {{/each}}
+        </ul>
+      </section>
+    </div>
+  {{/if}}
+  {{/with}}
 
+  <div class="container">
     <section>
       <header>
         <h2>Projects</h2>

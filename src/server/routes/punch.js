@@ -140,8 +140,6 @@ route.get("/:id", async function (req, res) {
   const isPaid = punch.rate > 0;
   const earnings = punch.pay();
 
-  console.log({ punch, project, isActive, isPaid, earnings });
-
   res.render("sections/punch/show", {
     punch,
     project,
@@ -210,8 +208,6 @@ route.post("/:punchId/comment/new", async function (req, res) {
   const punch = await Punch.find((p) => p.id === punchId);
 
   if (punch) {
-    console.log({ punchId, body });
-
     punch.addComment(comment);
 
     await punch.save();
