@@ -1,0 +1,38 @@
+<div class="date-input">
+  <div class="form-group">
+    <label for="{{ifNotDefined id "date-input"}}-year">Year</label>
+    <input
+      id="{{ifNotDefined id "date-input"}}-year"
+      name="{{ifNotDefined name "date-input"}}-year"
+      class="text-input date-input__year"
+      type="text"
+      pattern="\d{4}"
+      value="{{getDatePart value "year"}}"
+      {{#if required}}required{{/if}}
+    >
+  </div>
+  <div class="form-group">
+    <label for="{{ifNotDefined id "date-input"}}-month">Month</label>
+    <input
+      id="{{ifNotDefined id "date-input"}}-month"
+      name="{{ifNotDefined name "date-input"}}-month"
+      class="text-input date-input__month"
+      type="text"
+      pattern="^(0?[1-9]|10|11|12)$"
+      value="{{getDatePart value "month"}}"
+      {{#if required}}required{{/if}}
+    >
+  </div>
+  <div class="form-group">
+    <label for="{{ifNotDefined id "date-input"}}-day">Day</label>
+    <input
+      id="{{ifNotDefined id "date-input"}}-day"
+      name="{{ifNotDefined name "date-input"}}-day"
+      class="text-input date-input__day"
+      type="text"
+      pattern="^(0?[1-9]|1[0-9]|2[0-9]|3[0-1])$"
+      value="{{getDatePart value "day"}}"
+      {{#if required}}required{{/if}}
+    >
+  </div>
+</div>

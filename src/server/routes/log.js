@@ -3,6 +3,8 @@ const { ascendingBy, descendingBy } = require("../../utils/sort-factories");
 const is = require("@schwingbat/is");
 const moment = require("moment-timezone");
 
+const dateFormat = "YYYY-MM-DD";
+
 route.get("/", async function (req, res) {
   const page = Number(req.query.page || 1);
   const count = Math.min(Number(req.query.count || 25), 100);
@@ -12,12 +14,42 @@ route.get("/", async function (req, res) {
   const tags = req.query.tag
     ? req.query.tag.split(",").map((p) => p.trim().toLowerCase())
     : null;
+  let start = req.query.start ? moment(req.query.start, dateFormat) : null;
+  let end = req.query.end ? moment(req.query.end, dateFormat) : null;
+
+  if (start) {
+    if (start.isValid()) {
+      start = start.startOf("day").toDate();
+    } else {
+      start = null;
+    }
+  }
+
+  if (end) {
+    if (end.isValid()) {
+      end = end.endOf("day").toDate();
+    } else {
+      end = null;
+    }
+  }
 
   const { Punch, config } = req.props;
 
   const punches = await Punch.filter((punch) => {
     if (projects && !projects.includes(punch.project.toLowerCase())) {
       return false;
+    }
+
+    if (start) {
+      if (punch.in < start) {
+        return false;
+      }
+    }
+
+    if (end) {
+      if (punch.in > end) {
+        return false;
+      }
     }
 
     if (tags) {
@@ -54,7 +86,13 @@ route.get("/", async function (req, res) {
   let backUrl = page > 1 ? `/log?page=${page - 1}` : null;
   let nextUrl = page < totalPages ? `/log?page=${page + 1}` : null;
 
-  let query = encodeQuery(req.query, ["count", "project", "tag"]);
+  let query = encodeQuery(req.query, [
+    "count",
+    "project",
+    "tag",
+    "start",
+    "end",
+  ]);
 
   if (query !== "") {
     filtersUrl += "?" + query;
@@ -69,12 +107,20 @@ route.get("/", async function (req, res) {
     }
   }
 
+  const filters = {
+    start,
+    end,
+    projects,
+    tags,
+    any: (start || end || projects || tags) && true,
+  };
+
   res.render("sections/log/index", {
     groups,
     totalResults: punches.length,
     filtersUrl,
     tagsUrl,
-    hasFilters: Object.keys(req.query).length > 0,
+    filters,
     pagination: {
       currentPage: page,
       totalPages,
@@ -92,6 +138,8 @@ route.get("/filters", async (req, res) => {
   res.render("sections/log/filters", {
     project: req.query.project || "",
     tag: req.query.tag || "",
+    start: req.query.start || "",
+    end: req.query.end || "",
   });
 });
 
@@ -99,13 +147,57 @@ route.get("/filters", async (req, res) => {
  * Redirect back to log page with new filter settings.
  */
 route.post("/filters", async (req, res) => {
+  console.log(req.body);
+
+  let start, end;
+
+  if (
+    req.body["start-date-year"] &&
+    req.body["start-date-month"] &&
+    req.body["start-date-day"]
+  ) {
+    const date = moment(
+      [
+        req.body["start-date-year"],
+        req.body["start-date-month"],
+        req.body["start-date-day"],
+      ].join("-"),
+      dateFormat
+    );
+
+    if (date.isValid()) {
+      start = date.format(dateFormat);
+    }
+  }
+
+  if (
+    req.body["end-date-year"] &&
+    req.body["end-date-month"] &&
+    req.body["end-date-day"]
+  ) {
+    const date = moment(
+      [
+        req.body["end-date-year"],
+        req.body["end-date-month"],
+        req.body["end-date-day"],
+      ].join("-"),
+      dateFormat
+    );
+
+    if (date.isValid()) {
+      end = date.format(dateFormat);
+    }
+  }
+
   let url = "/log";
   let query = encodeQuery(
     {
       ...req.query,
       ...req.body,
+      start,
+      end,
     },
-    ["count", "project", "tag", "page"]
+    ["count", "project", "tag", "page", "start", "end"]
   );
 
   if (query !== "") {

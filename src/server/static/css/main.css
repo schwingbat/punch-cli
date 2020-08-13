@@ -450,6 +450,10 @@ main {
   padding-bottom: 0.1em;
 }
 
+.page section > header h4 {
+  padding-bottom: 0.2em;
+}
+
 .page .section-row {
   display: flex;
   flex-flow: column nowrap;
@@ -494,6 +498,32 @@ main {
 
 .subsection > header {
   margin-bottom: 0.3em;
+}
+
+/*====================================*\
+||                Forms               ||
+\*====================================*/
+
+.form-group {
+  margin-bottom: 1em;
+  display: flex;
+  flex-flow: column nowrap;
+}
+
+.form-group > header {
+  margin-bottom: 0.75em;
+  padding-bottom: 0.25em;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.form-group > label {
+  margin-bottom: 0.25em;
+}
+
+.form-group > input {
+}
+
+.form-group > .form-group__description {
 }
 
 /*====================================*\
@@ -654,6 +684,33 @@ main {
   color: var(--text-input-placeholder-color);
 }
 
+/* ----- Date Input ----- */
+
+.date-input {
+  display: flex;
+  align-items: flex-start;
+}
+
+.date-input > .form-group:not(:last-child) {
+  margin-right: 1em;
+}
+
+.date-input__year,
+.date-input__month,
+.date-input__day {
+  padding: 0 0.5em;
+  text-align: left;
+}
+
+.date-input__year {
+  max-width: 10ex;
+}
+
+.date-input__month,
+.date-input__day {
+  max-width: 6ex;
+}
+
 /* ----- Text Area ----- */
 
 .text-area {
@@ -779,32 +836,7 @@ main {
 /* ----- Tag Link ----- */
 
 .tag-link,
-.tag-param-link {
-  display: inline-flex;
-  align-items: center;
-  text-decoration: none;
-  line-height: 1.1em;
-
-  color: var(--color-yellow);
-  border-bottom: 2px solid var(--color-yellow);
-}
-
-.tag-link:hover,
-.tag-param-link:hover {
-  background-color: var(--color-yellow);
-  color: #000;
-}
-
-.tag-param-link:before {
-  content: "[";
-}
-
-.tag-param-link:after {
-  content: "]";
-}
-
-/* ----- Tag Label ----- */
-
+.tag-param-link,
 .tag-label,
 .tag-param-label {
   display: inline-flex;
@@ -812,16 +844,36 @@ main {
   text-decoration: none;
   line-height: 1.1em;
 
-  color: var(--color-yellow);
+  color: var(--text-color);
+  border-bottom: 2px dotted var(--text-color);
 }
 
+.tag-link:hover,
+.tag-param-link:hover {
+  border-bottom: 2px solid var(--text-color);
+}
+
+.tag-param-link:before,
 .tag-param-label:before {
   content: "[";
 }
 
+.tag-param-link:after,
 .tag-param-label:after {
   content: "]";
 }
+
+/* ----- Tag Label ----- */
+
+/* .tag-label,
+.tag-param-label {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  line-height: 1.1em;
+
+  color: var(--text-color);
+} */
 
 /* ----- Client Link ----- */
 
@@ -1446,7 +1498,8 @@ main {
 
   padding: 0 var(--container-padding);
 
-  border-bottom: 1px solid var(--border-color);
+  border: 1px solid var(--border-color);
+  margin-bottom: 1em;
 }
 
 .log__toolbar-item:not(:last-child) {
@@ -1455,6 +1508,30 @@ main {
 
 .log-tags__tag-list > li {
   line-height: 26px;
+}
+
+.log__filter-bar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  padding: 0.5em var(--container-padding);
+}
+
+.log__filter-bar-status {
+  display: flex;
+  align-items: flex-start;
+}
+
+.log__filter-bar-section {
+}
+
+.log__filter-bar-section > span {
+  font-weight: bold;
+}
+
+.log__filter-bar-section:not(:last-child) {
+  margin-right: 1em;
 }
 
 /*====================================*\

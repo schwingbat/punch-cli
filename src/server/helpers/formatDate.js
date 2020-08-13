@@ -1,10 +1,11 @@
 const moment = require("moment-timezone");
 
-module.exports = props =>
-  function (value) {
+module.exports = (props) =>
+  function (value, format) {
     const { config } = props;
 
-    return moment(value)
-      .tz(config.display.timeZone)
-      .format(config.display.dateFormat);
+    const dateFormat =
+      typeof format === "string" ? format : config.display.dateFormat;
+
+    return moment(value).tz(config.display.timeZone).format(dateFormat);
   };

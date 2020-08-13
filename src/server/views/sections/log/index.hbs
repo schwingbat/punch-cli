@@ -8,7 +8,7 @@
     </div>
 
     <div>
-    {{#if hasFilters}}
+    {{#if filters.any}}
       <a class="log__toolbar-item" href="/log">Clear Filters</a>
     {{else}}
       <span class="log__toolbar-item color-gray">No Filters</span>
@@ -16,13 +16,56 @@
     </div>
   </nav>
 
+  <div class="log__filter-bar">
+    <div class="log__filter-bar-status">
+    {{#with filters}}
+      {{#if projects}}
+      <div class="log__filter-bar-section">
+        <span>Projects</span>
+        <ul class="unstyled">
+          {{#each projects}}
+            <li>{{.}}</li>
+          {{/each}}
+        </ul>
+      </div>
+      {{/if}}
+
+      {{#if tags}}
+      <div class="log__filter-bar-section">
+        <span>Tags</span>
+        <ul class="unstyled">
+          {{#each tags}}
+            <li>{{.}}</li>
+          {{/each}}
+        </ul>
+      </div>
+      {{/if}}
+
+      {{#if start}}
+      <div class="log__filter-bar-section">
+        <span>Start</span>
+        <div>{{formatDate start "YYYY-MM-DD"}}</div>
+      </div>
+      {{/if}}
+
+      {{#if end}}
+      <div class="log__filter-bar-section">
+        <span>End</span>
+        <div>{{formatDate end "YYYY-MM-DD"}}</div>
+      </div>
+      {{/if}}
+    {{/with}}
+    </div>
+    <div>
+      {{#if (areEqual totalResults 1)}}
+        <p>One result</p>
+      {{else}}
+        <p>{{totalResults}} results</p>
+      {{/if}}
+    </div>
+  </div>
+
   <div class="container">
-    {{#if (areEqual totalResults 1)}}
-      <p>One result</p>
-    {{else}}
-      <p>{{totalResults}} results</p>
-    {{/if}}
-    
     <div class="log__page-selector">
       {{> log/page-selector pagination }}
     </div>

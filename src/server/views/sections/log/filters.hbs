@@ -6,15 +6,87 @@
       <header>
         <h2>Filter Options</h2>
       </header>
-      <ul>
-        <li>TODO: Date range?</li>
-      </ul>
+      
       <form method="post">
-        <label>Project(s)</label><br>
-        <input type="text" class="text-input" value="{{project}}" name="project" placeholder="e.g. project-one,project-two">
+        <div class="form-group">
+          <header>
+            <h3><label for="project">Projects</label></h3>
+          </header>
 
-        <label>Tag(s)</label><br>
-        <input type="text" class="text-input" value="{{tag}}" name="tag" placeholder="e.g. tag,tag2">
+          <input
+            type="text"
+            class="text-input"
+            id="project"
+            name="project"
+            placeholder="e.g. project-one,project-two"
+            value="{{project}}"
+          >
+        </div>
+
+        <div class="form-group">
+          <header>
+            <h3><label for="tag">Tags</label></h3>
+          </header>
+          
+          <input
+            type="text"
+            class="text-input"
+            id="tag"
+            name="tag"
+            placeholder="e.g. tag,tag2"
+            value="{{tag}}"
+          >
+        </div>
+
+        <div class="form-group">
+          <header>
+            <h3>Start date</h3>
+          </header>
+
+          {{> date-input name="start-date" value=start }}
+        </div>
+
+        <div class="form-group">
+          <header>
+            <h3>End date</h3>
+          </header>
+
+          {{> date-input name="end-date" value=end }}
+        </div>
+
+        <details class="log-options__help">
+          <summary>Help</summary>
+
+          <section class="log-options__help-section">
+            <header>
+              <h4>Projects</h4>
+            </header>
+            <p>
+              Projects are a comma-separated list of project names (the ones you use to punch in on the CLI). Punches matching <em>any</em> of these will be shown.
+            </p>
+          </section>
+
+          <section class="log-options__help-section">
+            <header>
+              <h4>Tags</h4>
+            </header>
+            <p>
+              Tags are a comma-separated list of <span class="tag-label">#tags</span>. Punches matching <em>any</em> of the tags will be shown.
+            </p>
+            <p>
+              Punches with <em>any</em> tag at all can be matched with the <code>*</code> character. Punches having <em>no tags</em> can be matched with <code>!*</code>.
+            </p>
+          </section>
+
+          <section class="log-options__help-section">
+            <header>
+              <h4>Start &amp; End Dates</h4>
+            </header>
+            <p>
+              Only punches with start timestamps within the range will be shown when dates provided. Specifying just a start or end date is possible as well.
+            </p>
+          </section>
+        </details>
 
         <button class="button -wide">
           Save Filters
