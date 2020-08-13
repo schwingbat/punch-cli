@@ -1,7 +1,7 @@
 {{> ui/nav-tabs selected="log" }}
 
 <div class="log page">
-  <div class="log__toolbar">
+  <nav class="log__toolbar">
     <div>
       <a class="log__toolbar-item" href="{{filtersUrl}}">Edit Filters</a>
       <a class="log__toolbar-item" href="{{tagsUrl}}">Tags</a>
@@ -14,7 +14,7 @@
       <span class="log__toolbar-item color-gray">No Filters</span>
     {{/if}}
     </div>
-  </div>
+  </nav>
 
   <div class="container">
     {{#if (areEqual totalResults 1)}}
@@ -26,8 +26,10 @@
     <div class="log__page-selector">
       {{> log/page-selector pagination }}
     </div>
+  </div>
 
-    {{#each groups}}
+  {{#each groups}}
+  <div class="container">
     <section>
       <header class="section-header">
         <h2>{{title}}</h2>
@@ -35,8 +37,10 @@
 
       {{> punch-list punches=punches }}
     </section>
-    {{/each}}
-
+  </div>
+  {{/each}}
+  
+  <div class="container">
     <div class="log__page-selector">
       {{> log/page-selector pagination }}
     </div>

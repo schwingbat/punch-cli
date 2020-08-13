@@ -410,7 +410,6 @@ main {
 
 .page > .container {
   margin: 0 auto;
-  /*box-shadow: var(--container-shadow);*/
   border-radius: calc(16px * var(--roundness));
   padding: var(--container-padding);
   background-color: var(--content-background-color);
@@ -1436,7 +1435,7 @@ main {
 .log__toolbar {
   position: sticky;
   top: 42px;
-  height: 36px;
+  height: 32px;
   background-color: var(--content-background-color);
 
   z-index: 100;
@@ -1446,22 +1445,12 @@ main {
   justify-content: space-between;
 
   padding: 0 var(--container-padding);
+
+  border-bottom: 1px solid var(--border-color);
 }
 
 .log__toolbar-item:not(:last-child) {
   margin-right: 0.5em;
-}
-
-.log__page-selector {
-  background-color: var(--content-background-color);
-  padding: 0.5em 0;
-  margin-bottom: 1em;
-  position: sticky;
-  top: 78px;
-  left: 0;
-  right: 0;
-
-  z-index: 101;
 }
 
 .log-tags__tag-list > li {
