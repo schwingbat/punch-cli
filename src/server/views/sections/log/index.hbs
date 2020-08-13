@@ -1,7 +1,16 @@
 {{> ui/nav-tabs selected="log" }}
 
 <div class="log page">
+  <a href="{{filtersUrl}}">Edit Filters</a>
+  <a href="{{tagsUrl}}">Tags</a>
+
   <div class="container">
+    {{#if (areEqual totalResults 1)}}
+      <p>One result</p>
+    {{else}}
+      <p>{{totalResults}} results</p>
+    {{/if}}
+    
     <div class="log__page-selector">
       {{> log/page-selector pagination }}
     </div>

@@ -1,0 +1,28 @@
+{{> ui/nav-tabs selected="log" }}
+
+<div class="log-options page">
+  <div class="container">
+    <section>
+      <header>
+        <h2>Filter Options</h2>
+      </header>
+      <ul>
+        <li>TODO: Date range?</li>
+      </ul>
+      <form method="post">
+        <label>Project(s)</label><br>
+        <input type="text" class="text-input" value="{{project}}" name="project" placeholder="e.g. project-one,project-two">
+
+        <label>Tag(s)</label><br>
+        <input type="text" class="text-input" value="{{tag}}" name="tag" placeholder="e.g. tag,tag2">
+
+        <button class="button -wide">
+          Save Filters
+        </button>
+      </form>
+    </section>
+  </div>
+</div>
+
+
+
