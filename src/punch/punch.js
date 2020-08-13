@@ -56,7 +56,15 @@ module.exports = function (config) {
 
     hasTag(tag) {
       tag = tag.replace(/^#/, "").toLowerCase();
-      return !!this.tags.find((t) => t.string.toLowerCase() === tag);
+
+      switch (tag) {
+        case "*":
+          return this.tags.length > 0;
+        case "!*":
+          return this.tags.length === 0;
+        default:
+          return !!this.tags.find((t) => t.string.toLowerCase() === tag);
+      }
     }
 
     /**
