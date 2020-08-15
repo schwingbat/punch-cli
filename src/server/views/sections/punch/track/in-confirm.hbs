@@ -11,13 +11,28 @@
         {{#if activePunch}}
           ALREADY PUNCHED IN
         {{else}}
-          <div class="punch-in-confirm__datetime-picker">
-            <label for="use-now">Use current time</label>
-            <input name="use-now" class="punch-in-confirm__use-now checkbox" type="checkbox" checked>
-            
-            <input class="punch-in-confirm__datetime-input" type="datetime-local">
-          </div>
+          <div class="form-group">
+            <details class="details" open>
+              <summary>Custom timestamp</summary>
 
+              <div class="details__content">
+                <div class="form-group">
+                  <div class="checkbox">
+                    <input id="custom-timestamp" name="custom-timestamp" type="checkbox">
+                    <label for="custom-timestamp"></label>
+                    <label for="custom-timestamp">Use custom timestamp</label>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <div class="datetime-input">
+                    {{> date-input id="start-date" name="start-date" value=defaultDate }}
+                    {{> time-input id="start-time" name="start-time" value=defaultTime }}
+                  </div>
+                </div>
+              </div>
+            </details>
+          </div>
           <button class="button -pill">
             {{> icons/play class="button__icon" title="Punch in icon"}}
             <span>Punch In</span>

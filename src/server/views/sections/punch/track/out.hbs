@@ -17,21 +17,34 @@
         <h2>Punch out of<br><strong style="color: {{projectColor project}}">{{project.name}}</strong></h2>
       </header>
 
-      <div class="subsection">
+      <section>
         <header>
-          <label for="timestamp">Timestamp</label>
-        </header>
-        <input type="checkbox" name="useCustomTimestamp">
-        <label for="useCustomTimestamp">Use custom timestamp</label><br>
-
-        <input class="text-input" type="text" name="timestamp" value="{{outTime}}">
-      </div>
-
-      <div class="subsection">
-        <header>
-          <label for="comment">Comment (optional)</label>
+          <h3><label for="comment">Comment (optional)</label></h3>
         </header>
         <textarea autofocus class="text-area punch-out__comment" name="comment"></textarea>
+      </section>
+
+      <div class="form-group">
+        <details class="details">
+          <summary>Custom timestamp</summary>
+
+          <div class="details__content">
+            <div class="form-group">
+              <div class="checkbox">
+                <input id="custom-timestamp" name="custom-timestamp" type="checkbox">
+                <label for="custom-timestamp"></label>
+                <label for="custom-timestamp">Use custom timestamp</label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="datetime-input">
+                {{> date-input id="end-date" name="end-date" value=defaultDate }}
+                {{> time-input id="end-time" name="end-time" value=defaultTime }}
+              </div>
+            </div>
+          </div>
+        </details>
       </div>
 
       <button class="button button--pill">

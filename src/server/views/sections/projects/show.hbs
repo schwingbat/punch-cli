@@ -29,6 +29,20 @@
           </div>
         </div>
 
+        {{#if color}}
+        <div class="detailsTable__item">
+          <div class="detailsTable__itemLabel">
+            <span>Color</span>
+          </div>
+          <div class="detailsTable__itemContent">
+            <div class="color-swatch" style="--color: {{projectColor .}}">
+              <span class="color-swatch__swatch"></span>
+              <span class="color-swatch__label">{{color}}</span>
+            </div>
+          </div>
+        </div>
+        {{/if}}
+
         <div class="detailsTable__item">
           <div class="detailsTable__itemLabel">
             <span>Total Hours</span>
@@ -77,7 +91,6 @@
       </header>
       <div class="project-show__current-punch">
         <div>{{> active-punch currentPunch }}</div>
-        {{!-- Active Now - working since {{formatDateTime in}} <a href="/punch/out/{{id}}">Punch Out</a> --}}
       </div>
     </section>
   </div>

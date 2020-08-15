@@ -58,9 +58,16 @@ route.get("/in/:project", async function (req, res) {
   const { project } = req.params;
 
   if (projects[project]) {
+    const now = moment();
+
+    const defaultDate = now.format("YYYY-MM-DD");
+    const defaultTime = now.format("HH:mm");
+
     res.render("sections/punch/track/in-confirm", {
       project: projects[project],
       activePunch: await Punch.current(project),
+      defaultDate,
+      defaultTime,
     });
   } else {
     // TODO: Render 404
@@ -87,14 +94,17 @@ route.post("/in/:project", async function (req, res) {
 route.get("/out/:id", async function (req, res) {
   const { Punch, config } = req.props;
 
+  const now = moment();
   const punch = await Punch.find((p) => p.id === req.params.id);
+
+  const defaultDate = req.query.date || now.format("YYYY-MM-DD");
+  const defaultTime = req.query.time || now.format("HH:mm");
 
   return res.render("sections/punch/track/out", {
     id: req.params.id,
     project: config.projects[punch.project],
-    outTime: moment(new Date()).format(
-      `YYYY-MM-DD @ ${config.display.timeFormat}`
-    ),
+    defaultDate,
+    defaultTime,
     returnUrl: req.query.r,
   });
 });
@@ -103,15 +113,33 @@ route.get("/out/:id", async function (req, res) {
 route.post("/out/:id", async function (req, res) {
   // TODO: End punch and redirect to punch details
   const { body } = req;
-  const { Punch, events } = req.props;
+  const { Punch, events, config } = req.props;
   const { id } = req.params;
 
-  const comment = body.comment.trim() != "" ? body.comment : null;
-  const timestamp =
-    body.useCustomTimestamp === "on"
-      ? parseDateTime(body.timestamp)
-      : new Date();
+  let timestamp = new Date();
 
+  if (body["custom-timestamp"] === "on") {
+    const date =
+      body["end-date-year"] +
+      "-" +
+      body["end-date-month"] +
+      "-" +
+      body["end-date-day"];
+    const time = body["end-time-hour"] + ":" + body["end-time-minute"];
+
+    const m = moment.tz(date + " " + time, config.display.timeZone);
+
+    if (m.isValid()) {
+      timestamp = m.toDate();
+    } else {
+      // TODO: return flash error
+      return res.redirect(
+        "/punch/out/" + id + "?date=" + date + "&time=" + time
+      );
+    }
+  }
+
+  const comment = body.comment.trim() != "" ? body.comment : null;
   const punch = await Punch.find((p) => p.id === id);
 
   if (punch) {

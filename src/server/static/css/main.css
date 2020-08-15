@@ -93,6 +93,7 @@ body {
   --text-input-text-color: #000;
   --text-input-border-color: #000;
   --text-input-placeholder-color: #969aa5;
+  --text-input-border-color-focus: var(--color-blue);
 
   --card-color: #e1e5e9;
 
@@ -141,6 +142,7 @@ body {
     --text-input-text-color: #fff;
     --text-input-border-color: var(--border-color);
     --text-input-placeholder-color: #5b6f9c;
+    --text-input-border-color-focus: var(--color-blue);
 
     --card-color: #2a3b4b;
   }
@@ -564,6 +566,12 @@ main {
   border-radius: 9999px;
 }
 
+.button--hollow,
+.button.-hollow {
+  background-color: transparent;
+  border: 2px solid var(--border-color);
+}
+
 .button__icon {
   width: 26px;
   height: 26px;
@@ -612,17 +620,82 @@ main {
 
 /* ----- Checkbox ----- */
 
-/* .checkbox {
-  appearance: none;
-  width: 32px;
-  height: 32px;
+/**
+ * Like so:
+ *
+ * <div class="checkbox">
+ *   <input id="name" type="checkbox">
+ *   <label for="name"></label>
+ *   <label for="name>Optional text label</label>
+ * </div>
+ */
+
+.checkbox {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.checkbox input[type="checkbox"] {
+  position: absolute;
+  visibility: hidden;
+}
+
+.checkbox input[type="checkbox"] + label {
+  width: 24px;
+  height: 24px;
+  background-color: var(--text-input-bg-color);
+  border: 2px solid var(--text-input-border-color);
+  cursor: pointer;
+}
+
+.checkbox input[type="checkbox"]:checked + label {
+  background-color: var(--color-blue);
+  border-color: #fff;
+}
+
+.checkbox input[type="checkbox"] + label + label {
+  margin-left: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* ----- Details ----- */
+
+.details {
   border: 1px solid var(--border-color);
 }
 
-.checkbox:checked {
+.details > summary {
+  position: relative;
+  padding: 0 1em;
+  line-height: 34px;
+  cursor: pointer;
+}
+
+.details > summary:hover:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
   background-color: var(--color-blue);
-  border-color: var(--color-blue);
-} */
+  opacity: 0.05;
+}
+
+.details[open] > summary {
+  border-bottom: none;
+}
+
+.details__content {
+  padding: 1em;
+}
+
+.details__content .form-group:last-child {
+  margin: 0;
+}
 
 /* ----- Dropdown ----- */
 
@@ -675,8 +748,8 @@ main {
   border: 2px solid var(--text-input-border-color);
   font-size: 1em;
   border-radius: calc(3px * var(--roundness));
-  padding: 0 1em;
-  height: 40px;
+  padding: 0 0.5em;
+  height: 34px;
   width: 100%;
 }
 
@@ -684,11 +757,49 @@ main {
   color: var(--text-input-placeholder-color);
 }
 
+.text-input:focus {
+  border: 2px solid var(--text-input-border-color-focus);
+  outline: 0px solid transparent;
+}
+
+.text-input:invalid {
+  border: 2px solid var(--color-red);
+  /* outline: 3px solid orange; */
+  outline: 0px solid transparent;
+}
+
+/* ----- Datetime Input ----- */
+
+/* A container for a date input and a time input with responsive layout properties. */
+.datetime-input {
+  display: flex;
+  flex-flow: column nowrap;
+}
+
+.datetime-input .date-input {
+  margin-bottom: 0.75em;
+}
+
+@media (min-width: 900px) {
+  .datetime-input {
+    flex-flow: row nowrap;
+  }
+
+  .datetime-input .date-input {
+    margin: 0;
+    margin-right: 2em;
+  }
+}
+
 /* ----- Date Input ----- */
 
 .date-input {
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
+}
+
+.date-input .form-group {
+  margin: 0;
 }
 
 .date-input > .form-group:not(:last-child) {
@@ -698,16 +809,40 @@ main {
 .date-input__year,
 .date-input__month,
 .date-input__day {
-  padding: 0 0.5em;
   text-align: left;
 }
 
 .date-input__year {
-  max-width: 10ex;
+  max-width: 9ex;
 }
 
 .date-input__month,
 .date-input__day {
+  max-width: 6ex;
+}
+
+/* ----- Time Input ----- */
+
+.time-input {
+  display: flex;
+  align-items: flex-end;
+}
+
+.time-input .form-group {
+  margin: 0;
+}
+
+.time-input__divider {
+  padding: 0 0.3em;
+  /* font-weight: bold; */
+  line-height: 34px;
+}
+
+.time-input__hour,
+.time-input__minute,
+.time-input__second {
+  padding: 0 0.5em;
+  text-align: left;
   max-width: 6ex;
 }
 
@@ -722,8 +857,29 @@ main {
   border: 2px solid var(--text-input-border-color);
   font-size: 1em;
   border-radius: calc(3px * var(--roundness));
-  padding: 1em;
+  padding: 0.5em;
   width: 100%;
+}
+
+.text-area:focus {
+  border: 2px solid var(--color-blue);
+}
+
+/* ----- Color Swatch ----- */
+
+.color-swatch {
+  display: flex;
+  align-items: center;
+}
+
+.color-swatch__swatch {
+  height: 20px;
+  width: 20px;
+  background-color: var(--color);
+}
+
+.color-swatch__label {
+  margin-left: 0.5em;
 }
 
 /* ----- Active Punch ----- */
@@ -1135,6 +1291,7 @@ main {
   font-weight: bold;
   padding-bottom: 0.25em;
   white-space: nowrap;
+  vertical-align: middle;
 }
 
 .detailsTable__itemContent {

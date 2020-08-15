@@ -1,0 +1,27 @@
+<div class="time-input">
+  <div class="form-group">
+    <label for="{{ifNotDefined id "time-input"}}-hour">Hour</label>
+    <input
+      id="{{ifNotDefined id "time-input"}}-hour"
+      name="{{ifNotDefined name "time-input"}}-hour"
+      class="text-input time-input__hour"
+      type="text"
+      pattern="^(0?[0-9]|1[0-9]|2[0-3])$"
+      value="{{getTimePart value "hour"}}"
+      {{#if required}}required{{/if}}
+    >
+  </div>
+  <span class="time-input__divider">:</span>
+  <div class="form-group">
+    <label for="{{ifNotDefined id "time-input"}}-minute">Minute</label>
+    <input
+      id="{{ifNotDefined id "time-input"}}-minute"
+      name="{{ifNotDefined name "time-input"}}-minute"
+      class="text-input time-input__minute"
+      type="text"
+      pattern="^(0?[0-9]|[1-5][0-9])$"
+      value="{{getTimePart value "minute"}}"
+      {{#if required}}required{{/if}}
+    >
+  </div>
+</div>

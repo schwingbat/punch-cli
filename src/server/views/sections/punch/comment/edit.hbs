@@ -13,11 +13,20 @@
 <div class="comment-edit page">
   <div class="container">
     <form method="post" action="/punch/{{punchId}}/comment/{{commentId}}/edit">
-      <textarea class="text-area" name="comment">{{{comment}}}</textarea>
       
-      <div>
-        <input type="checkbox" name="keepTimestamp" checked>
-        <label for="keepTimestamp">Keep original timestamp</label>
+      <div class="form-group">
+        <label for="comment">
+          Comment
+        </label>
+        <textarea class="text-area" name="comment">{{{comment}}}</textarea>
+      </div>
+
+      <div class="form-group">
+        <div class="checkbox">
+          <input id="keepTimestamp" name="keepTimestamp" type="checkbox" checked>
+          <label for="keepTimestamp"></label>
+          <label for="keepTimestamp">Keep original timestamp</label>
+        </div>
       </div>
       
       <button class="button -pill -wide">
