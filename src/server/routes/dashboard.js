@@ -183,6 +183,7 @@ function getProjectsSummary(punches, interval, { config }) {
 
     projectArray.push({
       name,
+      alias,
       color: getFallbackColor(color, projects[alias]),
       duration,
       earnings,

@@ -7,16 +7,18 @@
   <ul class="projects-summary__projects unstyled">
     {{#each projects}}
       <li>
-        <span class="projects-summary__project-name" style="color: {{projectColor .}}">
-          {{name}}
-        </span>
-        <span class="projects-summary__project-stats">
-          {{formatDurationMs duration}}
+        <a class="projects-summary__project-link" href="/projects/{{alias}}">
+          <span class="projects-summary__project-name" style="color: {{projectColor .}}">
+            {{name}}
+          </span>
+          <span class="projects-summary__project-stats">
+            {{formatDurationMs duration}}
 
-          {{#if earnings}}
-            &middot; {{formatCurrency earnings}}
-          {{/if}}
-        </span>
+            {{#if earnings}}
+              &middot; {{formatCurrency earnings}}
+            {{/if}}
+          </span>
+        </a>
       </li>
     {{/each}}
   </ul>

@@ -947,12 +947,16 @@ main {
   padding: 0.1em 0;
 }
 
-.projects-summary__projects > li {
+.projects-summary__project-link {
+  position: relative;
   display: flex;
   flex-direction: column;
+  text-decoration: none;
 }
 
-.projects-summary__projects > li:not(:last-child) {
+.projects-summary__projects
+  > li:not(:last-child)
+  .projects-summary__project-link {
   display: flex;
   flex-direction: column;
   margin-bottom: 0.5em;
