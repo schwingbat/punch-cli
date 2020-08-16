@@ -3,9 +3,7 @@ const config = require("../config").current();
 
 exports.formatDate = (date) => {
   const { dateFormat } = config.display;
-
-  const fmt = moment(date).format(dateFormat);
-  return fmt;
+  return moment(date).format(dateFormat);
 };
 
 exports.formatDateTime = (date) => {

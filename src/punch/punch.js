@@ -197,7 +197,7 @@ module.exports = function (config) {
       }
 
       if (this.out && this.out < this.in) {
-        const formatDate = require("date-fns/format");
+        const { formatDate } = require("../format/date");
         const format = "MMM Do yyyy [at] h:mm:ss A";
         const inTime = formatDate(this.in, format);
         const outTime = formatDate(this.out, format);
