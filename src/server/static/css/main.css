@@ -431,7 +431,7 @@ main {
 
 /* ----- Section ----- */
 
-.page section {
+.page section:not(:last-of-type) {
   margin-bottom: 1em;
 }
 
@@ -500,6 +500,10 @@ main {
 
 .subsection > header {
   margin-bottom: 0.3em;
+}
+
+.page section .subsection:last-of-type {
+  margin-bottom: 0;
 }
 
 /*====================================*\
@@ -1560,6 +1564,10 @@ main {
   margin: 0 auto;
 }
 
+.dashboard__card {
+  margin-bottom: 1em;
+}
+
 .dashboard .active-punches {
 }
 
@@ -1588,6 +1596,16 @@ main {
   /* color: var(--color-gray); */
   display: block;
   margin-bottom: 1.5em;
+}
+
+.dashboard__log-link {
+  color: var(--color-blue);
+}
+
+.dashboard__empty-card {
+  /* border: 1px solid orange; */
+  color: var(--color-gray);
+  padding: 0;
 }
 
 @media (min-width: 800px) {

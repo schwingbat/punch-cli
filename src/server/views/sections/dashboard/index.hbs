@@ -10,7 +10,7 @@
 
 <div class="dashboard page">
   <div class="section-row">
-    <section>
+    <section class="dashboard__card">
       <header>
         <h1>Now</h1>
       </header>
@@ -44,177 +44,18 @@
   </div>
 
   <div class="section-row collapse-dir-reverse">
-    <section>
-      <header>
-        <h1>Today</h1>
-      </header>
-
-      {{#with summaries.today}}
-        <div class="subsection">
-          {{> dashboard/section-summary . }}
-        </div>
-
-        <div class="subsection">
-          <header>
-            <span>By Project</span>
-          </header>
-
-          {{> dashboard/projects-summary . }}
-        </div>
-
-        <div class="subsection">
-          <header>
-            <span>Punches</span>
-          </header>
-
-          {{> punch-list punches=punches }}
-        </div>
-      {{/with}}
-    </section>
-
-    <section>
-      <header>
-        <h1>Yesterday</h1>
-      </header>
-
-      {{#with summaries.yesterday}}
-        <div class="subsection">
-          {{> dashboard/section-summary . }}
-        </div>
-
-        <div class="subsection">
-          <header>
-            <span>By Project</span>
-          </header>
-
-          {{> dashboard/projects-summary . }}
-        </div>
-
-        <div class="subsection">
-          <header>
-            <span>Punches</span>
-          </header>
-
-          {{> punch-list punches=punches }}
-        </div>
-      {{/with}}
-    </section>
+    {{> dashboard/card summaries.today title="Today" emptyMessageKey="no-sessions-today" }}
+    {{> dashboard/card summaries.yesterday title="Yesterday" emptyMessageKey="no-sessions-yesterday" }}
   </div>
 
   <div class="section-row collapse-dir-reverse">
-    <section>
-      <header>
-        <h1>This Week</h1>
-      </header>
-
-      {{#with summaries.thisWeek}}
-        <div class="subsection">
-          {{> dashboard/section-summary . }}
-        </div>
-
-        <div class="subsection">
-          <header>
-            <span>Daily Average</span>
-          </header>
-
-          {{> dashboard/section-summary dailyAverage small=true }}
-        </div>
-
-        <div class="subsection">
-          <header>
-            <span>By Project</span>
-          </header>
-
-          {{> dashboard/projects-summary . }}
-        </div>
-      {{/with}}
-    </section>
-
-    <section>
-      <header>
-        <h1>Last Week</h1>
-      </header>
-
-      {{#with summaries.lastWeek}}
-        <div class="subsection">
-          {{> dashboard/section-summary . }}
-        </div>
-
-        <div class="subsection">
-          <header>
-            <span>Daily Average</span>
-          </header>
-
-          {{> dashboard/section-summary dailyAverage small=true }}
-        </div>
-
-        <div class="subsection">
-          <header>
-            <span>By Project</span>
-          </header>
-
-          {{> dashboard/projects-summary . }}
-        </div>
-      {{/with}}
-    </section>
+    {{> dashboard/card summaries.thisWeek title="This Week" }}
+    {{> dashboard/card summaries.lastWeek title="Last Week" }}
   </div>
 
   <div class="section-row collapse-dir-reverse">
-    <section>
-      <header>
-        <h1>This Month</h1>
-      </header>
-
-      {{#with summaries.thisMonth}}
-        <div class="subsection">
-          {{> dashboard/section-summary . }}
-        </div>
-
-        <div class="subsection">
-          <header>
-            <span>Weekly Average</span>
-          </header>
-
-          {{> dashboard/section-summary weeklyAverage small=true }}
-        </div>
-
-        <div class="subsection">
-          <header>
-            <span>By Project</span>
-          </header>
-
-          {{> dashboard/projects-summary . }}
-        </div>
-      {{/with}}
-    </section>
-
-    <section>
-      <header>
-        <h1>Last Month</h1>
-      </header>
-
-      {{#with summaries.lastMonth}}
-        <div class="subsection">
-          {{> dashboard/section-summary . }}
-        </div>
-
-        <div class="subsection">
-          <header>
-            <span>Weekly Average</span>
-          </header>
-
-          {{> dashboard/section-summary weeklyAverage small=true }}
-        </div>
-
-        <div class="subsection">
-          <header>
-            <span>By Project</span>
-          </header>
-
-          {{> dashboard/projects-summary . }}
-        </div>
-      {{/with}}
-    </section>
+    {{> dashboard/card summaries.thisMonth title="This Month" }}
+    {{> dashboard/card summaries.lastMonth title="Last Month" }}
   </div>
   
 </div>

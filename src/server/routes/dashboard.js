@@ -68,6 +68,10 @@ route.get("/", async function (req, res) {
 
 module.exports = route;
 
+function getDateQuery(date) {
+  return moment(date).format("YYYY-MM-DD");
+}
+
 async function getDaySummary(date, { config, Punch }) {
   const interval = {
     start: moment(date).startOf("day").toDate(),
@@ -109,13 +113,18 @@ async function getWeekSummary(interval, { config, Punch }) {
 
   const totalDays = differenceInDays(interval.end, interval.start);
 
+  const startKey = getDateQuery(interval.start);
+  const endKey = getDateQuery(interval.end);
+
   return {
+    isEmpty: duration === 0,
+    logUrl: `/log?start=${startKey}&end=${endKey}`,
     duration,
     earnings,
     projects: getProjectsSummary(punches, interval, { config }),
     dailyAverage: {
-      duration: duration / totalDays,
-      earnings: earnings / totalDays,
+      duration: totalDays > 0 ? duration / totalDays : 0,
+      earnings: totalDays > 0 ? earnings / totalDays : 0,
     },
   };
 }
@@ -135,13 +144,18 @@ async function getMonthSummary(interval, { config, Punch }) {
 
   const weeks = differenceInWeeks(interval.end, interval.start) || 1;
 
+  const startKey = getDateQuery(interval.start);
+  const endKey = getDateQuery(interval.end);
+
   return {
+    isEmpty: duration === 0,
+    logUrl: `/log?start=${startKey}&end=${endKey}`,
     duration,
     earnings,
     projects: getProjectsSummary(punches, interval, { config }),
     weeklyAverage: {
-      duration: duration / weeks,
-      earnings: earnings / weeks,
+      duration: weeks > 0 ? duration / weeks : 0,
+      earnings: weeks > 0 ? earnings / weeks : 0,
     },
   };
 }

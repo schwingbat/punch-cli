@@ -1,0 +1,59 @@
+<section class="dashboard__card">
+  <header>
+    <h1>{{title}}</h1>
+  </header>
+
+  <div class="subsection">
+    {{> dashboard/section-summary . }}
+  </div>
+
+  {{#if (areEqual duration 0)}}
+    <div class="dashboard__empty-card">
+      {{messageFor (ifNotDefined emptyMessageKey "no-sessions")}}
+    </div>
+  {{else}}
+    {{#if dailyAverage}}
+    <div class="subsection">
+      <header>
+        <span>Daily Average</span>
+      </header>
+
+      {{> dashboard/section-summary dailyAverage small=true }}
+    </div>
+    {{/if}}
+
+    {{#if weeklyAverage}}
+    <div class="subsection">
+      <header>
+        <span>Weekly Average</span>
+      </header>
+
+      {{> dashboard/section-summary weeklyAverage small=true }}
+    </div>
+    {{/if}}
+
+    <div class="subsection">
+      <header>
+        <span>By Project</span>
+      </header>
+
+      {{> dashboard/projects-summary . }}
+    </div>
+
+    {{#if punches}}
+    <div class="subsection">
+      <header>
+        <span>Punches</span>
+      </header>
+
+      {{> punch-list punches=punches }}
+    </div>
+    {{/if}}
+
+    {{#if logUrl}}
+    <div class="subsection">
+      <a class="dashboard__log-link" href="{{logUrl}}">All punches</a>
+    </div>
+    {{/if}}
+  {{/if}}
+</section>
