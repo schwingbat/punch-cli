@@ -1,18 +1,21 @@
 const route = require("express").Router();
 const passport = require("passport");
+const parseFlash = require("../utils/parse-flash");
+
+const placeholders = ["hunter2", "p@ssw0rd", "v3ry5ecure"];
 
 route.get("/", function (req, res) {
-  console.log(req.flash());
+  const placeholder =
+    placeholders[Math.round(Math.random() * (placeholders.length - 1))];
+
   res.render("sections/auth/login", {
-    layout: "base",
+    placeholder,
+    messages: req.flash(),
   });
 });
 
 route.post(
   "/",
-  (req, res, next) => {
-    next();
-  },
   passport.authenticate("local", {
     successRedirect: "/",
     failureRedirect: "/login",

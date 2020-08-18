@@ -28,6 +28,9 @@
           <ul class="punch-list__comments unstyled" style="--project-accent: {{projectColor project}}">
             {{#each comments}}
               <li>
+                <div class="punch-list__comment-pointer">
+                  <div class="punch-list__comment-pointer-inner"></div>
+                </div>
                 <div class="punch-list__comment">
                   {{formatTags .}}
                 </div>

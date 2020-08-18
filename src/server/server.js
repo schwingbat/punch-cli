@@ -27,6 +27,8 @@ exports.start = function start({ port, props, autoOpen = true }) {
   const server = express();
   const loggedIn = ensureLoggedIn("/login");
 
+  server.use(flash());
+
   passport.use(
     new LocalStrategy((username, password, done) => {
       const configHash = props.config.server.auth.passwordHash;
@@ -55,11 +57,10 @@ exports.start = function start({ port, props, autoOpen = true }) {
       resave: false,
       saveUninitialized: false,
       store: new FileStore({
-        path: path.join(props.config.punchPath, "server", "sessions")
-      })
+        path: path.join(props.config.punchPath, "server", "sessions"),
+      }),
     })
   );
-  server.use(flash());
 
   // Serve static files from './static' directory
   server.use(express.static(path.join(__dirname, "static")));

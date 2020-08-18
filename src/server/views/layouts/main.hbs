@@ -16,5 +16,33 @@
     <main>
       {{{ body }}}
     </main>
+
+    {{#if messages}}
+    <ul class="unstyled flash-messages">
+      {{#if messages.error}}
+        {{#each messages.error}}
+          <li class="message--error">
+            {{.}}
+          </li>
+        {{/each}}
+      {{/if}}
+
+      {{#if messages.success}}
+        {{#each messages.success}}
+          <li class="message--success">
+            {{.}}
+          </li>
+        {{/each}}
+      {{/if}}
+
+      {{#if messages.info}}
+        {{#each messages.info}}
+          <li class="message--info">
+            {{.}}
+          </li>
+        {{/each}}
+      {{/if}}
+    </ul>
+    {{/if}}
   </body>
 </html>

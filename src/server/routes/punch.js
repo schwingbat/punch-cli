@@ -282,11 +282,11 @@ route.post("/:punchId/comment/:commentId/edit", async function (req, res) {
     const comment = punch.comments.find((c) => c.id === commentId);
 
     if (comment) {
-      comment.comment = body.comment;
-
-      if (body.keepTimestamp != "on") {
-        comment.timestamp = new Date();
-      }
+      punch.editComment(
+        commentId,
+        body.comment,
+        body.keepTimestamp ? null : new Date()
+      );
     }
 
     await punch.save();

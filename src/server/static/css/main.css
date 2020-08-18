@@ -102,6 +102,10 @@ body {
   text-rendering: geometricPrecision;
   background-color: var(--background-color);
   color: var(--text-color);
+
+  min-height: 100vh;
+  display: flex;
+  flex-flow: column nowrap;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -121,7 +125,8 @@ body {
     --background-color: #0d1722;
     --content-background-color: #1a2e42; /* #122232 */
     --text-color: #fff;
-    --border-color: #6081a1;
+    /* --border-color: #6081a1; */
+    --border-color: #345372;
 
     --navbar-color: #0d1722;
     --navbar-text-inactive-color: #eee;
@@ -279,9 +284,33 @@ ol.unstyled {
 /* ----- Layout ----- */
 
 main {
-  /* display: flex; */
-  /* flex-flow: column nowrap; */
+  display: flex;
+  flex-flow: column nowrap;
+  flex: 1 1 100%;
   padding-bottom: 2em;
+}
+
+.flash-messages {
+  /* flex: 1 1 100%; */
+}
+
+.flash-messages li {
+  padding: 0.25em 1em;
+}
+
+.message--error {
+  background-color: var(--color-red);
+  color: #fff;
+}
+
+.message--success {
+  background-color: var(--color-green);
+  color: #fff;
+}
+
+.message--info {
+  background-color: var(--color-red);
+  color: #fff;
 }
 
 /* ----- Main Nav ----- */
@@ -408,6 +437,8 @@ main {
 .page {
   max-width: 900px;
   margin: 0 auto;
+  flex: 1 1 100%;
+  width: 100%;
 }
 
 .page > .container {
@@ -753,7 +784,7 @@ main {
   font-size: 1em;
   border-radius: calc(3px * var(--roundness));
   padding: 0 0.5em;
-  height: 34px;
+  height: 40px;
   width: 100%;
 }
 
@@ -1113,6 +1144,14 @@ main {
   background-color: var(--project-accent);
 
   --bracket-size: 11px;
+
+  display: none;
+}
+
+@media (min-width: 800px) {
+  .punch-list__color-bar {
+    display: block;
+  }
 }
 
 /*.punch-list__color-bar::after {
@@ -1168,6 +1207,10 @@ main {
 .punch-list__comments {
   margin-top: 0.5em;
   /* font-size: 1em; */
+
+  --border-width: 1px;
+  --pointer-width: 8px;
+  --pointer-height: 12px;
 }
 
 .punch-list__comments > li {
@@ -1175,16 +1218,52 @@ main {
   flex-flow: column nowrap;
   position: relative;
 
-  border: 1px solid var(--project-accent);
-  border-radius: 12px;
+  border: var(--border-width) solid var(--project-accent);
   padding: 0.5em 0.75em;
+  margin-left: 10px;
+
+  border-radius: 12px;
+  border-top-left-radius: 0;
 }
 
 .punch-list__comments > li > * {
   z-index: 1;
 }
 
-.punch-list__comments > li::after {
+.punch-list__comment-pointer {
+  position: absolute;
+  top: calc(var(--border-width) * -1);
+  right: 100%;
+  background-color: transparent;
+  z-index: 0;
+
+  border-right: var(--pointer-width) solid var(--project-accent);
+  border-bottom: var(--pointer-height) solid transparent;
+}
+
+.punch-list__comment-pointer-inner {
+  content: "";
+  position: absolute;
+  top: var(--border-width);
+  left: calc(var(--border-width) * 2);
+  border-right: var(--pointer-width) solid var(--content-background-color);
+  border-bottom: var(--pointer-height) solid transparent;
+  opacity: 0.9;
+}
+
+.punch-list__comment-pointer-inner::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: var(--project-accent);
+  opacity: 0.5;
+  z-index: 12;
+}
+
+.punch-list__comment-pointer::after {
   content: "";
   position: absolute;
   top: 0;
@@ -1194,6 +1273,19 @@ main {
   background-color: var(--project-accent);
   opacity: 0.1;
   z-index: 0;
+}
+
+/* Edge caret bubble pointer thing. Naming is hard. */
+.punch-list__comments > li::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: var(--project-accent);
+  opacity: 0.1;
+  z-index: 1;
 }
 
 .punch-list__comments > li:not(:last-child) {
@@ -1287,23 +1379,25 @@ main {
 
 .detailsTable__item {
   display: table-row;
-  padding-top: 0.75em;
+  /* padding-top: 0.75em; */
+  border: none;
+  font-size: 1em;
 }
 
-.detailsTable__item:not(:first-child) {
+/* .detailsTable__item:not(:first-child) {
   border-top: 1px solid var(--border-color);
-}
+} */
 
 .detailsTable__itemLabel {
   display: table-cell;
   font-weight: bold;
   padding-bottom: 0.25em;
   white-space: nowrap;
-  vertical-align: middle;
+  vertical-align: top;
 }
 
 .detailsTable__itemContent {
-  padding-bottom: 0.75em;
+  padding-bottom: 1em;
   font-weight: normal;
 }
 
@@ -1317,7 +1411,7 @@ main {
     flex-direction: row;
   }
 
-  .detailsTable__item:not(:first-child):after {
+  /* .detailsTable__item:not(:first-child):after {
     content: "";
     position: absolute;
     top: 0;
@@ -1325,7 +1419,7 @@ main {
     right: 0;
     height: 1px;
     background-color: var(--border-color);
-  }
+  } */
 
   .detailsTable__itemLabel {
     width: 8em;
@@ -1455,11 +1549,13 @@ main {
 \*====================================*/
 
 .page.login {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  /* position: absolute; */
+  /* top: 0; */
+  /* right: 0; */
+  /* bottom: 0; */
+  /* left: 0; */
+  width: 100%;
+  flex: 1 1 100%;
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -1484,13 +1580,6 @@ main {
   align-items: center;
 }
 
-.login-password-field .text-input {
-  border-top-left-radius: calc(5px * var(--roundness));
-  border-bottom-left-radius: calc(5px * var(--roundness));
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-}
-
 .login-password-field .login-button {
   width: 100%;
   -webkit-appearance: none;
@@ -1502,7 +1591,6 @@ main {
   border: none;
   border-top-right-radius: calc(5px * var(--roundness));
   border-bottom-right-radius: calc(5px * var(--roundness));
-  margin-left: 2px;
   margin-top: 0.5em;
   cursor: pointer;
 }
@@ -1666,7 +1754,7 @@ main {
 .log__toolbar {
   position: sticky;
   top: 42px;
-  height: 32px;
+  height: 40px;
   background-color: var(--content-background-color);
 
   z-index: 100;
@@ -1677,8 +1765,13 @@ main {
 
   padding: 0 var(--container-padding);
 
-  border: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+
   margin-bottom: 1em;
+}
+
+.log__toolbar-item {
+  text-decoration: none;
 }
 
 .log__toolbar-item:not(:last-child) {
@@ -1711,6 +1804,12 @@ main {
 
 .log__filter-bar-section:not(:last-child) {
   margin-right: 1em;
+}
+
+@media (min-width: 800px) {
+  .log__toolbar {
+    border: 1px solid var(--border-color);
+  }
 }
 
 /*====================================*\

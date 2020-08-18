@@ -1,13 +1,5 @@
 {{> ui/nav-tabs selected="dashboard" }}
 
-{{!-- <div class="main__nav-breadcrumbs">
-  <div class="nav-breadcrumbs">
-    <a href="/menu">Menu</a>
-    <div class="divider"></div>
-    <span>Dashboard</span>
-  </div>
-</div> --}}
-
 <div class="dashboard page">
   <div class="section-row">
     <section class="dashboard__card">
@@ -35,10 +27,10 @@
 
     <div class="clock-header">
       <span class="clock-header__date">
-        Mon, Feb 3
+        {{dateLabel}}
       </span>
       <span class="clock-header__time">
-        10:11 PM
+        {{timeLabel}}
       </span>
     </div>
   </div>

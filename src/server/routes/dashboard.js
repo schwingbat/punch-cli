@@ -60,9 +60,15 @@ route.get("/", async function (req, res) {
     lastMonth: await getMonthSummary(lastMonthInterval, props),
   };
 
+  const now = moment();
+  const dateLabel = now.format("ddd, MMM YY");
+  const timeLabel = now.format("H:mm A");
+
   res.render("sections/dashboard/index", {
     current,
     summaries,
+    dateLabel,
+    timeLabel,
   });
 });
 
@@ -213,6 +219,6 @@ function getFallbackColor(color, project) {
     return color;
   } else {
     // TODO: Generate consistent color based on project info.
-    return "blue";
+    return "gray";
   }
 }

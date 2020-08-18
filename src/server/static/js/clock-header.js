@@ -1,4 +1,4 @@
-(function() {
+(function () {
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   const months = [
@@ -13,12 +13,16 @@
     "Sep",
     "Oct",
     "Nov",
-    "Dec"
+    "Dec",
   ];
 
   const init = () => {
     const date = document.querySelector(".clock-header__date");
     const time = document.querySelector(".clock-header__time");
+
+    if (date == null || time == null) {
+      return;
+    }
 
     const updateDate = () => {
       const now = new Date();
@@ -34,10 +38,7 @@
     const updateTime = () => {
       const now = new Date();
       const hours = now.getHours();
-      const m = now
-        .getMinutes()
-        .toString()
-        .padStart(2, "0");
+      const m = now.getMinutes().toString().padStart(2, "0");
       let h = hours % 12;
 
       if (h === 0) {
