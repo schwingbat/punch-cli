@@ -3,6 +3,8 @@
     {{formatDurationMs duration resolution="hours" short=true}}
   </span>
   <span class="section-summary__earnings">
+    {{#if earnings}}
     {{formatCurrency earnings}}
+    {{/if}}
   </span>
 </div>
