@@ -1,89 +1,11 @@
 {{> ui/nav-tabs selected="projects" }}
 
-<div class="project-show page">
-  <div class="container">
-    {{#with project}}
-    <section>
-      <header>
-        <h1>{{name}}</h1>
-      </header>
+<div class="project-show page" style="--project-accent: {{projectColor project}}">
+  <header>
+    <h1>{{project.name}}</h1>
+  </header>
 
-      <div class="detailsTable">
-        {{#if client}}
-        <div class="detailsTable__item">
-          <div class="detailsTable__itemLabel">
-            <span>Client</span>
-          </div>
-          <div class="detailsTable__itemContent">
-            {{> client-link client }}
-          </div>
-        </div>
-        {{/if}}
-
-        <div class="detailsTable__item">
-          <div class="detailsTable__itemLabel">
-            <span>Last Active</span>
-          </div>
-          <div class="detailsTable__itemContent">
-            {{@root.lastActiveLabel}}
-          </div>
-        </div>
-
-        {{#if color}}
-        <div class="detailsTable__item">
-          <div class="detailsTable__itemLabel">
-            <span>Color</span>
-          </div>
-          <div class="detailsTable__itemContent">
-            <div class="color-swatch" style="--color: {{projectColor .}}">
-              <span class="color-swatch__swatch"></span>
-              <span class="color-swatch__label">{{color}}</span>
-            </div>
-          </div>
-        </div>
-        {{/if}}
-
-        <div class="detailsTable__item">
-          <div class="detailsTable__itemLabel">
-            <span>Total Hours</span>
-          </div>
-          <div class="detailsTable__itemContent">
-            {{formatDurationMs ../totalDuration}}
-          </div>
-        </div>
-
-        <div class="detailsTable__item">
-          <div class="detailsTable__itemLabel">
-            <span>Hourly Rate</span>
-          </div>
-          <div class="detailsTable__itemContent">
-            {{#if hourlyRate}}
-              {{formatCurrency hourlyRate}}
-            {{else}}
-              ---
-            {{/if}}
-          </div>
-        </div>
-
-        <div class="detailsTable__item">
-          <div class="detailsTable__itemLabel">
-            <span>Total Earned</span>
-          </div>
-          <div class="detailsTable__itemContent">
-            {{#if hourlyRate}}
-              {{formatCurrency ../totalPay}}
-            {{else}}
-              ---
-            {{/if}}
-          </div>
-        </div>
-      </div>
-    </section>
-    {{/with}}
-  </div>
-
-  
-  {{#if currentPunch}}
+    {{#if currentPunch}}
   <div class="container">
     <section>
       <header>
@@ -96,7 +18,193 @@
   </div>
   {{/if}}
 
-  <div class="container">
+  <div class="container-row">
+    <div class="container">
+      {{#with project}}
+      <section>
+        <header>
+          <h2>Project Info</h2>
+        </header>
+
+        <div class="detailsTable">
+          {{#if color}}
+          <div class="detailsTable__item">
+            <div class="detailsTable__itemLabel">
+              <span>Color</span>
+            </div>
+            <div class="detailsTable__itemContent">
+              <div class="color-swatch" style="--color: {{projectColor .}}">
+                <span class="color-swatch__swatch"></span>
+                <span class="color-swatch__label">{{color}}</span>
+              </div>
+            </div>
+          </div>
+          {{/if}}
+
+          {{#if client}}
+          <div class="detailsTable__item">
+            <div class="detailsTable__itemLabel">
+              <span>Client</span>
+            </div>
+            <div class="detailsTable__itemContent">
+              {{> client-link client }}
+            </div>
+          </div>
+          {{/if}}
+
+          <div class="detailsTable__item">
+            <div class="detailsTable__itemLabel">
+              <span>Last Active</span>
+            </div>
+            <div class="detailsTable__itemContent">
+              {{@root.lastActiveLabel}}
+            </div>
+          </div>
+
+          {{#if ../specifiesBusinessDays}}
+          <div class="detailsTable__item">
+            <div class="detailsTable__itemLabel">
+              <span>Business Days</span>
+            </div>
+            <div class="detailsTable__itemContent">
+              {{> working-days businessDays}}
+            </div>
+          </div>
+          {{/if}}
+
+          <div class="detailsTable__item">
+            <div class="detailsTable__itemLabel">
+              <span>Hourly Rate</span>
+            </div>
+            <div class="detailsTable__itemContent">
+              {{#if hourlyRate}}
+                {{formatCurrency hourlyRate}}
+              {{else}}
+                <span class="color-gray">None</span>
+              {{/if}}
+            </div>
+          </div>
+
+          <div class="detailsTable__item">
+            <div class="detailsTable__itemLabel">
+              <span>Total Hours</span>
+            </div>
+            <div class="detailsTable__itemContent">
+              {{formatDurationMs ../totalDuration}}
+            </div>
+          </div>
+
+          {{#if hourlyRate}}
+          <div class="detailsTable__item">
+            <div class="detailsTable__itemLabel">
+              <span>Total Earned</span>
+            </div>
+            <div class="detailsTable__itemContent">
+              {{formatCurrency ../totalPay}}
+            </div>
+          </div>
+          {{/if}}
+        </div>
+      </section>
+      {{/with}}
+    </div>
+
+    {{#if invoice}}
+    <div class="container">
+      <section>
+        <header>
+          <h2>Current Invoice</h2>
+        </header>
+
+        {{#with invoice}}
+        <div class="detailsTable">
+          <div class="detailsTable__item">
+            <div class="detailsTable__itemLabel">
+              <span>Dates</span>
+            </div>
+            <div class="detailsTable__itemContent">
+              <span class="no-wrap">{{formatDate startDate "YYYY-MM-DD"}} &mdash;</span>
+              <span class="no-wrap">{{formatDate endDate "YYYY-MM-DD"}}</span>
+            </div>
+          </div>
+
+          <div class="detailsTable__item">
+            <div class="detailsTable__itemLabel">
+              <span>Ends In</span>
+            </div>
+            <div class="detailsTable__itemContent">
+              {{remainingDays}} {{pluralize "Day" remainingDays}}
+              {{#if ../specifiesBusinessDays}}
+                <span class="no-wrap color-gray">
+                  ({{remainingWorkingDays}} {{pluralize "working day" remainingWorkingDays}})
+                </span>
+              {{/if}}
+            </div>
+          </div>
+
+          <div class="detailsTable__item">
+            <div class="detailsTable__itemLabel">
+              <span>Total Hours</span>
+            </div>
+            <div class="detailsTable__itemContent">
+            {{#if (areEqual duration 0)}}
+              <span class="color-gray">None</span>
+            {{else}}
+              {{formatDurationMs duration}}
+              {{#if ../specifiesBusinessDays}}
+                <span class="no-wrap color-gray">
+                  ({{formatDurationMs remainingTimeToTarget resolution="m"}} remaining)
+                </span>
+              {{/if}}
+            {{/if}}
+            </div>
+          </div>
+
+          <div class="detailsTable__item">
+            <div class="detailsTable__itemLabel">
+              <span>Total Earned</span>
+            </div>
+            <div class="detailsTable__itemContent">
+            {{#if (areEqual earnings 0)}}
+              <span class="color-gray">None</span>
+            {{else}}
+              {{formatCurrency earnings}}
+            {{/if}}
+            </div>
+          </div>
+
+          {{#if targetHours}}
+          <div class="detailsTable__item">
+            <div class="detailsTable__itemLabel">
+              <span>Target Hours</span>
+            </div>
+            <div class="detailsTable__itemContent">
+              {{targetHours}}h
+            </div>
+          </div>
+          {{/if}}
+        </div>
+
+        {{#if ../specifiesBusinessDays}}
+        <p class="project-show__invoice-description">
+          <svg class="project-show__invoice-description-corner" viewBox="0 0 9 14" version="1.1">
+            <path class="project-show__invoice-description-corner__fill" d="M 0 0.5 L 8 0.5 L 1 13" />
+            <path class="project-show__invoice-description-corner__shade" d="M 0 0.5 L 8 0.5 L 1 13" />
+            <path class="project-show__invoice-description-corner__outline" d="M 0 1 L 8 1 L 2 12" />
+          </svg>
+          <span>
+            You would need to work <strong>{{formatDurationMs avgTimePerRemainingDay resolution="h" short=true}}</strong> each remaining business day to hit your target hours.
+          </span>
+        </p>
+        {{/if}}
+
+        {{/with}}
+      </section>
+    </div>
+    {{/if}}
+  </div>
+
+  <div class="container -with-more">
     <section>
       <header>
         <h2>Recent Work</h2>
@@ -106,23 +214,8 @@
                      showDate=true
                      showProject=false
                      showColorBar=true }}
-
-      <div class="project-show__recent-actions">
-        <a href="/log?project={{project.alias}}">See more</a>
-      </div>
     </section>
-  </div>
 
-  <div class="container">
-        <section>
-      <header>
-        <h2>Notes</h2>
-      </header>
-
-      <h3>Stuff That Goes On This Page</h3>
-      <ul>
-        <li>Work summary (today, this week, this month)</li>
-      </ul>
-    </section>
+    <a class="project-show__see-more" href="/log?project={{project.alias}}">See more...</a>
   </div>
 </div>

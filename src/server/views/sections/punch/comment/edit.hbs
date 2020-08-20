@@ -1,16 +1,10 @@
 {{> ui/nav-tabs }}
 
-{{!-- <div class="main__nav-breadcrumbs">
-  <div class="nav-breadcrumbs">
-    <a href="/menu">Menu</a>
-    <div class="divider"></div>
-    <a href="/punch/{{punchId}}">Punch</a>
-    <div class="divider"></div>
-    <span>Edit Comment</span>
-  </div>
-</div> --}}
-
 <div class="comment-edit page">
+  <header>
+    <h1>Edit Comment</h1>
+  </header>
+
   <div class="container">
     <form method="post" action="/punch/{{punchId}}/comment/{{commentId}}/edit">
       

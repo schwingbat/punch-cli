@@ -28,9 +28,11 @@
           <ul class="punch-list__comments unstyled" style="--project-accent: {{projectColor project}}">
             {{#each comments}}
               <li>
-                <div class="punch-list__comment-pointer">
-                  <div class="punch-list__comment-pointer-inner"></div>
-                </div>
+                <svg class="punch-list__comment-corner" viewBox="0 0 9 14" version="1.1">
+                  <path class="punch-list__comment-corner__fill" d="M 12 0.5 L 1 0.5 L 9 13" />
+                  <path class="punch-list__comment-corner__shade" d="M 12 0.5 L 1 0.5 L 9 13" />
+                  <path class="punch-list__comment-corner__outline" d="M 9 1 L 1 1 L 8 12" />
+                </svg>
                 <div class="punch-list__comment">
                   {{formatTags .}}
                 </div>

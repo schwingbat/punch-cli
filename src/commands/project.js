@@ -1,23 +1,13 @@
 const { Command } = require("@ratwizard/cli");
+const moment = require("moment-timezone");
+const wordWrap = require("@fardog/wordwrap")();
+const chalk = require("chalk");
+const formatDistance = require("date-fns/formatDistance");
 
 const { formatDate } = require("../format/date");
 const formatDuration = require("../format/duration");
-const formatDistance = require("date-fns/formatDistance");
 const formatCurrency = require("../format/currency");
-
-const moment = require("moment-timezone");
-// const startOfMonth = require("date-fns/startOfMonth");
-// const addDays = require("date-fns/addDays");
-// const endOfMonth = require("date-fns/endOfMonth");
-// const { ascendingBy } = require("../utils/sort-factories");
-// const { projectSummary } = require("../logging/printing");
-// const formatSummary = require("../format/project-summary");
-// const getLabelFor = require("../utils/get-label-for");
-// const padWithLines = require("../logging/pad-with-lines");
-
 const makeProjectColorizer = require("../utils/make-project-colorizer");
-const wordWrap = require("@fardog/wordwrap")();
-const chalk = require("chalk");
 
 module.exports = new Command()
   .description("show detailed stats for a project")
@@ -163,31 +153,31 @@ function getInvoiceBounds(config, referenceDate = new Date()) {
       let value = config.endDate;
 
       if (typeof value === "string") {
-        const str = config.endDate.toLowerCase();
+        const str = config.endDate.toLowerCase().trim();
 
         if (str === "first") {
-          start = moment(now).startOf("month").date();
+          value = 1;
         } else if (str === "last") {
-          start = moment(now).startOf("month").subtract(1, "month").date();
+          value = moment(now).subtract(1, "month").endOf("month").date();
         }
       }
 
       // Determine whether we're past the end and into the next month.
       if (date <= value) {
-        end = moment(now).set("date", value).endOf("day").valueOf();
+        end = moment(now).set("date", value).endOf("day").toDate();
       } else {
         end = moment(now)
           .set("date", value)
           .add(1, "month")
           .endOf("day")
-          .valueOf();
+          .toDate();
       }
 
       start = moment(end)
         .subtract(1, "month")
         .add(1, "day")
         .startOf("day")
-        .valueOf();
+        .toDate();
     }
   }
 

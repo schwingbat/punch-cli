@@ -10,19 +10,17 @@
   </div>
 </div> --}}
 
-<div class="punch-out page">
+<div class="punch-out page" style="--project-accent: {{projectColor project}}">
+  <header>
+    <h1>Punch out of <strong style="color: var(--project-accent)">{{project.name}}</strong></h1>
+  </header>
+
   <div class="container">
     <form method="post">
-      <header>
-        <h2>Punch out of<br><strong style="color: {{projectColor project}}">{{project.name}}</strong></h2>
-      </header>
-
-      <section>
-        <header>
-          <h3><label for="comment">Comment (optional)</label></h3>
-        </header>
+      <div class="form-group">
+        <label for="comment">Comment (optional)</label>
         <textarea autofocus class="text-area punch-out__comment" name="comment"></textarea>
-      </section>
+      </div>
 
       <div class="form-group">
         <details class="details">
@@ -47,7 +45,7 @@
         </details>
       </div>
 
-      <button class="button button--pill">
+      <button class="button -pill -wide" style="background-color: var(--project-accent)">
         {{> icons/stop class="button__icon" title="Punch out icon" }}
         <span>Punch Out</span>
       </button>

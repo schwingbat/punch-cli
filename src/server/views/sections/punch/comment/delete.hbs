@@ -1,11 +1,15 @@
 {{> ui/nav-tabs }}
 
 <div class="comment-delete page">
+  <header>
+    <h1>Delete Comment</h1>
+  </header>
+
   <div class="container">
     <p style="margin-bottom: 1em;">Really delete comment?</p>
 
     <form method="post">
-      <button class="button -pill -wide">
+      <button class="button -pill -wide -danger">
         {{> icons/chat-remove class="button__icon" title="Delete comment" }}
         <span>Delete Comment</span>
       </button>

@@ -1,10 +1,37 @@
 {{> ui/nav-tabs }}
 
 <div class="punch-show page" style="--project-accent: {{projectColor project}}">
+  <header>
+    <h1 style="color: var(--project-accent)">Punch Details</h1>
+  </header>
+
+  {{!-- <div class="container-row"> --}}
+
+  {{#if isActive}}
   <div class="container">
     <section>
       <header>
-        <h1>Punch Details</h1>
+        <h2>Actions</h2>
+      </header>
+      <div class="punch-show__active-actions">
+        <a
+          class="button -pill -wide"
+          style="background-color: var(--project-accent)"
+          href="/punch/out/{{punch.id}}?r=/punch/{{punch.id}}">
+          {{> icons/stop class="button__icon" title="Punch out" }}
+          <span>
+            Punch Out
+          </span>
+        </a>
+      </div>
+    </section>
+  </div>
+  {{/if}}
+
+  <div class="container">
+    <section>
+      <header>
+        <h2>Punch Info</h2>
       </header>
 
       <div class="detailsTable">
@@ -33,7 +60,7 @@
           <div class="detailsTable__itemContent">
             <span>
               {{#if isActive}}
-                <span class="punch-show__label--faded">---</span>
+                <span class="color-gray">---</span>
               {{else}}
                 {{formatTime punch.out}} &mdash; {{formatDate punch.out}}
               {{/if}}
@@ -60,52 +87,30 @@
           </div>
         </div> <!-- /duration -->
 
-        <div class="detailsTable__item">
-          <div class="detailsTable__itemLabel">
-            <span>Hourly Rate</span>
-          </div>
-          <div class="detailsTable__itemContent">
-            <span>{{formatCurrency punch.rate}}</span>
-          </div>
-        </div> <!-- /rate -->
-
+        {{#if isPaid}}
         <div class="detailsTable__item">
           <div class="detailsTable__itemLabel">
             <span>Earnings</span>
           </div>
           <div class="detailsTable__itemContent">
             <span>
-              {{#if isPaid}}
-                {{#if isActive}}
-                  <span
-                    data-ticker="currency"
-                    data-ticker-value="{{earnings}}"
-                    data-ticker-hourly-rate="{{punch.rate}}">
+              {{#if isActive}}
+                <span
+                  data-ticker="currency"
+                  data-ticker-value="{{earnings}}"
+                  data-ticker-hourly-rate="{{punch.rate}}">
 
-                    {{formatCurrency earnings}}
-                  </span>
-                {{else}}
                   {{formatCurrency earnings}}
-                {{/if}}
-                {{!-- &mdash; {{formatCurrency punch.rate}} / hour --}}
+                </span>
               {{else}}
-                <span class="punch-show__label--faded">---</span>
+                {{formatCurrency earnings}}
               {{/if}}
+              <span class="no-wrap color-gray">({{formatCurrency punch.rate}}/hr)</span>
             </span>
           </div>
         </div> <!-- /earnings -->
+        {{/if}}
       </div>
-
-      {{#if isActive}}
-        <a
-          class="button button--pill"
-          href="/punch/out/{{punch.id}}?r=/punch/{{punch.id}}">
-          {{> icons/stop class="button__icon" title="Punch out" }}
-          <span>
-            Punch Out
-          </span>
-        </a>
-      {{/if}}
     </section>
   </div>
 
@@ -126,9 +131,15 @@
               <span>{{formatTime (min timestamp ../out)}} ({{dateDiffOffset ../in (min timestamp ../out)}})</span>
             </div>
             <div class="punch-show__comment-text">
+              <svg class="punch-show__comment-corner" viewBox="0 0 9 14" version="1.1">
+                <path class="punch-show__comment-corner__fill" d="M 12 0.5 L 1 0.5 L 9 13" />
+                <path class="punch-show__comment-corner__shade" d="M 12 0.5 L 1 0.5 L 9 13" />
+                <path class="punch-show__comment-corner__outline" d="M 9 1 L 1 1 L 8 12" />
+              </svg>
+
               <span>{{linkifyTags .}}</span>
             </div>
-            <div class="punch-show__comment-actions">
+            <div class="punch-show__comment-actions -pill">
               <a
                 class="button -tiny -pill"
                 href="/punch/{{@root.punch.id}}/comment/{{id}}/edit">
@@ -149,13 +160,13 @@
           </li>
           {{/each}}
         {{else}}
-          <li>No comments</li>
+          <li><span class="color-gray">There are no comments.</span></li>
         {{/if}}
       </ul>
 
       <div class="punch-show__add-comment-button">
         <a
-          class="button button--pill"
+          class="button -pill"
           href="/punch/{{@root.punch.id}}/comment/new?r=/punch/{{@root.punch.id}}">
           {{> icons/chat-add class="button__icon" title="Add comment" }}
           <span>
@@ -167,4 +178,6 @@
       {{/with}}
     </section>
   </div>
+
+  {{!-- </div> <!-- /container-row --> --}}
 </div>
