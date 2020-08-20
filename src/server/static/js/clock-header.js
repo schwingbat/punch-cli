@@ -25,16 +25,16 @@
       return;
     }
 
-    const updateDate = () => {
-      const now = new Date();
-      const dow = now.getDay() % 7;
-      const mo = now.getMonth();
-      const dt = now.getDate();
+    // const updateDate = () => {
+    //   const now = new Date();
+    //   const dow = now.getDay() % 7;
+    //   const mo = now.getMonth();
+    //   const dt = now.getDate();
 
-      const value = `${days[dow]}, ${months[mo]} ${dt}`;
+    //   const value = `${days[dow]}, ${months[mo]} ${dt}`;
 
-      date.innerHTML = value;
-    };
+    //   date.innerHTML = value;
+    // };
 
     const updateTime = () => {
       const now = new Date();
@@ -54,16 +54,16 @@
     };
 
     /*----- Japanese Style -----*/
-    // const updateDate = () => {
-    //   const now = new Date();
-    //   const dow = now.getDay() % 7;
-    //   const mo = now.getMonth();
-    //   const dt = now.getDate();
+    const updateDate = () => {
+      const now = new Date();
+      const dow = now.getDay() % 7;
+      const mo = now.getMonth();
+      const dt = now.getDate();
 
-    //   const value = `${mo}月${dt}日 <span class="color-gray">${daysJa[dow]}</span>`;
+      const value = `${months[mo]} ${dt} <span class="color-gray">${daysJa[dow]}</span>`;
 
-    //   date.innerHTML = value;
-    // };
+      date.innerHTML = value;
+    };
 
     // const updateTime = () => {
     //   const now = new Date();
