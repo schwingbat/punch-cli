@@ -1,4 +1,4 @@
-<section class="dashboard__card">
+<section class="dashboard__card{{#if logUrl}} -with-more{{/if}}">
   <header>
     <h1>{{title}}</h1>
   </header>
@@ -51,9 +51,9 @@
     {{/if}}
 
     {{#if logUrl}}
-    <div class="subsection">
-      <a class="dashboard__log-link" href="{{logUrl}}">All punches</a>
-    </div>
+    <a class="dashboard__card__see-more" href="{{logUrl}}">
+      See more...
+    </a>
     {{/if}}
   {{/if}}
 </section>
