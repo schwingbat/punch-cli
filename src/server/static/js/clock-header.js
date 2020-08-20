@@ -60,7 +60,7 @@
       const mo = now.getMonth();
       const dt = now.getDate();
 
-      const value = `${months[mo]} ${dt} <span class="color-gray">${daysJa[dow]}</span>`;
+      const value = `${months[mo]} ${dt} <a href="https://en.wikipedia.org/wiki/Japanese_calendar#Subdivisions_of_the_month" class="clock-header__link color-gray">${daysJa[dow]}</a>`;
 
       date.innerHTML = value;
     };
