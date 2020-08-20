@@ -1,5 +1,6 @@
 (function () {
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const daysJa = ["日", "月", "火", "水", "木", "金", "土"];
 
   const months = [
     "Jan",
@@ -32,7 +33,7 @@
 
       const value = `${days[dow]}, ${months[mo]} ${dt}`;
 
-      date.textContent = value;
+      date.innerHTML = value;
     };
 
     const updateTime = () => {
@@ -51,6 +52,31 @@
 
       time.innerHTML = value;
     };
+
+    /*----- Japanese Style -----*/
+    // const updateDate = () => {
+    //   const now = new Date();
+    //   const dow = now.getDay() % 7;
+    //   const mo = now.getMonth();
+    //   const dt = now.getDate();
+
+    //   const value = `${mo}月${dt}日 <span class="color-gray">${daysJa[dow]}</span>`;
+
+    //   date.innerHTML = value;
+    // };
+
+    // const updateTime = () => {
+    //   const now = new Date();
+    //   const hours = now.getHours();
+    //   const m = now.getMinutes();
+    //   let h = hours % 12;
+
+    //   let meridiem = hours > 11 ? "午後" : "午前";
+
+    //   const value = `<sup style="font-size: 0.5em">${meridiem}</sup>${h}:${m}`;
+
+    //   time.innerHTML = value;
+    // };
 
     if (date) {
       Clock.on("minute", updateDate);

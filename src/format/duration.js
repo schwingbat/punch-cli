@@ -103,6 +103,46 @@ module.exports = function formatDuration(milliseconds, opts = {}) {
     const s = (parts.seconds || 0).toString().padStart(2, "0");
 
     return `${h}:${m}:${s}`;
+  } else if (opts.style === "japanese") {
+    let out = [];
+
+    if ("hours" in parts) {
+      let hourString = parts.hours.toString();
+
+      // Add commas
+      if (hourString.length > 3) {
+        const chars = [];
+        const rev = hourString.split("").reverse();
+        for (let i = 0; i < rev.length; i++) {
+          chars.push(rev[i]);
+          if (i !== 0 && i !== rev.length - 1 && (i + 1) % 3 === 0) {
+            chars.push(",");
+          }
+        }
+        hourString = chars.reverse().join("");
+      }
+
+      let hours = hourString + "時";
+      out.push(hours);
+    }
+
+    if ("minutes" in parts) {
+      let minutes = parts.minutes + "分";
+      if (padded && "hours" in parts) {
+        minutes = minutes.padStart(3);
+      }
+      out.push(minutes);
+    }
+
+    if ("seconds" in parts) {
+      let seconds = parts.seconds + "秒";
+      if (padded && ("minutes" in parts || "hours" in parts)) {
+        seconds = seconds.padStart(3);
+      }
+      out.push(seconds);
+    }
+
+    return out.join("");
   } else {
     let out = [];
 

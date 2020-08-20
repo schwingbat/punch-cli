@@ -1,4 +1,4 @@
-<ul class="unstyled working-days">
+{{!-- <ul class="unstyled working-days">
   <li {{#if (includes . 0)}}class="-selected"{{/if}}><span>S</span></li>
   <li {{#if (includes . 1)}}class="-selected"{{/if}}><span>M</span></li>
   <li {{#if (includes . 2)}}class="-selected"{{/if}}><span>T</span></li>
@@ -6,4 +6,14 @@
   <li {{#if (includes . 4)}}class="-selected"{{/if}}><span>T</span></li>
   <li {{#if (includes . 5)}}class="-selected"{{/if}}><span>F</span></li>
   <li {{#if (includes . 6)}}class="-selected"{{/if}}><span>S</span></li>
+</ul> --}}
+
+<ul class="unstyled working-days">
+  <li {{#if (includes . 0)}}class="-selected"{{/if}}><span>日</span></li>
+  <li {{#if (includes . 1)}}class="-selected"{{/if}}><span>月</span></li>
+  <li {{#if (includes . 2)}}class="-selected"{{/if}}><span>火</span></li>
+  <li {{#if (includes . 3)}}class="-selected"{{/if}}><span>水</span></li>
+  <li {{#if (includes . 4)}}class="-selected"{{/if}}><span>木</span></li>
+  <li {{#if (includes . 5)}}class="-selected"{{/if}}><span>金</span></li>
+  <li {{#if (includes . 6)}}class="-selected"{{/if}}><span>土</span></li>
 </ul>
