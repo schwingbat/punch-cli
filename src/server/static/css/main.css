@@ -1034,7 +1034,7 @@ input {
 }
 
 .working-days > li.-selected {
-  color: var(--text-color);
+  color: #fff;
   font-weight: bold;
 }
 
@@ -1702,6 +1702,23 @@ input {
 
 .dashboard__card {
   margin-bottom: 1em;
+  position: relative;
+}
+
+.dashboard__card.-with-more {
+  padding-bottom: calc(var(--container-padding) + 50px) !important;
+}
+
+.dashboard__card__see-more {
+  height: 50px;
+  line-height: 50px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--border-color);
+  text-decoration: none;
+  text-align: center;
 }
 
 .dashboard .active-punches {
@@ -1725,7 +1742,10 @@ input {
 .dashboard .clock-header__time {
   font-size: 3em;
   font-weight: lighter;
-  /* text-align: right; */
+}
+
+.dashboard .clock-header__link {
+  text-decoration: none;
 }
 
 .dashboard .no-active-punches {
@@ -1745,6 +1765,10 @@ input {
 }
 
 @media (min-width: 800px) {
+  .dashboard .clock-header__date {
+    text-align: right;
+  }
+
   .dashboard .clock-header__time {
     text-align: right;
   }
