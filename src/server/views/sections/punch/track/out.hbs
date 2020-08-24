@@ -36,6 +36,17 @@
             </div>
 
             <div class="form-group">
+              <header>
+                <label>Started At</label>
+              </header>
+              
+              <span>{{startTimeLabel}}</span>
+            </div>
+
+            <div class="form-group">
+              <header>
+                <label>End At</label>
+              </header>
               <div class="datetime-input">
                 {{> date-input id="end-date" name="end-date" value=defaultDate }}
                 {{> time-input id="end-time" name="end-time" value=defaultTime }}

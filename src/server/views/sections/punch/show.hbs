@@ -5,28 +5,21 @@
     <h1 style="color: var(--project-accent)">Punch Details</h1>
   </header>
 
-  {{!-- <div class="container-row"> --}}
-
   {{#if isActive}}
-  <div class="container">
-    <section>
-      <header>
-        <h2>Actions</h2>
-      </header>
-      <div class="punch-show__active-actions">
-        <a
-          class="button -pill -wide"
-          style="background-color: var(--project-accent)"
-          href="/punch/out/{{punch.id}}?r=/punch/{{punch.id}}">
-          {{> icons/stop class="button__icon" title="Punch out" }}
-          <span>
-            Punch Out
-          </span>
-        </a>
-      </div>
-    </section>
+  <div class="punch-show__punch-out">
+    <a
+      class="button -pill -wide"
+      style="background-color: var(--project-accent)"
+      href="/punch/out/{{punch.id}}?r=/punch/{{punch.id}}">
+      {{> icons/stop class="button__icon" title="Punch out" }}
+      <span>
+        Punch Out
+      </span>
+    </a>
   </div>
   {{/if}}
+
+  {{!-- <div class="container-row"> --}}
 
   <div class="container">
     <section>
@@ -49,7 +42,7 @@
             <span>Start</span>
           </div>
           <div class="detailsTable__itemContent">
-            <span>{{formatTime punch.in}} &mdash; {{formatDate punch.in}}</span>
+            <span>{{formatDateTime punch.in}}</span>
           </div>
         </div> <!-- /start -->
 
@@ -62,7 +55,7 @@
               {{#if isActive}}
                 <span class="color-gray">---</span>
               {{else}}
-                {{formatTime punch.out}} &mdash; {{formatDate punch.out}}
+                <span>{{formatDateTime punch.out}}</span>
               {{/if}}
             </span>
           </div>
@@ -176,6 +169,34 @@
       </div>
       
       {{/with}}
+    </section>
+  </div>
+
+  <div class="container">
+    <section>
+      <header>
+        <h2>Actions</h2>
+      </header>
+      <div class="punch-show__active-actions">
+        {{!-- <a
+          class="button -pill -wide"
+          href="/punch/out/{{punch.id}}?r=/punch/{{punch.id}}">
+          {{> icons/edit class="button__icon" title="Edit punch" }}
+          <span>
+            Edit
+          </span>
+        </a> --}}
+
+        <a
+          class="button -pill -wide -danger"
+          href="/punch/{{punch.id}}/delete">
+          {{> icons/bin class="button__icon" title="Delete punch" }}
+          <span>
+            Delete
+          </span>
+        </a>
+
+      </div>
     </section>
   </div>
 

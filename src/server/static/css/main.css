@@ -853,21 +853,22 @@ input {
 /* A container for a date input and a time input with responsive layout properties. */
 .datetime-input {
   display: flex;
-  flex-flow: column nowrap;
+  flex-flow: row wrap;
+  justify-content: space-between;
 }
 
-.datetime-input .date-input {
+/* .datetime-input .date-input {
   margin-bottom: 0.75em;
-}
+} */
 
-@media (min-width: 900px) {
+@media (min-width: 700px) {
   .datetime-input {
-    flex-flow: row nowrap;
+    justify-content: flex-start;
   }
 
   .datetime-input .date-input {
     margin: 0;
-    margin-right: 2em;
+    margin-right: 1em;
   }
 }
 
@@ -882,8 +883,12 @@ input {
   margin: 0;
 }
 
+.date-input .form-group label {
+  font-size: 0.9em;
+}
+
 .date-input > .form-group:not(:last-child) {
-  margin-right: 1em;
+  margin-right: 0.5em;
 }
 
 .date-input__year,
@@ -893,12 +898,12 @@ input {
 }
 
 .date-input__year {
-  max-width: 9ex;
+  max-width: 8ex;
 }
 
 .date-input__month,
 .date-input__day {
-  max-width: 6ex;
+  max-width: 5ex;
 }
 
 /* ----- Time Input ----- */
@@ -912,8 +917,12 @@ input {
   margin: 0;
 }
 
+.time-input .form-group label {
+  font-size: 0.9em;
+}
+
 .time-input__divider {
-  padding: 0 0.3em;
+  padding: 0 0.12em;
   /* font-weight: bold; */
   line-height: 34px;
 }
@@ -923,7 +932,7 @@ input {
 .time-input__second {
   padding: 0 0.5em;
   text-align: left;
-  max-width: 6ex;
+  max-width: 5ex;
 }
 
 /* ----- Text Area ----- */
@@ -2122,8 +2131,18 @@ input {
 
 .punch-show__active-actions {
   margin-top: 1em;
+  display: flex;
+  flex-flow: column nowrap;
 }
 
+.punch-show__active-actions > *:not(:last-child) {
+  margin-bottom: 1em;
+}
+
+.punch-show__punch-out {
+  padding: var(--container-padding);
+  padding-top: 0;
+}
 /*====================================*\
 ||             Punch In               ||
 \*====================================*/
@@ -2196,7 +2215,4 @@ input {
 
 .punch-out form header {
   margin-bottom: 1em;
-}
-
-.punch-out form header > h2 {
 }

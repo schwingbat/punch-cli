@@ -7,11 +7,14 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const bodyParser = require("body-parser");
 const exphbs = require("express-handlebars");
+const chalk = require("chalk");
 const open = require("open");
 const bcrypt = require("bcrypt");
 const flash = require("connect-flash");
 const { ensureLoggedIn } = require("connect-ensure-login");
 const withToken = require("./middleware/with-token");
+
+const moment = require("moment");
 
 const { join } = path;
 
@@ -55,6 +58,7 @@ exports.start = function start({ port, props, autoOpen = true }) {
     session({
       secret: "topsecret",
       resave: false,
+      ttl: 20160, // 14 days
       saveUninitialized: false,
       store: new FileStore({
         path: path.join(props.config.punchPath, "server", "sessions"),

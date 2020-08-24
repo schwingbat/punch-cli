@@ -103,6 +103,9 @@ route.get("/out/:id", async function (req, res) {
   return res.render("sections/punch/track/out", {
     id: req.params.id,
     project: config.projects[punch.project],
+    startTimeLabel: moment(punch.in)
+      .tz(config.display.timeZone)
+      .format(config.display.dateTimeFormat),
     defaultDate,
     defaultTime,
     returnUrl: req.query.r,
@@ -188,6 +191,8 @@ route.get("/:id/delete", async function (req, res) {
 
   if (punch) {
     const project = config.projects[punch.project];
+
+    req.flash("success", "Punch deleted");
 
     return res.render("sections/punch/delete", {
       id,

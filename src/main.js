@@ -12,6 +12,7 @@ if (BENCHMARK) {
 
 const { Command } = require("@ratwizard/cli");
 
+const moment = require("moment");
 const hammerspoon = require("./utils/hammerspoon");
 const EventEmitter = require("events");
 const bench = require("./utils/bench")({ disabled: !BENCHMARK });
@@ -32,6 +33,21 @@ const print = require("./printing")({
 });
 
 const input = require("./input");
+
+const { dateTimeLocale } = config.display;
+
+if (dateTimeLocale) {
+  try {
+    require("moment/locale/" + dateTimeLocale);
+    moment.locale(dateTimeLocale);
+  } catch (err) {
+    console.log(
+      chalk.yellow(
+        "Your dateTimeLocale (" + dateTimeLocale + ") is not recognized."
+      )
+    );
+  }
+}
 
 bench.mark("punch loaded");
 

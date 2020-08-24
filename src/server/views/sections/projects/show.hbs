@@ -123,17 +123,17 @@
               <span>Dates</span>
             </div>
             <div class="detailsTable__itemContent">
-              <span class="no-wrap">{{formatDate startDate "YYYY-MM-DD"}} &mdash;</span>
-              <span class="no-wrap">{{formatDate endDate "YYYY-MM-DD"}}</span>
+              <span class="no-wrap">{{formatDate startDate}} &mdash;</span>
+              <span class="no-wrap">{{formatDate endDate}}</span>
             </div>
           </div>
 
           <div class="detailsTable__item">
             <div class="detailsTable__itemLabel">
-              <span>Ends In</span>
+              <span>Ends</span>
             </div>
             <div class="detailsTable__itemContent">
-              {{remainingDays}} {{pluralize "Day" remainingDays}}
+              in {{remainingDays}} {{pluralize "day" remainingDays}}
               {{#if ../specifiesBusinessDays}}
                 <span class="no-wrap color-gray">
                   ({{remainingWorkingDays}} {{pluralize "working day" remainingWorkingDays}})

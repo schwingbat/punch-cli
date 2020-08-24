@@ -19,13 +19,15 @@
       "enabled": true,
       "fromPreviousComment": true
     },
-    "dateFormat": "dddd, MMMM Do YYYY",
+    "dateTimeFormat": "llll",
+    "dateFormat": "ll",
+    "timeFormat": "LT",
+    "timeZone": "America/Los_Angeles",
     "showCommentIndices": false,
     "showDayGraphics": true,
     "showPunchIDs": false,
     "textColors": true,
-    "timeFormat": "h:mm A",
-    "timeZone": "America/Los_Angeles",
+
     "wordWrapWidth": 65
   },
   "storageType": "ledger"
